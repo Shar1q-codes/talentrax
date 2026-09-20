@@ -57,11 +57,11 @@ export const SITE_URL: string = (
 ).replace(/\/+$/, "");
 
 export const site: SiteConfig = {
-  name: "TalentRax Global",
-  legalName: "TalentRax Global",
+  name: "Talentrax Global",
+  legalName: "Talentrax Global",
   tagline: "Staffing and recruiting for healthcare, IT and professional teams",
   description:
-    "TalentRax Global is a US staffing and recruiting firm placing healthcare, IT and professional talent through direct hire, contract, contract-to-hire, RPO and executive search.",
+    "Talentrax Global is a US staffing and recruiting firm placing healthcare, IT and professional talent through direct hire, contract, contract-to-hire, RPO and executive search.",
   url: SITE_URL,
   locale: "en-US",
   foundingCopyrightYear: 2026,

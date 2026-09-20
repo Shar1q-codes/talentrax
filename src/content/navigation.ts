@@ -222,139 +222,139 @@ export const comingSoonRoutes: ComingSoonRoute[] = [
     title: "For Employers",
     section: "Employers",
     description:
-      "How TalentRax Global partners with hiring teams across healthcare, IT and professional staffing.",
+      "How Talentrax Global partners with hiring teams across healthcare, IT and professional staffing.",
   },
   {
     href: "/employers/services",
     title: "Staffing Services",
     section: "Employers",
     description:
-      "Direct hire, contract, contract-to-hire, RPO and executive search engagements from TalentRax Global.",
+      "Direct hire, contract, contract-to-hire, RPO and executive search engagements from Talentrax Global.",
   },
   {
     href: "/employers/request-talent",
     title: "Request Talent",
     section: "Employers",
     description:
-      "Brief the TalentRax Global team on an open role and get matched with a specialist recruiter.",
+      "Brief the Talentrax Global team on an open role and get matched with a specialist recruiter.",
   },
   {
     href: "/industries",
     title: "Industries",
     section: "Employers",
     description:
-      "The sectors TalentRax Global staffs across the United States, from health systems to enterprise IT.",
+      "The sectors Talentrax Global staffs across the United States, from health systems to enterprise IT.",
   },
   {
     href: "/specialties",
     title: "Specialties",
     section: "Employers",
     description:
-      "The roles and disciplines TalentRax Global recruits for across healthcare, IT and professional services.",
+      "The roles and disciplines Talentrax Global recruits for across healthcare, IT and professional services.",
   },
   {
     href: "/job-seekers",
     title: "For Job Seekers",
     section: "Job Seekers",
     description:
-      "What working with a TalentRax Global recruiter looks like, from first call to first day.",
+      "What working with a Talentrax Global recruiter looks like, from first call to first day.",
   },
   {
     href: "/job-seekers/upload-resume",
     title: "Upload Your Resume",
     section: "Job Seekers",
     description:
-      "Send your resume to the TalentRax Global recruiting team and get on our radar for matching roles.",
+      "Send your resume to the Talentrax Global recruiting team and get on our radar for matching roles.",
   },
   {
     href: "/jobs",
     title: "Browse Jobs",
     section: "Job Seekers",
     description:
-      "Search current openings across the healthcare, IT and professional desks at TalentRax Global.",
+      "Search current openings across the healthcare, IT and professional desks at Talentrax Global.",
   },
   {
     href: "/locations",
     title: "Locations",
     section: "Job Seekers",
     description:
-      "The US markets where TalentRax Global places contract, contract-to-hire and permanent talent.",
+      "The US markets where Talentrax Global places contract, contract-to-hire and permanent talent.",
   },
   {
     href: "/insights",
     title: "Insights",
     section: "Insights",
     description:
-      "Hiring, workforce and labor market commentary from the TalentRax Global recruiting team.",
+      "Hiring, workforce and labor market commentary from the Talentrax Global recruiting team.",
   },
   {
     href: "/research",
     title: "Research & Hiring Index",
     section: "Insights",
     description:
-      "The TalentRax Global periodic read on hiring demand, time to fill and compensation movement.",
+      "The Talentrax Global periodic read on hiring demand, time to fill and compensation movement.",
   },
   {
     href: "/resources",
     title: "Resources",
     section: "Insights",
     description:
-      "Salary guides, interview preparation and resume guidance from TalentRax Global recruiters.",
+      "Salary guides, interview preparation and resume guidance from Talentrax Global recruiters.",
   },
   {
     href: "/faq",
     title: "Frequently Asked Questions",
     section: "Insights",
     description:
-      "Common questions about working with TalentRax Global as an employer or as a candidate.",
+      "Common questions about working with Talentrax Global as an employer or as a candidate.",
   },
   {
     href: "/about",
     title: "About Us",
     section: "Company",
     description:
-      "Who TalentRax Global is, how our recruiting desks are organized and how we measure a good placement.",
+      "Who Talentrax Global is, how our recruiting desks are organized and how we measure a good placement.",
   },
   {
     href: "/contact",
     title: "Contact Us",
     section: "Company",
     description:
-      "Reach the TalentRax Global team about an open role, an application or a partnership.",
+      "Reach the Talentrax Global team about an open role, an application or a partnership.",
   },
   {
     href: "/login",
     title: "Sign In",
     section: "Account",
-    description: "Sign in to the TalentRax Global candidate and client portal.",
+    description: "Sign in to the Talentrax Global candidate and client portal.",
   },
   {
     href: "/register",
     title: "Register",
     section: "Account",
     description:
-      "Create a TalentRax Global account to track applications and submitted roles.",
+      "Create a Talentrax Global account to track applications and submitted roles.",
   },
   {
     href: "/privacy-policy",
     title: "Privacy Policy",
     section: "Legal",
     description:
-      "How TalentRax Global collects, uses and protects personal information.",
+      "How Talentrax Global collects, uses and protects personal information.",
   },
   {
     href: "/terms",
     title: "Terms of Use",
     section: "Legal",
     description:
-      "The terms governing use of the TalentRax Global website and services.",
+      "The terms governing use of the Talentrax Global website and services.",
   },
   {
     href: "/accessibility",
     title: "Accessibility Statement",
     section: "Legal",
     description:
-      "The TalentRax Global commitment to WCAG 2.1 AA and how to report an accessibility barrier.",
+      "The Talentrax Global commitment to WCAG 2.1 AA and how to report an accessibility barrier.",
   },
 ];
 

@@ -56,7 +56,7 @@ export const hero: HeroContent = {
   eyebrow: "Healthcare - IT - Professional",
   headline: "Staffing built around the roles you actually need to fill",
   subhead:
-    "TalentRax Global places clinical, technical and professional talent for US employers. Specialist recruiters per discipline, screened shortlists, and a process that respects your hiring timeline.",
+    "Talentrax Global places clinical, technical and professional talent for US employers. Specialist recruiters per discipline, screened shortlists, and a process that respects your hiring timeline.",
   ctas: [
     { label: "Find Talent", href: "/employers/request-talent", variant: "primary" },
     { label: "Browse Jobs", href: "/jobs", variant: "secondary" },

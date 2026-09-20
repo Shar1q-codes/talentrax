@@ -164,7 +164,25 @@ for route in "${COMING_SOON_ROUTES[@]}"; do
   esac
 done
 
-# --- 5. unknown URLs 404 ----------------------------------------------------
+# --- 5. the name is spelled correctly everywhere ----------------------------
+# "TalentRax" with a capital R is wrong in mixed case. An all-caps TALENTRAX
+# wordmark is fine, so match the capital R specifically rather than the word.
+echo
+name_failures=0
+for route in "/" "${COMING_SOON_ROUTES[@]}"; do
+  html=$(fetch "$BASE_URL$route")
+  [ -z "$html" ] && continue
+  hits=$(count_matches 'TalentRax' "$html")
+  if [ "$hits" != "0" ]; then
+    fail "$route spells the name \"TalentRax\" ($hits times) - the r is lowercase"
+    name_failures=$((name_failures + 1))
+  fi
+done
+if [ "$name_failures" -eq 0 ]; then
+  pass "no page spells the name \"TalentRax\" (the r is lowercase everywhere)"
+fi
+
+# --- 6. unknown URLs 404 ----------------------------------------------------
 echo
 code=$(status_of "$BASE_URL$NOT_FOUND_PATH")
 if [ "$code" = "404" ]; then
@@ -173,7 +191,7 @@ else
   fail "$NOT_FOUND_PATH returned HTTP $code, expected 404"
 fi
 
-# --- 6. the 404 page carries exactly one robots meta ------------------------
+# --- 7. the 404 page carries exactly one robots meta ------------------------
 # Next injects its own noindex on 404s. Setting robots in not-found.tsx as well
 # produced two tags with the same meaning, which confused SEO audits.
 not_found_html=$(curl -s --max-time 20 "$BASE_URL$NOT_FOUND_PATH")

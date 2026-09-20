@@ -1,10 +1,24 @@
 @AGENTS.md
 
-# TalentRax Global — public marketing frontend
+# Talentrax Global — public marketing frontend
 
 US staffing and recruiting (healthcare, IT, professional). Greenfield rebuild.
 Public marketing site only: **no backend, no CMS, no database, no auth, no API
 routes.** Do not add any.
+
+## The name
+
+**Talentrax Global** — one word, capital T, **lowercase r**. Never "TalentRax".
+This is non-negotiable and applies to running text, navigation, metadata, body
+copy and JSON-LD alike.
+
+Setting the wordmark in all caps (`TALENTRAX`) is a typographic choice and is
+fine — the client's own mark does it. The rule is about mixed case: wherever
+the name is written with capitals and lowercase mixed, the r is lowercase.
+
+Everything visible derives from `site.name` / `site.legalName` in
+`content/site.ts`, so the spelling is fixed in one place.
+`npm run check:seo` asserts no page ships the wrong spelling.
 
 ## Stack
 
