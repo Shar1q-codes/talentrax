@@ -1,26 +1,176 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   DESIGN TOKENS
+   Every colour, radius, spacing step and type step used anywhere in the UI is
+   declared here as a CSS custom property. Tailwind v4 reads this @theme block,
+   emits each token as a real custom property on :root, and generates matching
+   utilities (e.g. --color-brand -> bg-brand / text-brand / border-brand).
+
+   RULE: components never hardcode a hex value. If a new colour is needed,
+   add a token here first.
+   ========================================================================== */
+@theme {
+  /* --- Colour: text ------------------------------------------------------ */
+  /* Contrast ratios below are against --color-surface (#ffffff) unless noted. */
+  --color-ink: #0f172a; /* 18.0:1  - headings, primary body text */
+  --color-ink-muted: #475569; /*  7.6:1  - secondary body text */
+  --color-ink-subtle: #5b6b7f; /*  5.5:1  - meta, captions, eyebrows */
+
+  /* --- Colour: brand ----------------------------------------------------- */
+  --color-brand: #0b3b6f; /* 11.2:1  - primary actions, links */
+  --color-brand-strong: #082b52; /* 14.6:1  - hover/active on brand */
+  --color-brand-soft: #e8eef6; /* tinted surface; brand text on it = 9.6:1 */
+  --color-accent: #0e7490; /*  5.4:1  - accents, rules, icon strokes */
+  --color-accent-strong: #0b5c73; /*  7.3:1  - hover/active on accent */
+
+  /* --- Colour: surfaces -------------------------------------------------- */
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f5f9; /* ink on it = 16.4:1, ink-muted = 6.9:1 */
+  --color-surface-brand: #0b3b6f; /* dark band; white on it = 11.2:1 */
+
+  /* --- Colour: on dark brand surfaces ------------------------------------ */
+  --color-on-brand: #ffffff; /* 11.2:1 on --color-surface-brand */
+  --color-on-brand-muted: #c7d8ec; /*  7.7:1 on --color-surface-brand */
+
+  /* --- Colour: lines & focus --------------------------------------------- */
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-focus: #0e7490;
+
+  /* --- Radii ------------------------------------------------------------- */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  /* --- Spacing ----------------------------------------------------------- */
+  /* Base step for the whole spacing scale (p-4 = 4 * 0.25rem = 1rem). */
+  --spacing: 0.25rem;
+
+  /* --- Type scale -------------------------------------------------------- */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5715;
+  --text-base: 1rem;
+  --text-base--line-height: 1.65;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.6;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.5;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.35;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 1.25;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 1.18;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1.1;
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 1.05;
+
+  /* --- Typography -------------------------------------------------------- */
+  /* The inner fallbacks matter: if the next/font variable is ever absent the
+     whole font-family declaration would otherwise be invalid at compute time. */
+  --font-sans: var(--font-geist-sans, ui-sans-serif), system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono, ui-monospace), monospace;
+}
+
+/* Non-utility tokens: consumed by hand-written CSS below, not by Tailwind. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --layout-gutter: 1rem; /* 16px side gutter, mobile-first */
+  --layout-max: 80rem; /* container max width */
+  --header-height: 4rem;
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@media (min-width: 1024px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --header-height: 5rem;
   }
 }
 
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+html {
+  /* Anchor/skip-link targets clear the sticky header. */
+  scroll-padding-top: calc(var(--header-height) + 1rem);
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings inherit ink by default; balance short headlines where supported. */
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   FOCUS VISIBILITY  (WCAG 2.1 AA - 2.4.7 Focus Visible)
+   A single global rule so no component can silently ship without a focus
+   indicator. Outlines are never removed; components that need a different
+   colour override --color-focus locally (see .on-brand).
+   ========================================================================== */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+/* Inside dark brand bands the teal ring loses contrast, so swap it for white. */
+.on-brand {
+  --color-focus: #ffffff;
+}
+
+/* ==========================================================================
+   MOTION  (WCAG 2.1 AA - 2.3.3 Animation from Interactions)
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   IMAGE SLOTS
+   No external images or placeholder-image services are used anywhere in this
+   build. Wherever real photography or a logo will eventually sit, we render a
+   token-coloured gradient block marked as a slot. Search for "image slot".
+   ========================================================================== */
+.image-slot {
+  background-image: linear-gradient(
+    135deg,
+    var(--color-brand) 0%,
+    var(--color-accent) 100%
+  );
+}
+
+.image-slot-soft {
+  background-image: linear-gradient(
+    135deg,
+    var(--color-brand-soft) 0%,
+    var(--color-surface-muted) 100%
+  );
 }

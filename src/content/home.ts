@@ -1,0 +1,415 @@
+/**
+ * Landing page copy, section by section, in render order.
+ *
+ * CONTENT RULE: no string rendered on the home page is typed inline in a
+ * component. Components import a section object from here and map over it.
+ * When the CMS lands, each export below becomes a fetch that returns the
+ * same shape, and no component changes.
+ *
+ * COPY STATUS: all copy is placeholder pending the client's real content.
+ * It is written as plausible, specific staffing language rather than lorem
+ * ipsum, but it is NOT approved marketing copy.
+ *
+ * NUMBERS: every figure on this page is a visible placeholder (0,000 / 00).
+ * No invented statistic is presented as fact anywhere. See `trustBar.note`.
+ *
+ * ICONS: data carries an icon *name*; the SVG itself lives in
+ * src/components/ui/Icon.tsx. Keeps this file CMS-serialisable.
+ */
+
+export type IconName =
+  | "handshake"
+  | "clock"
+  | "layers"
+  | "briefcase"
+  | "users"
+  | "repeat"
+  | "target"
+  | "search"
+  | "stethoscope"
+  | "server"
+  | "chart"
+  | "check";
+
+export type Cta = {
+  label: string;
+  href: string;
+  /**
+   * Visual weight. Maps 1:1 to ButtonVariant in components/ui/Button.tsx.
+   * The two `*-inverse` variants are for use on dark brand bands only.
+   */
+  variant: "primary" | "secondary" | "inverse" | "outline-inverse";
+};
+
+/* ---------------------------------------------------------------- 2. Hero */
+
+export type HeroContent = {
+  eyebrow: string;
+  headline: string;
+  subhead: string;
+  ctas: Cta[];
+  /** Describes what real imagery replaces the gradient slot. */
+  imageSlotLabel: string;
+};
+
+export const hero: HeroContent = {
+  eyebrow: "Healthcare - IT - Professional",
+  headline: "Staffing built around the roles you actually need to fill",
+  subhead:
+    "TalentRax Global places clinical, technical and professional talent for US employers. Specialist recruiters per discipline, screened shortlists, and a process that respects your hiring timeline.",
+  ctas: [
+    { label: "Find Talent", href: "/employers/request-talent", variant: "primary" },
+    { label: "Browse Jobs", href: "/jobs", variant: "secondary" },
+  ],
+  imageSlotLabel:
+    "Image slot: client-supplied photography of a placement team at work",
+};
+
+/* ----------------------------------------------------------- 3. Trust bar */
+
+export type Stat = {
+  id: string;
+  /** Deliberately non-factual. Replace once reporting is verified. */
+  value: string;
+  label: string;
+};
+
+export type TrustBarContent = {
+  /** Accessible label for the stats region; not rendered visually. */
+  ariaLabel: string;
+  stats: Stat[];
+  note: string;
+};
+
+export const trustBar: TrustBarContent = {
+  ariaLabel: "Placeholder company statistics",
+  stats: [
+    { id: "roles-filled", value: "0,000+", label: "Roles filled" },
+    { id: "time-to-fill", value: "00 days", label: "Average time to fill" },
+    { id: "specialties", value: "00+", label: "Specialties staffed" },
+  ],
+  note: "Figures shown are placeholders. Verified reporting will replace them before launch.",
+};
+
+/* ------------------------------------------------------------ 4. Services */
+
+export type ServiceCard = {
+  id: string;
+  icon: IconName;
+  title: string;
+  description: string;
+  /** Short qualifier: who the service suits. */
+  bestFor: string;
+};
+
+export type ServicesContent = {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  cards: ServiceCard[];
+  cta: Cta;
+};
+
+export const services: ServicesContent = {
+  eyebrow: "What we do",
+  heading: "Five ways to staff a team",
+  intro:
+    "Every engagement starts the same way: a conversation about the role, the team around it, and the timeline you are working to. How we deliver depends on what the hire actually is.",
+  cards: [
+    {
+      id: "direct-hire",
+      icon: "handshake",
+      title: "Direct Hire",
+      description:
+        "Permanent placement for roles you intend to own long term. We run the search, screen against your criteria, and present a shortlist you can actually work through.",
+      bestFor: "Best for core team roles and backfills",
+    },
+    {
+      id: "contract",
+      icon: "clock",
+      title: "Contract",
+      description:
+        "Credentialed contract talent for defined engagements, coverage gaps and project work. We handle payrolling, compliance and onboarding logistics.",
+      bestFor: "Best for surge capacity and fixed-scope work",
+    },
+    {
+      id: "contract-to-hire",
+      icon: "repeat",
+      title: "Contract-to-Hire",
+      description:
+        "Start on contract, convert on a defined schedule. Gives both sides a working trial before a permanent offer, with conversion terms agreed up front.",
+      bestFor: "Best when fit matters more than speed",
+    },
+    {
+      id: "rpo",
+      icon: "layers",
+      title: "RPO",
+      description:
+        "We operate as an extension of your talent function, taking on sourcing, screening and coordination across a requisition set rather than a single role.",
+      bestFor: "Best for sustained, high-volume hiring",
+    },
+    {
+      id: "executive-search",
+      icon: "target",
+      title: "Executive Search",
+      description:
+        "Confidential, research-led search for leadership roles. Mapped markets, discreet approaches, and structured assessment against an agreed scorecard.",
+      bestFor: "Best for director level and above",
+    },
+  ],
+  cta: { label: "See all services", href: "/employers/services", variant: "secondary" },
+};
+
+/* --------------------------------------------------------- 5. Specialties */
+
+export type SpecialtyCard = {
+  id: string;
+  icon: IconName;
+  title: string;
+  description: string;
+  /** Example disciplines. Illustrative, not an exhaustive list. */
+  examples: string[];
+};
+
+export type SpecialtiesContent = {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  cards: SpecialtyCard[];
+  cta: Cta;
+};
+
+export const specialties: SpecialtiesContent = {
+  eyebrow: "Where we recruit",
+  heading: "Three desks, each staffed by specialists",
+  intro:
+    "Recruiters sit on one desk and stay there. That is how they learn which credentials matter, what a realistic offer looks like, and which candidates are genuinely available.",
+  cards: [
+    {
+      id: "healthcare",
+      icon: "stethoscope",
+      title: "Healthcare",
+      description:
+        "Clinical and allied health staffing for hospitals, outpatient groups and post-acute providers, with credentialing and licensure handled before submission.",
+      examples: [
+        "Nursing",
+        "Allied health",
+        "Behavioral health",
+        "Revenue cycle",
+      ],
+    },
+    {
+      id: "it",
+      icon: "server",
+      title: "Information Technology",
+      description:
+        "Engineering, infrastructure and data roles for product teams and internal IT, screened for the stack and the delivery model you actually run.",
+      examples: [
+        "Software engineering",
+        "Cloud and DevOps",
+        "Data and analytics",
+        "Security",
+      ],
+    },
+    {
+      id: "professional",
+      icon: "briefcase",
+      title: "Professional",
+      description:
+        "Finance, accounting, human resources and operations roles across corporate functions, from individual contributor through to department lead.",
+      examples: [
+        "Accounting and finance",
+        "Human resources",
+        "Operations",
+        "Administrative",
+      ],
+    },
+  ],
+  cta: { label: "Explore specialties", href: "/specialties", variant: "secondary" },
+};
+
+/* ------------------------------------------------------- 6. Split section */
+
+export type AudiencePanel = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  benefits: string[];
+  cta: Cta;
+};
+
+export type SplitContent = {
+  /** Accessible name for the two-panel region. */
+  ariaLabel: string;
+  panels: AudiencePanel[];
+};
+
+export const split: SplitContent = {
+  ariaLabel: "Choose your path",
+  panels: [
+    {
+      id: "for-employers",
+      eyebrow: "For Employers",
+      title: "Shortlists you can act on, not a stack of resumes",
+      description:
+        "You get one point of contact, candidates screened against your actual criteria, and honest feedback when a role needs repositioning to fill.",
+      benefits: [
+        "A specialist recruiter for your discipline, not a generalist",
+        "Candidates screened, referenced and credential-checked before submission",
+        "Transparent terms and a written replacement guarantee",
+        "Market feedback when comp or scope is blocking the search",
+      ],
+      cta: { label: "Request talent", href: "/employers/request-talent", variant: "primary" },
+    },
+    {
+      id: "for-job-seekers",
+      eyebrow: "For Job Seekers",
+      title: "A recruiter who knows your field and answers the phone",
+      description:
+        "We tell you what the role pays, who you would report to, and where you stand. No submissions without your say-so, ever.",
+      benefits: [
+        "Your resume is never sent anywhere without your permission",
+        "Straight answers on compensation, schedule and team structure",
+        "Interview preparation from someone who has placed the role before",
+        "Contract, contract-to-hire and permanent openings on one desk",
+      ],
+      cta: { label: "Browse jobs", href: "/jobs", variant: "primary" },
+    },
+  ],
+};
+
+/* -------------------------------------------------------- 7. How it works */
+
+export type Step = {
+  id: string;
+  /** Rendered as a visible ordinal. */
+  number: string;
+  title: string;
+  description: string;
+};
+
+export type HowItWorksContent = {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  steps: Step[];
+};
+
+export const howItWorks: HowItWorksContent = {
+  eyebrow: "How it works",
+  heading: "Four steps from brief to start date",
+  intro:
+    "The same process runs on every engagement, whether it is one contract placement or a full requisition set.",
+  steps: [
+    {
+      id: "step-1",
+      number: "01",
+      title: "Scope the role",
+      description:
+        "We walk through the requirement, the team it sits in, the must-have credentials and the realistic salary band before anyone starts sourcing.",
+    },
+    {
+      id: "step-2",
+      number: "02",
+      title: "Source and screen",
+      description:
+        "Your recruiter works their desk network plus active search, then screens against the agreed criteria. You see candidates, not a keyword match.",
+    },
+    {
+      id: "step-3",
+      number: "03",
+      title: "Submit and interview",
+      description:
+        "You get a shortlist with written notes on each candidate. We coordinate scheduling, prepare both sides, and collect structured feedback after each round.",
+    },
+    {
+      id: "step-4",
+      number: "04",
+      title: "Offer and onboard",
+      description:
+        "We manage the offer conversation, notice periods and start-date logistics, then stay in contact through the first weeks on site.",
+    },
+  ],
+};
+
+/* ------------------------------------------------------ 8. Insights teaser */
+
+export type ArticleCard = {
+  id: string;
+  /** Placeholder category label. */
+  category: string;
+  title: string;
+  excerpt: string;
+  /** Placeholder reading time. No author is named: none exist yet. */
+  readingTime: string;
+  href: string;
+};
+
+export type InsightsContent = {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  articles: ArticleCard[];
+  cta: Cta;
+  note: string;
+};
+
+export const insights: InsightsContent = {
+  eyebrow: "Insights",
+  heading: "What we are seeing in the market",
+  intro:
+    "Notes from our recruiters on hiring demand, compensation movement and what is actually landing candidates right now.",
+  articles: [
+    {
+      id: "article-1",
+      category: "Healthcare",
+      title: "What is driving time to fill on clinical roles this quarter",
+      excerpt:
+        "Credentialing timelines, shift differentials and the float pool question: where clinical searches are slowing down, and which levers actually move them.",
+      readingTime: "0 min read",
+      href: "/insights",
+    },
+    {
+      id: "article-2",
+      category: "Information Technology",
+      title: "Hiring for cloud roles when every posting reads the same",
+      excerpt:
+        "Differentiating an infrastructure opening in a crowded market starts with the scope of the role, not the length of the requirements list.",
+      readingTime: "0 min read",
+      href: "/insights",
+    },
+    {
+      id: "article-3",
+      category: "Professional",
+      title: "Counteroffers are up. Here is what to do before you extend",
+      excerpt:
+        "The offer conversation begins at the first screen. How to surface the real motivators early so the close does not come down to money alone.",
+      readingTime: "0 min read",
+      href: "/insights",
+    },
+  ],
+  cta: { label: "Read all insights", href: "/insights", variant: "secondary" },
+  note: "Article titles and excerpts are placeholders for layout. No articles are published yet.",
+};
+
+/* ------------------------------------------------------ 9. Closing CTA band */
+
+export type ClosingCtaContent = {
+  heading: string;
+  description: string;
+  ctas: Cta[];
+  /** Small reassurance line under the buttons. */
+  footnote: string;
+};
+
+export const closingCta: ClosingCtaContent = {
+  heading: "Have a role to fill?",
+  description:
+    "Tell us what you are hiring for and we will come back with a realistic timeline, a market read on the salary band, and the recruiter who will run the search.",
+  ctas: [
+    { label: "Request talent", href: "/employers/request-talent", variant: "inverse" },
+    { label: "Talk to our team", href: "/contact", variant: "outline-inverse" },
+  ],
+  footnote: "No obligation. We will tell you if we are not the right fit for the search.",
+};
