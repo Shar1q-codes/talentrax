@@ -24,9 +24,10 @@ export const metadata: Metadata = {
   },
   description: site.description,
   applicationName: site.name,
-  // Per-route metadata overrides this. The default is permissive; every
-  // coming-soon route sets index:false via buildMetadata({ noIndex: true }).
-  robots: { index: true, follow: true },
+  // No `robots` default here. Every route sets its own via buildMetadata(), so
+  // a default would only ever apply to not-found.tsx - where Next already
+  // injects its own noindex for the 404 status. Setting one produced a second,
+  // contradictory `index, follow` tag on that page.
   formatDetection: { telephone: false },
 };
 

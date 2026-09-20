@@ -4,10 +4,14 @@ import { ButtonLink, TextLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { footerColumns } from "@/content/navigation";
 
+/**
+ * No `robots` here on purpose. Next injects <meta name="robots" content="noindex">
+ * itself on any page that returns a 404, so setting it again emitted two tags
+ * with the same meaning and tripped SEO audits. Let the framework's tag stand.
+ */
 export const metadata: Metadata = {
   title: "Page not found",
   description: "The page you were looking for could not be found.",
-  robots: { index: false, follow: true },
 };
 
 /**

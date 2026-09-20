@@ -125,12 +125,54 @@ coming-soon page (they are all the same four-line stub).
 - `metadataBase` comes from `NEXT_PUBLIC_SITE_URL` with a localhost fallback
   (see `.env.example`).
 - Organization + WebSite JSON-LD on the **home page only**, server-rendered.
+- The 404 page does **not** set `robots`. Next.js injects
+  `<meta name="robots" content="noindex">` on any page returning a 404, so
+  setting it in `not-found.tsx` too emitted two tags and confused SEO audits.
+
+`npm run check:seo` asserts all of this against a running server.
+
+## Environment variables
+
+One variable: `NEXT_PUBLIC_SITE_URL`. Absolute origin, no trailing slash.
+`src/content/site.ts` reads it and falls back to `http://localhost:3000`.
+
+**It must be set in every build environment — local, CI and Netlify.**
+
+`NEXT_PUBLIC_*` values are inlined into the output by `next build`. They are
+**not** read again when the server starts, and every page here is statically
+generated. So if the variable is missing during the build:
+
+- every canonical URL is `http://localhost:3000/...`
+- every JSON-LD `@id` points at localhost
+- `robots.txt` and `sitemap.xml` advertise localhost
+
+Setting the variable in the runtime environment afterwards does **not** fix
+any of that — it takes another build. A deploy that silently ships localhost
+canonicals is the failure this is guarding against.
+
+| Where | How |
+| --- | --- |
+| Local | `.env.local` (gitignored; copy from `.env.example`) |
+| CI | export before `next build` |
+| Netlify | Site configuration → Environment variables, per context |
+
+`netlify.toml` deliberately does not set it, so deploy previews and branch
+deploys can carry their own origin instead of all claiming production's.
 
 ## Commands
 
 ```bash
-npm run dev     # dev server, http://localhost:3000
-npm run build   # production build
-npm run start   # serve the production build
-npm run lint    # eslint
+npm run dev       # dev server, http://localhost:3000
+npm run build     # production build
+npm run start     # serve the production build
+npm run lint      # eslint
+npm run check:seo # assert the SEO invariants against a running server
+```
+
+`check:seo` takes an optional base URL and expected origin. The two differ when
+you serve a production build locally — the build is stamped with the real
+domain while being served from localhost:
+
+```bash
+npm run check:seo -- http://localhost:3000 https://www.talentraxglobal.com
 ```

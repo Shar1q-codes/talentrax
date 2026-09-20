@@ -1,0 +1,21 @@
+# Netlify build configuration.
+#
+# No [[plugins]] block: Netlify detects Next.js and installs its own Next.js
+# Runtime (@netlify/plugin-nextjs) automatically. Declaring it here as well
+# only pins a second copy, so we let the platform manage it.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # Current Node LTS. Kept to the major so patch releases flow through.
+  NODE_VERSION = "24"
+
+  # NEXT_PUBLIC_SITE_URL is deliberately NOT set here.
+  #
+  # It is build-time inlined (see .env.example), so it must exist in the build
+  # environment or the localhost fallback is compiled into every canonical URL
+  # and JSON-LD @id. Set it per-context under
+  # Site configuration > Environment variables so deploy previews and branch
+  # deploys can carry their own origin rather than all claiming production's.
