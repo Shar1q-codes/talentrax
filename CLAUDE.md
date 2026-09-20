@@ -6,19 +6,25 @@ US staffing and recruiting (healthcare, IT, professional). Greenfield rebuild.
 Public marketing site only: **no backend, no CMS, no database, no auth, no API
 routes.** Do not add any.
 
-## The name
+## Brand
 
-**Talentrax Global** — one word, capital T, **lowercase r**. Never "TalentRax".
-This is non-negotiable and applies to running text, navigation, metadata, body
-copy and JSON-LD alike.
+**The name is "Talentrax Global"** — one word, capital T, **lowercase r**.
+Never "TalentRax". Non-negotiable, and it applies to running text, navigation,
+page metadata, body copy and JSON-LD alike.
 
-Setting the wordmark in all caps (`TALENTRAX`) is a typographic choice and is
-fine — the client's own mark does it. The rule is about mixed case: wherever
-the name is written with capitals and lowercase mixed, the r is lowercase.
+**All-caps exception:** rendering the wordmark as `TALENTRAX` is a deliberate
+typographic treatment and stays allowed — the client's own mark does it. The
+rule governs mixed case only: wherever the name is written with capitals and
+lowercase mixed, the r is lowercase.
+
+The domain is `talentraxglobal.com` and is unaffected either way.
 
 Everything visible derives from `site.name` / `site.legalName` in
-`content/site.ts`, so the spelling is fixed in one place.
-`npm run check:seo` asserts no page ships the wrong spelling.
+`content/site.ts`, so the spelling is pinned in one place — no component
+hardcodes it. `npm run check:seo` asserts that no route ships the capital-R
+spelling; it matches `TalentRax` specifically, so an all-caps wordmark does not
+trip it. That assertion is why the string appears in `scripts/check-seo.sh`
+and in this section: both are guards, not occurrences to fix.
 
 ## Stack
 
