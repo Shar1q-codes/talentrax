@@ -8,9 +8,11 @@
  * ROUTE RULE: every href below must resolve - a route under src/app, or an
  * anchor on a built page. All 20 routes exist today. Built: "/",
  * "/employers", "/employers/services", "/employers/request-talent",
- * "/job-seekers", "/job-seekers/upload-resume", "/about", "/contact",
- * "/privacy-policy" and "/terms". The other 11 render the shared ComingSoon
- * page, are noindex, and are registered in `comingSoonRoutes` below.
+ * "/job-seekers", "/job-seekers/upload-resume", "/jobs", "/about",
+ * "/contact", "/privacy-policy" and "/terms", plus the /jobs/[slug] detail
+ * route, which generates a page per posting and so generates none today. The
+ * other 10 render the shared ComingSoon page, are noindex, and are
+ * registered in `comingSoonRoutes` below.
  */
 
 export type NavLink = {
@@ -204,8 +206,9 @@ export const footerColumns: FooterColumn[] = [
 
 /**
  * Registry of every route that currently renders the shared ComingSoon page.
- * "/", the three Employers routes, the two Job Seekers routes, /about,
- * /contact and the two legal routes are excluded because they are built.
+ * "/", the three Employers routes, the two Job Seekers routes, /jobs,
+ * /about, /contact and the two legal routes are excluded because they are
+ * built.
  *
  * Each entry drives three things for its route: the page h1, the document
  * title, and the meta description. Route files stay three-line stubs.
@@ -232,13 +235,6 @@ export const comingSoonRoutes: ComingSoonRoute[] = [
     section: "Employers",
     description:
       "The roles and disciplines Talentrax Global recruits for across healthcare, IT and professional services.",
-  },
-  {
-    href: "/jobs",
-    title: "Browse Jobs",
-    section: "Job Seekers",
-    description:
-      "Search current openings across the healthcare, IT and professional desks at Talentrax Global.",
   },
   {
     href: "/locations",

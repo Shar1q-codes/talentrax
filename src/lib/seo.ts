@@ -1,4 +1,5 @@
 import { SITE_URL, site } from "@/content/site";
+import { engagementModels, specialtyAreas } from "@/content/taxonomy";
 
 /**
  * JSON-LD builders. Rendered server-side on the home page only (see
@@ -47,12 +48,12 @@ export function organizationJsonLd(): JsonLd {
     legalName: site.legalName,
     url: SITE_URL,
     description: site.description,
+    // Derived from the taxonomy rather than listed by hand. It was listed by
+    // hand, and when Healthcare RPO was withdrawn this kept advertising it in
+    // machine-readable form - the one place nobody thinks to grep.
     knowsAbout: [
-      "Healthcare staffing",
-      "Information technology staffing",
-      "Professional staffing",
-      "Recruitment process outsourcing",
-      "Executive search",
+      ...specialtyAreas.map((area) => `${area.name} staffing`),
+      ...engagementModels.map((model) => model.name),
     ],
   };
 

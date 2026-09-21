@@ -294,3 +294,32 @@ export const specialtyAreas: SpecialtyArea[] = [
   },
 ];
 
+
+/* ----------------------------------------------------------- Id lookups */
+
+/**
+ * Name lookups for code that holds an id rather than an object - the job
+ * board, which stores desk, specialty and engagement ids on each posting.
+ *
+ * Each returns the id itself when it does not resolve. A job referencing a
+ * desk we no longer have is a data fault, and showing the raw id makes it
+ * visible; throwing would take the whole board down over one bad row.
+ */
+export function deskName(deskId: string): string {
+  return specialtyAreas.find((area) => area.id === deskId)?.name ?? deskId;
+}
+
+export function specialtyName(deskId: string, specialtyId: string): string {
+  const area = specialtyAreas.find((entry) => entry.id === deskId);
+  return (
+    area?.subSpecialties.find((sub) => sub.id === specialtyId)?.name ??
+    specialtyId
+  );
+}
+
+export function engagementName(engagementId: string): string {
+  return (
+    engagementModels.find((model) => model.id === engagementId)?.name ??
+    engagementId
+  );
+}

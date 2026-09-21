@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
 
 import { SITE_URL } from "@/content/site";
+import { getJobs, isExpired } from "@/lib/jobs";
 
 /**
  * Sitemap.
  *
- * Built routes only. The other 11 render the coming-soon page and set robots
+ * Built routes only. The other 10 render the coming-soon page and set robots
  * index:false, so listing them would ask crawlers to index pages we have
  * explicitly told them to skip - a contradictory signal.
  *
@@ -20,6 +21,7 @@ const BUILT_ROUTES: { path: string; priority: number }[] = [
   { path: "/employers/request-talent", priority: 0.8 },
   { path: "/job-seekers", priority: 0.9 },
   { path: "/job-seekers/upload-resume", priority: 0.8 },
+  { path: "/jobs", priority: 0.9 },
   { path: "/about", priority: 0.7 },
   { path: "/contact", priority: 0.7 },
   // Legal pages are indexable but low priority: people arrive at them from
@@ -28,13 +30,33 @@ const BUILT_ROUTES: { path: string; priority: number }[] = [
   { path: "/terms", priority: 0.3 },
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const lastModified = new Date();
 
-  return BUILT_ROUTES.map((route) => ({
+  const pages: MetadataRoute.Sitemap = BUILT_ROUTES.map((route) => ({
     url: `${SITE_URL}${route.path}`,
     lastModified,
     changeFrequency: "weekly",
     priority: route.priority,
   }));
+
+  /**
+   * One entry per live job posting. Empty today because getJobs() is, and
+   * wired now so that real postings appear here without a code change.
+   *
+   * Expired postings are filtered out rather than listed: their URLs answer
+   * 410 Gone, and asking a crawler to fetch a URL we have told it is gone is
+   * the same contradiction as listing a noindex page.
+   */
+  const jobs = await getJobs();
+  const postings: MetadataRoute.Sitemap = jobs
+    .filter((job) => !isExpired(job))
+    .map((job) => ({
+      url: `${SITE_URL}/jobs/${job.slug}`,
+      lastModified: new Date(job.datePosted),
+      changeFrequency: "daily",
+      priority: 0.8,
+    }));
+
+  return [...pages, ...postings];
 }

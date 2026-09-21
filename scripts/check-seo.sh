@@ -43,6 +43,7 @@ BUILT_ROUTES=(
   /employers/request-talent
   /job-seekers
   /job-seekers/upload-resume
+  /jobs
   /about
   /contact
   /privacy-policy
@@ -52,7 +53,6 @@ BUILT_ROUTES=(
 COMING_SOON_ROUTES=(
   /industries
   /specialties
-  /jobs
   /locations
   /insights
   /research
@@ -278,7 +278,26 @@ else
   fi
 fi
 
-# --- 6. the name is spelled correctly everywhere ----------------------------
+# --- 6. the job board publishes no structured data while it is empty --------
+# An ItemList of nothing, or a JobPosting for a job that does not exist, is a
+# machine-readable claim that we have listings when we do not. Google removes
+# domains from Google for Jobs over fabricated postings, so this is asserted
+# rather than trusted. The board carries JSON-LD only once a posting does,
+# and then it lives on the posting, not here.
+echo
+jobs_html=$(fetch "$BASE_URL/jobs")
+if [ -z "$jobs_html" ]; then
+  fail "/jobs could not be fetched"
+else
+  jobs_ld=$(count_matches '<script type="application/ld+json">' "$jobs_html")
+  if [ "$jobs_ld" = "0" ]; then
+    pass "/jobs emits no JSON-LD (the board is empty)"
+  else
+    fail "/jobs emits $jobs_ld JSON-LD block(s) - an empty board must publish none"
+  fi
+fi
+
+# --- 7. the name is spelled correctly everywhere ----------------------------
 # "TalentRax" with a capital R is wrong in mixed case. An all-caps TALENTRAX
 # wordmark is fine, so match the capital R specifically rather than the word.
 echo
@@ -296,7 +315,7 @@ if [ "$name_failures" -eq 0 ]; then
   pass "no page spells the name \"TalentRax\" (the r is lowercase everywhere)"
 fi
 
-# --- 7. unknown URLs 404 ----------------------------------------------------
+# --- 8. unknown URLs 404 ----------------------------------------------------
 echo
 code=$(status_of "$BASE_URL$NOT_FOUND_PATH")
 if [ "$code" = "404" ]; then
@@ -305,7 +324,7 @@ else
   fail "$NOT_FOUND_PATH returned HTTP $code, expected 404"
 fi
 
-# --- 8. the 404 page carries exactly one robots meta ------------------------
+# --- 9. the 404 page carries exactly one robots meta ------------------------
 # Next injects its own noindex on 404s. Setting robots in not-found.tsx as well
 # produced two tags with the same meaning, which confused SEO audits.
 not_found_html=$(curl -s --max-time 20 "$BASE_URL$NOT_FOUND_PATH")

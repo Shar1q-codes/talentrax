@@ -85,9 +85,10 @@ Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · React 19.
 
 ## Build status
 
-Built: `/`, the three Employers routes, the two Job Seekers routes, `/about`,
-`/contact` and the two legal routes (see **Routes**). Every other route
-renders the shared `ComingSoon` component.
+Built: `/`, the three Employers routes, the two Job Seekers routes, `/jobs`
+and its `/jobs/[slug]` detail route, `/about`, `/contact` and the two legal
+routes (see **Routes**). Every other route renders the shared `ComingSoon`
+component.
 Those routes exist so navigation works and the URL structure is locked in
 early.
 
@@ -171,7 +172,7 @@ first, with its contrast ratio in the comment, then use the generated utility
 ### 4. Coming-soon routes must be noindex
 
 Every coming-soon route sets `robots: { index: false, follow: true }` via
-`buildMetadata({ noIndex: true })`. We do not want 11 empty pages indexed.
+`buildMetadata({ noIndex: true })`. We do not want 10 empty pages indexed.
 `follow` stays true so crawlers still traverse the navigation.
 
 `robots.ts` deliberately allows the crawl: a `Disallow` would stop crawlers
@@ -220,11 +221,12 @@ with its own explanation, not a gap in a sentence.
 Built (indexable, in the sitemap):
 
 ```
-/                             /job-seekers/upload-resume
-/employers                    /about
-/employers/services           /contact
-/employers/request-talent     /privacy-policy
-/job-seekers                  /terms
+/                             /jobs
+/employers                    /jobs/[slug]   (a page per posting: none today)
+/employers/services           /about
+/employers/request-talent     /contact
+/job-seekers                  /privacy-policy
+/job-seekers/upload-resume    /terms
 ```
 
 Coming soon (all noindex, all real routes):
@@ -232,10 +234,9 @@ Coming soon (all noindex, all real routes):
 ```
 /industries                   /resources
 /specialties                  /faq
-/jobs                         /login
-/locations                    /register
-/insights                     /accessibility
-/research
+/locations                    /login
+/insights                     /register
+/research                     /accessibility
 ```
 
 Nothing links to `/industries` or `/specialties` any more. Both described the
@@ -248,6 +249,70 @@ Plus a custom `app/not-found.tsx`.
 Adding a coming-soon route: add an entry to `comingSoonRoutes` in
 `content/navigation.ts`, then create `app/<path>/page.tsx` from any existing
 coming-soon page (they are all the same four-line stub).
+
+## The job board
+
+**It ships with zero jobs, and that is a real state, not a broken one.**
+`getJobs()` in `src/lib/jobs.ts` returns `[]`; `/jobs` renders an honest
+empty state that routes people to the resume form and the requisition form.
+The full list and filter UI is built and sits behind that check, so postings
+appear with no code change. Filters render only when there is at least one
+job.
+
+**Never add a sample, example or illustrative posting.** Not to see the
+layout, not "just for now". A fabricated JobPosting carrying structured data
+can get the whole domain removed from Google for Jobs, and a candidate who
+applies to an invented role has been lied to. Fixtures live in
+`src/lib/jobs.fixture.ts`, which only `*.test.ts` imports, so nothing
+reaches the build. Every fixture id and slug contains `DO-NOT-SHIP-FIXTURE`
+so one grep proves it:
+
+```bash
+npm run build && grep -r "DO-NOT-SHIP-FIXTURE" .next   # must print nothing
+```
+
+**Pay range is required by the type.** `Job["pay"]` is not optional. Several
+states mandate a posted range, and the positioning of this site is that every
+role shows one. If an upstream system can return a posting without a range,
+the mapping layer drops it or fails - it does not make the field optional.
+
+**Structured data.** `src/lib/job-posting-schema.ts` builds the schema.org
+JobPosting, and it is the one thing here with real unit tests (`npm test`),
+because JSON-LD fails silently: a malformed payload does not throw, the
+posting simply never appears. `/jobs` itself emits **no** JSON-LD while the
+board is empty - an ItemList of nothing is a claim we have listings - and
+`npm run check:seo` asserts that.
+
+### Expired job postings
+
+**A posting past `validThrough` must answer 410 Gone.** Not 404, and never a
+redirect: 410 is the signal Google treats as definitive removal, and anything
+softer leaves a dead job in the index for weeks.
+
+What exists today:
+
+- `isExpired(job, now)` in `src/lib/jobs.ts`, unit tested at the day
+  boundary.
+- `generateStaticParams` filters expired postings, so one never gets a page.
+- The detail page calls `notFound()` as a backstop for a posting that
+  expires between builds.
+- `getRecentlyExpiredSlugs()` returns the slugs the 410 layer needs, since
+  `getJobs()` no longer returns them.
+- The sitemap lists live postings only.
+
+**What is not wired, and why.** A page component cannot set a status code in
+Next, so a real 410 has to come from middleware or a host rule - both of
+which are server code, and this repo is deliberately backend-free (see the
+top of this file). That is a decision to take deliberately rather than by
+accident, so it is deferred until there are postings that can expire. With
+`getJobs()` returning nothing, nothing can. When jobs land, wire ONE of:
+
+1. `src/middleware.ts` matching `/jobs/:slug`, answering 410 for anything in
+   `getRecentlyExpiredSlugs()`; or
+2. generated `[[redirects]]` in `netlify.toml` with `status = 410`, built
+   from the same list.
+
+Whichever, the list comes from `getRecentlyExpiredSlugs()` and nowhere else.
 
 ## One wording for a promise
 
@@ -328,8 +393,20 @@ npm run dev       # dev server, http://localhost:3000
 npm run build     # production build
 npm run start     # serve the production build
 npm run lint      # eslint
+npm test          # unit tests (node --test, no framework)
 npm run check:seo # assert the SEO invariants against a running server
 ```
+
+`npm test` runs Node's built-in test runner directly over TypeScript - no
+Jest, no Vitest, no transform step, no new dependency. It covers
+`src/lib/jobs.ts` and `src/lib/job-posting-schema.ts` only. That is not
+under-testing by neglect: those two are the only code here whose failure is
+silent and expensive. Everything else is content and layout, where a mistake
+is visible on the page.
+
+Test files import each other with explicit `.ts` extensions, which is why
+`allowImportingTsExtensions` is set in `tsconfig.json`. Both tested modules
+avoid value imports so the runner needs no path-alias resolver.
 
 `check:seo` takes an optional base URL and expected origin. The two differ when
 you serve a production build locally — the build is stamped with the real
