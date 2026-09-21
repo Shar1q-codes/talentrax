@@ -156,19 +156,22 @@ export type UtilityNavItem = NavLink & {
 
 /**
  * Right-hand side of the header, and the block at the bottom of the mobile
- * drawer. Both render nothing while this is empty.
+ * drawer. Both render nothing if this is empty.
  *
- * EMPTY ON PURPOSE. "Sign In" and "Register" used to live here, pointing at
- * /login and /register. Those routes are now built - but they sign nobody in,
- * because there is no authentication backend. A hiring manager who clicks
- * Sign in on a live site and reaches a form that cannot work concludes the
- * site is broken, and they are not wrong.
+ * These are visible AHEAD OF THE BACKEND, deliberately. The two routes they
+ * point at are built and real, but they cannot sign anyone in or create
+ * anything yet, so each of those pages carries a plain line saying so above
+ * its form. That line is what keeps a visible Sign in link honest, and it is
+ * removed in the same commit that wires the auth backend. See CLAUDE.md,
+ * "The account screens".
  *
- * The routes stay reachable by URL for development. They come back into this
- * array in the SAME COMMIT that wires the auth backend, and not before. See
- * CLAUDE.md, "The account screens".
+ * Both routes stay noindex and out of the sitemap regardless: being in the
+ * navigation and being in search results are different decisions.
  */
-export const utilityNav: UtilityNavItem[] = [];
+export const utilityNav: UtilityNavItem[] = [
+  { label: "Sign In", href: "/login", variant: "link" },
+  { label: "Register", href: "/register", variant: "primary" },
+];
 
 export const footerColumns: FooterColumn[] = [
   {

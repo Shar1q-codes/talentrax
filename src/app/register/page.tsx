@@ -4,7 +4,7 @@ import Link from "next/link";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { register, registerMeta } from "@/content/auth";
+import { notOpenYet, register, registerMeta } from "@/content/auth";
 import { buildMetadata } from "@/lib/metadata";
 
 /**
@@ -30,7 +30,12 @@ export default function Page() {
         heading={register.heading}
         intro={register.intro}
       >
+        {/* Removed when auth is wired. See content/auth.ts. */}
         <p className="mt-6 max-w-3xl border-l-4 border-accent py-2 pl-4 text-base text-ink-muted">
+          {notOpenYet.register}
+        </p>
+
+        <p className="mt-4 max-w-3xl border-l-4 border-accent py-2 pl-4 text-base text-ink-muted">
           {register.employerNotice}{" "}
           <Link
             href={register.employerLinkHref}

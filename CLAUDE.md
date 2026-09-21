@@ -411,15 +411,26 @@ Whichever, the list comes from `getRecentlyExpiredSlugs()` and nowhere else.
 because there is no authentication backend, and every one of the rules below
 exists because the safe version is cheaper to decide now than to retrofit.
 
-**They are not in the navigation.** `utilityNav` in
-`content/navigation.ts` is an empty array, so the header and the mobile
-drawer render nothing where Sign in and Register used to be. A live site with
-a Sign in button that leads to a form which cannot sign anyone in reads as
-broken to a hiring manager, and they are right. **The entries go back into
-`utilityNav` in the same commit that wires the auth backend, and not before.**
+**They are in the navigation, ahead of the backend.** `utilityNav` in
+`content/navigation.ts` carries Sign In and Register, and the header and the
+mobile drawer render them.
 
-**Built is not the same as indexable.** These three are real pages that are
-`noIndex` and absent from `app/sitemap.ts`. `check-seo.sh` has a third route
+What keeps that honest is one plain sentence above each form saying the
+feature is not open yet - `notOpenYet` in `content/auth.ts`. Someone should
+not be able to reach a password field from the site navigation without the
+page telling them it cannot do anything. **Those three lines are removed in
+the same commit that wires the auth backend**, and not a commit earlier: they
+are the only thing making a visible, unwired sign-in truthful.
+
+The buttons stay operable and submitting stays honest - the seams return
+`unavailable` and the page renders that. Nothing is disabled and nothing
+pretends to have worked.
+
+**Visible in the navigation is not the same as indexable.** These three are
+real, linked pages that are nonetheless `noIndex` and absent from
+`app/sitemap.ts`. Being reachable by a visitor and being listed in search
+results are separate decisions, and this is the route group where they come
+apart. `check-seo.sh` has a third route
 list, `UNLISTED_ROUTES`, that asserts both halves: each returns 200 **and**
 carries noindex **and** is not in the sitemap. A future edit that makes one
 indexable fails there.

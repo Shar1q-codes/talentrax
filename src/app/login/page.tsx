@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { SignInForm } from "@/components/auth/SignInForm";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { login, loginMeta } from "@/content/auth";
+import { login, loginMeta, notOpenYet } from "@/content/auth";
 import { buildMetadata } from "@/lib/metadata";
 
 /**
@@ -29,7 +29,16 @@ export default function Page() {
         eyebrow={login.eyebrow}
         heading={login.heading}
         intro={login.intro}
-      />
+      >
+        {/*
+          The account links are in the navigation while the backend is not
+          built, so the page says plainly what this form can and cannot do
+          before anyone types a password into it. Removed when auth is wired.
+        */}
+        <p className="mt-6 max-w-3xl border-l-4 border-accent py-2 pl-4 text-base text-ink-muted">
+          {notOpenYet.login}
+        </p>
+      </PageHeader>
 
       <Container>
         <div className="max-w-xl py-14 sm:py-16 lg:py-20">

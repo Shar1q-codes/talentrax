@@ -41,7 +41,28 @@ export const FORGOT_PASSWORD_PATH = "/forgot-password";
  */
 export const MIN_PASSWORD_LENGTH = 12;
 
-/** Shared by all three screens: the honest state of the feature today. */
+/**
+ * Shown above the form on each screen, in the page's own voice.
+ *
+ * These exist because the account links are in the navigation while the
+ * backend is not built. A visible Sign in link that leads to a form which
+ * cannot sign anyone in needs the page to say so before someone types a
+ * password into it - not as a banner, as a sentence.
+ *
+ * ALL THREE ARE REMOVED in the same commit that wires the backend. They are
+ * the only thing making a visible, unwired sign-in honest, so they go when it
+ * stops being unwired, and not a commit earlier.
+ */
+export const notOpenYet = {
+  login:
+    "Accounts are not open yet, so this form cannot sign anyone in. You do not need one to send us your resume.",
+  register:
+    "Accounts are not open yet, so this form cannot create one. The resume form works today and needs no account.",
+  forgotPassword:
+    "Accounts are not open yet, so there is nothing to reset and no email will be sent.",
+};
+
+/** Shown after a submit: what actually happened, which is nothing. */
 export const notWiredNotice =
   "Accounts are not live yet. This form is built but not connected to anything, so nothing was submitted and no email was sent.";
 
