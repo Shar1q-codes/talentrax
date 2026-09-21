@@ -253,6 +253,35 @@ p {
   text-decoration-color: var(--color-on-brand);
 }
 
+/* SMOOTH SCROLLING, FOR IN-PAGE ANCHORS ONLY.
+
+   Scoped to :focus-within rather than applied to <html> outright. Following
+   an in-page anchor moves focus into the document, so the rule is live
+   exactly when someone is jumping to a #target.
+
+   That scoping alone is NOT what keeps route changes instant - clicking a
+   nav link also puts focus in the document, so :focus-within matches during
+   a navigation too. What makes route changes jump is
+   data-scroll-behavior="smooth" on <html> in layout.tsx: the App Router
+   reads that attribute and forces `scroll-behavior: auto` for the duration
+   of the transition (see
+   next/dist/shared/lib/router/utils/disable-smooth-scroll.js). Without the
+   attribute it does not intervene at all, and it warns about exactly this in
+   development.
+
+   Off entirely under reduced motion: animated scrolling is a common
+   vestibular trigger, and rule 3 says motion is opt-out. The reduced-motion
+   block further down also forces scroll-behavior: auto, so this is belt and
+   braces.
+
+   Anchors land clear of the sticky header because <html> carries
+   scroll-padding-top, derived from --header-height at the top of this file. */
+@media (prefers-reduced-motion: no-preference) {
+  html:focus-within {
+    scroll-behavior: smooth;
+  }
+}
+
 /* Desktop nav dropdown panel.
    Fades and rises a few pixels from its top edge. It is an ENTER animation
    only: the panel unmounts on close, so there is nothing to animate out, and

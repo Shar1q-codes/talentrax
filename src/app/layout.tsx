@@ -33,8 +33,33 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang={site.locale} className={`${geistSans.variable} h-full`}>
-      <body className="flex min-h-full flex-col antialiased">
+    /*
+      NO HEIGHT CONSTRAINT ON <html>. It used to carry `h-full`
+      (height: 100%) so that `min-h-full` on the body had a percentage to
+      resolve against. That makes the root element exactly viewport-height
+      with its content overflowing it, and the App Router resets scroll by
+      assigning `document.documentElement.scrollTop = 0` - see
+      next/dist/client/components/layout-router.js. Sizing the body against
+      the viewport directly removes the question entirely.
+
+      `svh` rather than `dvh`: the small viewport height does not change as
+      mobile browser chrome hides and shows, so the footer does not shift
+      while someone is scrolling.
+
+      data-scroll-behavior="smooth" is REQUIRED, not decorative. Next only
+      neutralises smooth scrolling during a route transition when that
+      attribute is present (see
+      next/dist/shared/lib/router/utils/disable-smooth-scroll.js); without
+      it, the smooth rule in globals.css would make route changes animate
+      their jump to the top. It also silences a dev-only warning about the
+      same thing.
+    */
+    <html
+      lang={site.locale}
+      className={geistSans.variable}
+      data-scroll-behavior="smooth"
+    >
+      <body className="flex min-h-svh flex-col antialiased">
         <SkipLink />
         <Header />
         {/*

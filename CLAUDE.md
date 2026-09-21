@@ -172,6 +172,31 @@ or a curve**. If a third duration seems necessary, the interaction is wrong.
 - The header has **one scroll threshold and one change**: the bottom border
   gains colour. It does not shrink, change height, or hide on scroll.
 
+**Scrolling.** Smooth scrolling is scoped to `html:focus-within` and wrapped
+in `prefers-reduced-motion: no-preference`, so it applies to in-page anchors
+and never under reduced motion. That scoping alone does **not** keep route
+changes instant - clicking a nav link also puts focus in the document. What
+does is `data-scroll-behavior="smooth"` on `<html>`: the App Router reads
+that attribute and forces `scroll-behavior: auto` for the duration of a
+transition. **Remove the attribute and every route change animates its jump
+to the top.**
+
+Anchors land clear of the sticky header via `scroll-padding-top` on
+`<html>`, derived from `--header-height` rather than restated.
+
+**Nothing may put a height constraint on `<html>`, or an `overflow` on
+`<html>` or `<body>` that outlives a navigation.** The router resets scroll
+by assigning `document.documentElement.scrollTop = 0` during React's layout
+phase. A locked or height-constrained document at that moment means the new
+page opens at the old page's scroll offset. The mobile drawer's scroll lock
+releases synchronously on any link inside it for exactly this reason - see
+`closeForNavigation` in `MobileDrawer.tsx`.
+
+Do **not** patch a scroll bug with a `useEffect` that scrolls to top on
+pathname change. It fights the browser's own back/forward restoration, which
+must keep working: back and forward restore the previous position, and only
+a fresh navigation goes to the top.
+
 ### 4. Accessibility is non-negotiable — WCAG 2.1 AA
 
 - **Contrast AA on every text/background pair.** Applies to decorative text

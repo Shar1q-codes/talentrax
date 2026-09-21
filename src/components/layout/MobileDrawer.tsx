@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ButtonLink } from "@/components/ui/Button";
 import { primaryNav, utilityNav } from "@/content/navigation";
@@ -52,15 +52,43 @@ export function MobileDrawer({
     };
   }, [open, triggerRef]);
 
-  /* Lock background scroll while the drawer is open. */
+  /**
+   * Lock background scroll while the drawer is open.
+   *
+   * The lock has to be RELEASABLE SYNCHRONOUSLY, which is why the previous
+   * value lives in a ref rather than in a closure. Tapping a link in the
+   * drawer closes it and navigates on the same click, and React runs this
+   * cleanup as a passive effect - while the App Router resets scroll in the
+   * layout phase, which is earlier. The router would be trying to reset the
+   * scroll position of a document that still had `overflow: hidden` on it,
+   * and the new page would open at the old page's offset.
+   *
+   * closeForNavigation() releases the lock before either of those runs.
+   */
+  const lockedOverflowRef = useRef<string | null>(null);
+
+  const releaseScrollLock = useCallback(() => {
+    if (lockedOverflowRef.current === null) return;
+    document.body.style.overflow = lockedOverflowRef.current;
+    lockedOverflowRef.current = null;
+  }, []);
+
   useEffect(() => {
     if (!open) return;
-    const previousOverflow = document.body.style.overflow;
+    lockedOverflowRef.current = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [open]);
+    return releaseScrollLock;
+  }, [open, releaseScrollLock]);
+
+  /**
+   * Closing because the reader is navigating away, rather than dismissing.
+   * Every link in the drawer uses this; Escape, the scrim and the close
+   * button use onClose directly, because nothing is navigating then.
+   */
+  const closeForNavigation = useCallback(() => {
+    releaseScrollLock();
+    onClose();
+  }, [releaseScrollLock, onClose]);
 
   /* Escape to close, Tab/Shift+Tab trapped inside the dialog. */
   useEffect(() => {
@@ -171,7 +199,7 @@ export function MobileDrawer({
                   <li key={item.id}>
                     <Link
                       href={item.href}
-                      onClick={onClose}
+                      onClick={closeForNavigation}
                       aria-current={current ? "page" : undefined}
                       className={`block rounded-md px-3 py-3 text-base font-semibold no-underline ${
                         current
@@ -225,7 +253,7 @@ export function MobileDrawer({
                         <li key={`${child.href}-${child.label}`}>
                           <Link
                             href={child.href}
-                            onClick={onClose}
+                            onClick={closeForNavigation}
                             aria-current={current ? "page" : undefined}
                             className={`block rounded-md px-3 py-2.5 text-base no-underline ${
                               current
@@ -262,14 +290,19 @@ export function MobileDrawer({
           <div className="flex flex-col gap-3">
             {utilityNav.map((item) =>
               item.variant === "primary" ? (
-                <ButtonLink key={item.href} href={item.href} variant="primary">
+                <ButtonLink
+                  key={item.href}
+                  href={item.href}
+                  variant="primary"
+                  onClick={closeForNavigation}
+                >
                   {item.label}
                 </ButtonLink>
               ) : (
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={onClose}
+                  onClick={closeForNavigation}
                   className="inline-flex min-h-11 items-center justify-center rounded-md border border-border-control px-5 py-3 text-base font-semibold text-brand no-underline transition-colors hover:bg-brand-soft"
                 >
                   {item.label}

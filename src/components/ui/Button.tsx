@@ -82,16 +82,20 @@ export function ButtonLink({
   variant = "primary",
   size = "md",
   className = "",
+  onClick,
 }: {
   href: string;
   children: ReactNode;
   variant?: ButtonVariant;
   size?: keyof typeof sizeClass;
   className?: string;
+  /** For a link inside a dismissible surface, such as the mobile drawer. */
+  onClick?: () => void;
 }) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={[
         baseClass,
         sizeClass[size],
