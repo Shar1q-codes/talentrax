@@ -129,7 +129,29 @@ delete the matching `OMITTED` comment there, and strike the item here.
     markets do you know enough about to write a real page for".
     *Omitted: every market, city, state and region name on the site.*
 
-14. **The copy itself.** Every word on this site is placeholder marketing copy
+14. **Password and session policy.** The register form states a minimum
+    password length and checks it, but that is a courtesy to the person
+    typing, **not a security control** - the server has to enforce its own.
+    Nobody has set one. Needed before auth is wired:
+    - Minimum password length the backend will enforce. The page currently
+      says twelve characters; if the backend disagrees, the page changes.
+    - Session lifetime, idle timeout, and whether sessions persist across
+      browser restarts. There is deliberately no "remember me" checkbox
+      because that is this decision, not a UI preference.
+    - Whether multi-factor authentication is wanted for candidate accounts.
+    - Lockout and rate-limiting thresholds for failed sign-ins. These cannot
+      be done client-side at all.
+    *Omitted: any strength meter, any "remember me", any claim about session
+    behaviour.*
+
+15. **What a candidate account is actually for.** `/register` says an account
+    "keeps your details current with the desk that recruits your discipline",
+    which is the least it could plausibly do. What does the client want it to
+    do - track applications, see which employers hold a resume, withdraw an
+    application, set availability? That answers whether the account is worth
+    building at all, given the resume form already works without one.
+
+16. **The copy itself.** Every word on this site is placeholder marketing copy
     written during the build, not approved client copy. The process sections
     on `/employers` and `/job-seekers` make specific operational promises — a
     named recruiter, consent before every submission, an answer either way,

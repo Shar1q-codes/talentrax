@@ -9,12 +9,13 @@
  * anchor on a built page. All 20 routes exist today. Built: "/",
  * "/employers", "/employers/services", "/employers/request-talent",
  * "/job-seekers", "/job-seekers/upload-resume", "/jobs", "/about",
- * "/contact", "/faq", "/resources", "/insights", "/locations",
- * "/accessibility", "/privacy-policy" and "/terms", plus the /jobs/[slug]
- * and /insights/[slug] detail routes, which generate a page per posting and
- * per article and so generate none today. Only "/login" and "/register"
- * still render the shared ComingSoon page; both need a backend. They are
- * registered in `comingSoonRoutes` below.
+ * EVERY ROUTE IS NOW BUILT. `comingSoonRoutes` below is empty, and the
+ * shared ComingSoon page has no callers - both are kept as the mechanism for
+ * the next unbuilt section rather than deleted.
+ *
+ * Note that "built" no longer means "indexable": /login, /register and
+ * /forgot-password are real pages that are noindex and absent from the
+ * sitemap, because they cannot do anything yet. See CLAUDE.md.
  *
  * /industries, /specialties and /research have been DELETED, not hidden.
  * Nothing linked to the first two and their subject was already built at
@@ -148,11 +149,26 @@ export const primaryNav: NavItem[] = [
   },
 ];
 
-/** Right-hand side of the header. */
-export const utilityNav: { signIn: NavLink; register: NavLink } = {
-  signIn: { label: "Sign In", href: "/login" },
-  register: { label: "Register", href: "/register" },
+export type UtilityNavItem = NavLink & {
+  /** "primary" renders as a button, "link" as a plain text link. */
+  variant: "primary" | "link";
 };
+
+/**
+ * Right-hand side of the header, and the block at the bottom of the mobile
+ * drawer. Both render nothing while this is empty.
+ *
+ * EMPTY ON PURPOSE. "Sign In" and "Register" used to live here, pointing at
+ * /login and /register. Those routes are now built - but they sign nobody in,
+ * because there is no authentication backend. A hiring manager who clicks
+ * Sign in on a live site and reaches a form that cannot work concludes the
+ * site is broken, and they are not wrong.
+ *
+ * The routes stay reachable by URL for development. They come back into this
+ * array in the SAME COMMIT that wires the auth backend, and not before. See
+ * CLAUDE.md, "The account screens".
+ */
+export const utilityNav: UtilityNavItem[] = [];
 
 export const footerColumns: FooterColumn[] = [
   {
@@ -214,21 +230,7 @@ export type ComingSoonRoute = {
   section: string;
 };
 
-export const comingSoonRoutes: ComingSoonRoute[] = [
-  {
-    href: "/login",
-    title: "Sign In",
-    section: "Account",
-    description: "Sign in to the Talentrax Global candidate and client portal.",
-  },
-  {
-    href: "/register",
-    title: "Register",
-    section: "Account",
-    description:
-      "Create a Talentrax Global account to track applications and submitted roles.",
-  },
-];
+export const comingSoonRoutes: ComingSoonRoute[] = [];
 
 /** Lookup helper so each coming-soon route file stays a short stub. */
 export function getComingSoonRoute(href: string): ComingSoonRoute {

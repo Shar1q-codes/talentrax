@@ -172,7 +172,9 @@ first, with its contrast ratio in the comment, then use the generated utility
 ### 4. Coming-soon routes must be noindex
 
 Every coming-soon route sets `robots: { index: false, follow: true }` via
-`buildMetadata({ noIndex: true })`. We do not want 2 empty pages indexed.
+`buildMetadata({ noIndex: true })`. There are no unbuilt pages left, so no
+page uses it for that reason any more - but the three account screens use it
+for a different one. See **The account screens**.
 `follow` stays true so crawlers still traverse the navigation.
 
 `robots.ts` deliberately allows the crawl: a `Disallow` would stop crawlers
@@ -233,16 +235,18 @@ Built (indexable, in the sitemap):
                               /accessibility
 ```
 
-Coming soon (all noindex, all real routes):
+Built, but deliberately noindex and **absent from the sitemap**:
 
 ```
 /login
 /register
+/forgot-password
 ```
 
-Those two are all that is left, and **both need a backend** - an identity
-store, sessions, and something to save. They cannot be built from this repo
-as it stands.
+Nothing is coming soon any more: every route is built. `comingSoonRoutes` in
+`content/navigation.ts` is empty and the shared `ComingSoon` component has no
+callers. Both are kept as the mechanism for the next unbuilt section rather
+than deleted and rebuilt later.
 
 ### Deleted routes
 
@@ -400,6 +404,70 @@ accident, so it is deferred until there are postings that can expire. With
    from the same list.
 
 Whichever, the list comes from `getRecentlyExpiredSlugs()` and nowhere else.
+
+## The account screens
+
+`/login`, `/register` and `/forgot-password` are built. They sign nobody in,
+because there is no authentication backend, and every one of the rules below
+exists because the safe version is cheaper to decide now than to retrofit.
+
+**They are not in the navigation.** `utilityNav` in
+`content/navigation.ts` is an empty array, so the header and the mobile
+drawer render nothing where Sign in and Register used to be. A live site with
+a Sign in button that leads to a form which cannot sign anyone in reads as
+broken to a hiring manager, and they are right. **The entries go back into
+`utilityNav` in the same commit that wires the auth backend, and not before.**
+
+**Built is not the same as indexable.** These three are real pages that are
+`noIndex` and absent from `app/sitemap.ts`. `check-seo.sh` has a third route
+list, `UNLISTED_ROUTES`, that asserts both halves: each returns 200 **and**
+carries noindex **and** is not in the sitemap. A future edit that makes one
+indexable fails there.
+
+**Candidate accounts only.** Employer accounts are created by the Talentrax
+team. There is deliberately no account-type selector on `/register` - a
+self-service route to an employer account is a privilege question dressed up
+as a form field.
+
+### Security rules, decided now and not later
+
+These are not placeholders to be relaxed when the backend lands.
+
+1. **Never disclose whether an email has an account.** Not on sign-in, not on
+   registration, not on password reset. Every outcome message is generic and
+   identical across cases - "If that email has an account, we have sent it a
+   reset link", always. A registration form that says "that email is already
+   taken" enumerates a candidate database just as loudly as a login error
+   does. The copy in `content/auth.ts` is written that way; do not
+   "improve" it. When the endpoints exist they must also take the same time
+   over both cases, or the message is decoration over a timing side channel.
+
+2. **No client-side authentication state, ever.** No `localStorage`, no
+   `sessionStorage`, no cookie written from JavaScript, no `isLoggedIn` flag.
+   A session is an HttpOnly cookie the server sets. A client-side flag is not
+   a placeholder for one - it is a thing an attacker types into a console,
+   and it invites UI that trusts it.
+
+3. **Nothing in `src/lib/auth.ts` is logged.** The other three form seams
+   console.log their payload; these must not. A password in a console log is
+   a password in a log, "the payload minus the password" still pairs an email
+   with an authentication attempt, and a length or a hash is still
+   information about the password. Use a breakpoint.
+
+4. **`autoComplete` is load-bearing**: `email`, `current-password` on
+   sign-in, `new-password` on both register fields. Password managers depend
+   on it, and people with password managers have better passwords.
+
+5. **No strength meter, no social sign-in, no "remember me".** The first
+   scores a password against rules nobody has set. The second is an
+   integration nobody has chosen. The third is a session-lifetime decision
+   the backend has not made - CLIENT-CONFIRM.md item 14.
+
+6. **No honeypot or minimum-time check on these forms**, unlike the other
+   three. A password manager fills a sign-in form faster than a human can, so
+   a time check punishes the people doing it properly, and credential
+   stuffing is stopped by server-side rate limiting, which a hidden input
+   cannot do.
 
 ## Two pages that constrain what may be written on them
 

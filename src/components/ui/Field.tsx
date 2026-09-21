@@ -145,7 +145,7 @@ export function TextField({
   value: string;
   onChange: (value: string) => void;
   error?: string;
-  type?: "text" | "email" | "tel" | "number" | "date" | "url";
+  type?: "text" | "email" | "tel" | "number" | "date" | "url" | "password";
   inputMode?: "numeric" | "tel" | "email";
   min?: string;
   step?: string;

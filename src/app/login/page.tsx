@@ -1,20 +1,41 @@
 import type { Metadata } from "next";
 
-import { ComingSoon } from "@/components/ComingSoon";
-import { getComingSoonRoute } from "@/content/navigation";
+import { SignInForm } from "@/components/auth/SignInForm";
+import { Container } from "@/components/ui/Container";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { login, loginMeta } from "@/content/auth";
 import { buildMetadata } from "@/lib/metadata";
 
-const route = getComingSoonRoute("/login");
-
-// noIndex: true -> robots { index: false, follow: true }. Crawlers still walk
-// the navigation from here, but this placeholder page is not indexed.
+/**
+ * NOINDEX AND ABSENT FROM THE SITEMAP, unlike every other built route.
+ *
+ * "Built" and "indexable" come apart here for the first time. The page is
+ * real, but it signs nobody in, so it has no business in search results and
+ * it is not linked from the header or the drawer either - see CLAUDE.md,
+ * "The account screens". Reachable by typing the URL, which is all it needs
+ * to be until the backend exists.
+ */
 export const metadata: Metadata = buildMetadata({
-  title: route.title,
-  description: route.description,
-  path: route.href,
+  title: loginMeta.title,
+  description: loginMeta.description,
+  path: "/login",
   noIndex: true,
 });
 
 export default function Page() {
-  return <ComingSoon route={route} />;
+  return (
+    <>
+      <PageHeader
+        eyebrow={login.eyebrow}
+        heading={login.heading}
+        intro={login.intro}
+      />
+
+      <Container>
+        <div className="max-w-xl py-14 sm:py-16 lg:py-20">
+          <SignInForm />
+        </div>
+      </Container>
+    </>
+  );
 }

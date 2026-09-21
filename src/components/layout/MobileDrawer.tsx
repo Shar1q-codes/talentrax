@@ -240,18 +240,37 @@ export function MobileDrawer({
           </ul>
         </nav>
 
-        <div className="border-t border-border px-4 py-4">
+        {/*
+          The whole block goes when there is nothing to put in it: an empty
+          bordered strip at the bottom of the drawer is worse than no strip.
+          utilityNav is empty while sign-in is unwired - see
+          content/navigation.ts.
+        */}
+        <div
+          className={
+            utilityNav.length > 0 ||
+            (site.contact.phone.href && !site.contact.phone.isPlaceholder)
+              ? "border-t border-border px-4 py-4"
+              : "hidden"
+          }
+        >
           <div className="flex flex-col gap-3">
-            <Link
-              href={utilityNav.signIn.href}
-              onClick={onClose}
-              className="inline-flex min-h-11 items-center justify-center rounded-md border border-border-control px-5 py-3 text-base font-semibold text-brand no-underline transition-colors hover:bg-brand-soft"
-            >
-              {utilityNav.signIn.label}
-            </Link>
-            <ButtonLink href={utilityNav.register.href} variant="primary">
-              {utilityNav.register.label}
-            </ButtonLink>
+            {utilityNav.map((item) =>
+              item.variant === "primary" ? (
+                <ButtonLink key={item.href} href={item.href} variant="primary">
+                  {item.label}
+                </ButtonLink>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onClose}
+                  className="inline-flex min-h-11 items-center justify-center rounded-md border border-border-control px-5 py-3 text-base font-semibold text-brand no-underline transition-colors hover:bg-brand-soft"
+                >
+                  {item.label}
+                </Link>
+              ),
+            )}
           </div>
           {/*
             Rendered only once a real number exists. The 555 placeholder in

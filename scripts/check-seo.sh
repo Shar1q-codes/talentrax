@@ -27,14 +27,24 @@
 set -uo pipefail
 
 # ---------------------------------------------------------------------------
-# Routes under test.
+# Routes under test, in three kinds. "Built" and "indexable" are NOT the same
+# thing, which is why there are three lists and not two.
 #
-# BUILT_ROUTES must match app/sitemap.ts: indexable, canonical, in the sitemap.
-# COMING_SOON_ROUTES must match `comingSoonRoutes` in content/navigation.ts:
-# noindex, and absent from the sitemap.
+# BUILT_ROUTES        must match app/sitemap.ts: 200, canonical, indexable,
+#                     and listed in the sitemap.
+# UNLISTED_ROUTES     built and real, but deliberately noindex AND absent from
+#                     the sitemap. The account screens: they render, they
+#                     cannot sign anyone in, and they are not advertised
+#                     anywhere. Asserting both halves is the point - a future
+#                     edit that makes one of them indexable, or slips it into
+#                     the sitemap, fails here.
+# COMING_SOON_ROUTES  must match `comingSoonRoutes` in content/navigation.ts:
+#                     noindex, and absent from the sitemap. EMPTY TODAY -
+#                     every route is built. The list and its assertions stay
+#                     for the next unbuilt section.
 #
-# When a section is built it moves from the second list to the first, in the
-# same commit that drops its noIndex and adds it to the sitemap.
+# When a section is built it moves between these lists in the same commit that
+# changes its noIndex and its sitemap entry.
 # ---------------------------------------------------------------------------
 BUILT_ROUTES=(
   /
@@ -55,10 +65,15 @@ BUILT_ROUTES=(
   /accessibility
 )
 
-COMING_SOON_ROUTES=(
+# Built, noindex, and not in the sitemap. See the note above.
+UNLISTED_ROUTES=(
   /login
   /register
+  /forgot-password
 )
+
+# Empty: there are no unbuilt routes left.
+COMING_SOON_ROUTES=()
 
 # The engagement models, as anchors on /employers/services. The cards on
 # /employers deep-link into these ids, so they are part of the URL contract:
@@ -200,24 +215,50 @@ for route in "${BUILT_ROUTES[@]}"; do
   esac
 done
 
-# --- 3. every coming-soon route is noindex ----------------------------------
+# --- 3. built but unlisted routes: they render, and they are NOT indexable --
+# The account screens. Each must return 200 (it is a real page), carry
+# noindex (it cannot do anything yet), and be absent from the sitemap. A page
+# that signs nobody in has no business in search results, and the sitemap
+# check further down catches the other half.
 echo
-echo "  coming-soon routes (${#COMING_SOON_ROUTES[@]}):"
-for route in "${COMING_SOON_ROUTES[@]}"; do
-  html=$(fetch "$BASE_URL$route")
-  if [ -z "$html" ]; then
-    fail "$route could not be fetched"
+echo "  unlisted routes (${#UNLISTED_ROUTES[@]}):"
+for route in "${UNLISTED_ROUTES[@]}"; do
+  code=$(status_of "$BASE_URL$route")
+  if [ "$code" != "200" ]; then
+    fail "$route returned HTTP $code, expected 200 - it is a built page"
     continue
   fi
+  html=$(fetch "$BASE_URL$route")
   robots=$(robots_meta "$html")
   case "$robots" in
-    *noindex*) pass "$route -> \"$robots\"" ;;
+    *noindex*) pass "$route -> 200, \"$robots\"" ;;
     '')        fail "$route has no robots meta" ;;
-    *)         fail "$route robots meta is \"$robots\", expected it to contain noindex" ;;
+    *)         fail "$route robots meta is \"$robots\" - an unwired account screen must be noindex" ;;
   esac
 done
 
-# --- 4. the sitemap lists the built routes and nothing that is noindex ------
+# --- 4. every coming-soon route is noindex ----------------------------------
+echo
+if [ "${#COMING_SOON_ROUTES[@]}" -eq 0 ]; then
+  pass "no coming-soon routes remain (every route is built)"
+else
+  echo "  coming-soon routes (${#COMING_SOON_ROUTES[@]}):"
+  for route in "${COMING_SOON_ROUTES[@]}"; do
+    html=$(fetch "$BASE_URL$route")
+    if [ -z "$html" ]; then
+      fail "$route could not be fetched"
+      continue
+    fi
+    robots=$(robots_meta "$html")
+    case "$robots" in
+      *noindex*) pass "$route -> \"$robots\"" ;;
+      '')        fail "$route has no robots meta" ;;
+      *)         fail "$route robots meta is \"$robots\", expected it to contain noindex" ;;
+    esac
+  done
+fi
+
+# --- 5. the sitemap lists the built routes and nothing that is noindex ------
 echo
 sitemap_xml=$(fetch "$BASE_URL/sitemap.xml")
 if [ -z "$sitemap_xml" ]; then
@@ -232,8 +273,10 @@ else
   done
 
   # Listing a noindex page asks crawlers to index what we told them to skip.
+  # Both kinds of noindex route are checked: the unbuilt ones and the built
+  # ones we are deliberately not advertising.
   sitemap_noindex=0
-  for route in "${COMING_SOON_ROUTES[@]}"; do
+  for route in "${COMING_SOON_ROUTES[@]}" "${UNLISTED_ROUTES[@]}"; do
     if printf '%s' "$sitemap_xml" | grep -qF "<loc>$EXPECTED_ORIGIN$route</loc>"; then
       fail "sitemap lists $route, which is noindex"
       sitemap_noindex=$((sitemap_noindex + 1))
@@ -244,7 +287,7 @@ else
   fi
 fi
 
-# --- 5. the engagement model anchors on the services page -------------------
+# --- 6. the engagement model anchors on the services page -------------------
 # The cards on /employers link to /employers/services#<id>. If a section id
 # changes or a model is retired without updating the cards, those links land
 # at the top of the page instead of the section, silently.
@@ -289,7 +332,7 @@ else
   fi
 fi
 
-# --- 6. empty indexes publish no structured data ----------------------------
+# --- 7. empty indexes publish no structured data ----------------------------
 # An ItemList of nothing, or a JobPosting for a job that does not exist, is a
 # machine-readable claim to have listings we do not have. Google removes
 # domains from Google for Jobs over fabricated postings, so this is asserted
@@ -310,7 +353,7 @@ for route in "${EMPTY_INDEX_ROUTES[@]}"; do
   fi
 done
 
-# --- 7. detail routes, while their sources are empty ------------------------
+# --- 8. detail routes, while their sources are empty ------------------------
 # /jobs/[slug] and /insights/[slug] generate a page per item, so today they
 # generate none. What can be asserted now is that they behave correctly when
 # asked for one that does not exist, and that neither has leaked a URL into
@@ -343,12 +386,12 @@ if [ -n "$sitemap_xml" ]; then
   done
 fi
 
-# --- 8. the name is spelled correctly everywhere ----------------------------
+# --- 9. the name is spelled correctly everywhere ----------------------------
 # "TalentRax" with a capital R is wrong in mixed case. An all-caps TALENTRAX
 # wordmark is fine, so match the capital R specifically rather than the word.
 echo
 name_failures=0
-for route in "${BUILT_ROUTES[@]}" "${COMING_SOON_ROUTES[@]}"; do
+for route in "${BUILT_ROUTES[@]}" "${UNLISTED_ROUTES[@]}" "${COMING_SOON_ROUTES[@]}"; do
   html=$(fetch "$BASE_URL$route")
   [ -z "$html" ] && continue
   hits=$(count_matches 'TalentRax' "$html")
@@ -361,7 +404,7 @@ if [ "$name_failures" -eq 0 ]; then
   pass "no page spells the name \"TalentRax\" (the r is lowercase everywhere)"
 fi
 
-# --- 9. unknown URLs 404 ----------------------------------------------------
+# --- 10. unknown URLs 404 ----------------------------------------------------
 echo
 code=$(status_of "$BASE_URL$NOT_FOUND_PATH")
 if [ "$code" = "404" ]; then
@@ -370,7 +413,7 @@ else
   fail "$NOT_FOUND_PATH returned HTTP $code, expected 404"
 fi
 
-# --- 10. the 404 page carries exactly one robots meta -----------------------
+# --- 11. the 404 page carries exactly one robots meta -----------------------
 # Next injects its own noindex on 404s. Setting robots in not-found.tsx as well
 # produced two tags with the same meaning, which confused SEO audits.
 not_found_html=$(curl -s --max-time 20 "$BASE_URL$NOT_FOUND_PATH")

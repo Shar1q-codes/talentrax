@@ -70,21 +70,32 @@ export function Header() {
             </ul>
           </nav>
 
-          {/* Desktop utility actions */}
-          <div className="hidden items-center gap-3 lg:flex">
-            <Link
-              href={utilityNav.signIn.href}
-              aria-current={
-                isCurrent(utilityNav.signIn.href) ? "page" : undefined
-              }
-              className="inline-flex h-11 items-center rounded-md px-3 text-base font-medium text-ink-muted no-underline transition-colors hover:text-brand"
-            >
-              {utilityNav.signIn.label}
-            </Link>
-            <ButtonLink href={utilityNav.register.href} variant="primary">
-              {utilityNav.register.label}
-            </ButtonLink>
-          </div>
+          {/*
+            Desktop utility actions. Renders nothing while utilityNav is
+            empty, which it is: sign-in and registration are built but not
+            wired, and a Sign in button that cannot sign anyone in reads as a
+            broken site. See content/navigation.ts.
+          */}
+          {utilityNav.length > 0 ? (
+            <div className="hidden items-center gap-3 lg:flex">
+              {utilityNav.map((item) =>
+                item.variant === "primary" ? (
+                  <ButtonLink key={item.href} href={item.href} variant="primary">
+                    {item.label}
+                  </ButtonLink>
+                ) : (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={isCurrent(item.href) ? "page" : undefined}
+                    className="inline-flex h-11 items-center rounded-md px-3 text-base font-medium text-ink-muted no-underline transition-colors hover:text-brand"
+                  >
+                    {item.label}
+                  </Link>
+                ),
+              )}
+            </div>
+          ) : null}
 
           {/* Mobile menu trigger */}
           <button

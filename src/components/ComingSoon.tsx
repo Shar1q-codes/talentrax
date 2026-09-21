@@ -3,7 +3,11 @@ import { Container } from "@/components/ui/Container";
 import type { ComingSoonRoute } from "@/content/navigation";
 
 /**
- * The single shared coming-soon page body, used by both unbuilt routes.
+ * The shared coming-soon page body.
+ *
+ * NOTHING USES IT TODAY: every route is built, and `comingSoonRoutes` in
+ * content/navigation.ts is empty. Kept, with the registry, as the mechanism
+ * for the next unbuilt section rather than deleted and rebuilt later.
  *
  * It renders inside the root layout, so the real header and footer stay in
  * place and the site still feels whole while sections are being built.
