@@ -253,21 +253,22 @@ p {
   text-decoration-color: var(--color-on-brand);
 }
 
-/* SMOOTH SCROLLING, FOR IN-PAGE ANCHORS ONLY.
+/* SMOOTH SCROLLING, FOR IN-PAGE ANCHORS.
 
-   Scoped to :focus-within rather than applied to <html> outright. Following
-   an in-page anchor moves focus into the document, so the rule is live
-   exactly when someone is jumping to a #target.
+   Applied to <html> plainly. It was scoped to `html:focus-within` on the
+   theory that following an anchor moves focus into the document - but that
+   is only reliably true in Chrome. Safari and Firefox frequently do not
+   focus a link on a mouse click, so the selector never matched and the
+   anchor jumped. It also never did the job it was there for: a nav link
+   click focuses a link too, so it matched during route changes as well.
 
-   That scoping alone is NOT what keeps route changes instant - clicking a
-   nav link also puts focus in the document, so :focus-within matches during
-   a navigation too. What makes route changes jump is
-   data-scroll-behavior="smooth" on <html> in layout.tsx: the App Router
-   reads that attribute and forces `scroll-behavior: auto` for the duration
-   of the transition (see
+   WHAT KEEPS ROUTE CHANGES INSTANT is data-scroll-behavior="smooth" on
+   <html> in layout.tsx, and only that. The App Router reads the attribute
+   and forces `scroll-behavior: auto` for the duration of a transition (see
    next/dist/shared/lib/router/utils/disable-smooth-scroll.js). Without the
-   attribute it does not intervene at all, and it warns about exactly this in
-   development.
+   attribute it does not intervene at all, and warns about exactly this in
+   development. Remove the attribute and every navigation animates its jump
+   to the top.
 
    Off entirely under reduced motion: animated scrolling is a common
    vestibular trigger, and rule 3 says motion is opt-out. The reduced-motion
@@ -275,9 +276,13 @@ p {
    braces.
 
    Anchors land clear of the sticky header because <html> carries
-   scroll-padding-top, derived from --header-height at the top of this file. */
+   scroll-padding-top, derived from --header-height at the top of this file.
+
+   SAME-PAGE ANCHORS MUST BE PLAIN <a href="#id">, not next/link. A hash
+   click through the router is a router-driven scroll and does not honour
+   this rule. See CLAUDE.md, rule 3. */
 @media (prefers-reduced-motion: no-preference) {
-  html:focus-within {
+  html {
     scroll-behavior: smooth;
   }
 }

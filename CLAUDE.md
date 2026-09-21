@@ -172,14 +172,31 @@ or a curve**. If a third duration seems necessary, the interaction is wrong.
 - The header has **one scroll threshold and one change**: the bottom border
   gains colour. It does not shrink, change height, or hide on scroll.
 
-**Scrolling.** Smooth scrolling is scoped to `html:focus-within` and wrapped
-in `prefers-reduced-motion: no-preference`, so it applies to in-page anchors
-and never under reduced motion. That scoping alone does **not** keep route
-changes instant - clicking a nav link also puts focus in the document. What
-does is `data-scroll-behavior="smooth"` on `<html>`: the App Router reads
-that attribute and forces `scroll-behavior: auto` for the duration of a
-transition. **Remove the attribute and every route change animates its jump
-to the top.**
+**Scrolling.** `html { scroll-behavior: smooth }`, wrapped in
+`prefers-reduced-motion: no-preference`. It is deliberately NOT scoped to
+`html:focus-within`: that only matches where the browser focuses a clicked
+link, which Chrome does and Safari and Firefox often do not, so anchors
+jumped in those browsers. It also never protected route changes, because a
+nav link click focuses a link too.
+
+What keeps route changes instant is `data-scroll-behavior="smooth"` on
+`<html>`, and only that. The App Router reads the attribute and forces
+`scroll-behavior: auto` for the duration of a transition. **Remove the
+attribute and every route change animates its jump to the top.**
+
+**How an anchor link is written decides whether it glides:**
+
+| href | element | why |
+| --- | --- | --- |
+| starts with `#` | plain `<a>` | native hash navigation, so `scroll-behavior` applies |
+| a path, with or without a hash | `<Link>` | a real navigation, which should jump |
+
+A same-page hash routed through `<Link>` becomes a router-driven scroll, and
+the router suppresses smooth behaviour for its own scrolls - the anchor
+jumps. Every same-page anchor on this site is already a plain `<a>`: the
+engagement-model nav on `/employers/services`, the group jump list on
+`/faq`, the contents list on the legal pages, all four form error
+summaries, and the skip link.
 
 Anchors land clear of the sticky header via `scroll-padding-top` on
 `<html>`, derived from `--header-height` rather than restated.
