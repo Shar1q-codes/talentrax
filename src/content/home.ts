@@ -10,8 +10,9 @@
  * It is written as plausible, specific staffing language rather than lorem
  * ipsum, but it is NOT approved marketing copy.
  *
- * NUMBERS: every figure on this page is a visible placeholder (0,000 / 00).
- * No invented statistic is presented as fact anywhere. See `trustBar.note`.
+ * NUMBERS: none. Client instruction - no statistics, metrics or figures
+ * appear anywhere on this site, placeholder ones included. See "Content
+ * rules" in CLAUDE.md before adding any.
  *
  * ICONS: data carries an icon *name*; the SVG itself lives in
  * src/components/ui/Icon.tsx. Keeps this file CMS-serialisable.
@@ -65,33 +66,7 @@ export const hero: HeroContent = {
     "Image slot: client-supplied photography of a placement team at work",
 };
 
-/* ----------------------------------------------------------- 3. Trust bar */
-
-export type Stat = {
-  id: string;
-  /** Deliberately non-factual. Replace once reporting is verified. */
-  value: string;
-  label: string;
-};
-
-export type TrustBarContent = {
-  /** Accessible label for the stats region; not rendered visually. */
-  ariaLabel: string;
-  stats: Stat[];
-  note: string;
-};
-
-export const trustBar: TrustBarContent = {
-  ariaLabel: "Placeholder company statistics",
-  stats: [
-    { id: "roles-filled", value: "0,000+", label: "Roles filled" },
-    { id: "time-to-fill", value: "00 days", label: "Average time to fill" },
-    { id: "specialties", value: "00+", label: "Specialties staffed" },
-  ],
-  note: "Figures shown are placeholders. Verified reporting will replace them before launch.",
-};
-
-/* ------------------------------------------------------------ 4. Services */
+/* ------------------------------------------------------------ 3. Services */
 
 export type ServiceCard = {
   id: string;
@@ -160,7 +135,7 @@ export const services: ServicesContent = {
   cta: { label: "See all services", href: "/employers/services", variant: "secondary" },
 };
 
-/* --------------------------------------------------------- 5. Specialties */
+/* --------------------------------------------------------- 4. Specialties */
 
 export type SpecialtyCard = {
   id: string;
@@ -228,7 +203,7 @@ export const specialties: SpecialtiesContent = {
   cta: { label: "Explore specialties", href: "/specialties", variant: "secondary" },
 };
 
-/* ------------------------------------------------------- 6. Split section */
+/* ------------------------------------------------------- 5. Split section */
 
 export type AudiencePanel = {
   id: string;
@@ -279,7 +254,7 @@ export const split: SplitContent = {
   ],
 };
 
-/* -------------------------------------------------------- 7. How it works */
+/* -------------------------------------------------------- 6. How it works */
 
 export type Step = {
   id: string;
@@ -333,7 +308,7 @@ export const howItWorks: HowItWorksContent = {
   ],
 };
 
-/* ------------------------------------------------------ 8. Insights teaser */
+/* ------------------------------------------------------ 7. Insights teaser */
 
 export type ArticleCard = {
   id: string;
@@ -341,8 +316,6 @@ export type ArticleCard = {
   category: string;
   title: string;
   excerpt: string;
-  /** Placeholder reading time. No author is named: none exist yet. */
-  readingTime: string;
   href: string;
 };
 
@@ -367,7 +340,6 @@ export const insights: InsightsContent = {
       title: "What is driving time to fill on clinical roles this quarter",
       excerpt:
         "Credentialing timelines, shift differentials and the float pool question: where clinical searches are slowing down, and which levers actually move them.",
-      readingTime: "0 min read",
       href: "/insights",
     },
     {
@@ -376,7 +348,6 @@ export const insights: InsightsContent = {
       title: "Hiring for cloud roles when every posting reads the same",
       excerpt:
         "Differentiating an infrastructure opening in a crowded market starts with the scope of the role, not the length of the requirements list.",
-      readingTime: "0 min read",
       href: "/insights",
     },
     {
@@ -385,7 +356,6 @@ export const insights: InsightsContent = {
       title: "Counteroffers are up. Here is what to do before you extend",
       excerpt:
         "The offer conversation begins at the first screen. How to surface the real motivators early so the close does not come down to money alone.",
-      readingTime: "0 min read",
       href: "/insights",
     },
   ],
@@ -393,7 +363,7 @@ export const insights: InsightsContent = {
   note: "Article titles and excerpts are placeholders for layout. No articles are published yet.",
 };
 
-/* ------------------------------------------------------ 9. Closing CTA band */
+/* ------------------------------------------------------ 8. Closing CTA band */
 
 export type ClosingCtaContent = {
   heading: string;

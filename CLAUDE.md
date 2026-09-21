@@ -26,6 +26,31 @@ spelling; it matches `TalentRax` specifically, so an all-caps wordmark does not
 trip it. That assertion is why the string appears in `scripts/check-seo.sh`
 and in this section: both are guards, not occurrences to fix.
 
+## Content rules
+
+Client instruction, not a style preference:
+
+- **No testimonials.** No quotes, no attributed praise, nothing
+  testimonial-shaped.
+- **No client logos.**
+- **No named people.** No bylines, no team bios, no quoted spokespeople.
+- **No statistics or metrics anywhere on the site.** No placement counts, no
+  time-to-fill figures, no percentages, no satisfaction scores, no
+  years-in-business claims.
+
+**The only numbers allowed are computed live from the database** — the count
+of open roles, for example.
+
+Placeholder figures are not an exception: `0,000+` and `00 days` were still
+statistics, so the trust bar that carried them is gone and nothing replaces
+it. Note that this site has no backend and no database (see the top of this
+file), so until one exists the practical effect is **no figures at all**. A
+number that cannot be traced to a live query does not go on a page.
+
+Counts inside a heading that describe what is rendered directly beneath it
+("Five ways to staff a team", above five cards) are not claims about the
+business, and the step ordinals `01`–`04` are structure, not data. Both stay.
+
 ## Stack
 
 Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · React 19.
@@ -108,9 +133,8 @@ route, and add it to `app/sitemap.ts`. The sitemap currently lists `/` only.
   or `image-slot-soft` (see `globals.css`).
 - No analytics, cookie banners, chat widgets or third-party scripts.
 - No `localStorage` or `sessionStorage`.
-- Do not invent client logos, testimonials, named people or statistics. Every
-  figure on the home page is a visible placeholder (`0,000+`, `00 days`) and
-  the page says so.
+- No invented client logos, testimonials, named people, statistics or
+  figures of any kind — see **Content rules** above.
 
 ## Routes
 

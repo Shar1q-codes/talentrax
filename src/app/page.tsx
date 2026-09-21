@@ -7,7 +7,6 @@ import { InsightsTeaser } from "@/components/home/InsightsTeaser";
 import { Services } from "@/components/home/Services";
 import { Specialties } from "@/components/home/Specialties";
 import { SplitSection } from "@/components/home/SplitSection";
-import { TrustBar } from "@/components/home/TrustBar";
 import { site } from "@/content/site";
 import { buildMetadata } from "@/lib/metadata";
 import { organizationJsonLd, serializeJsonLd, webSiteJsonLd } from "@/lib/seo";
@@ -24,8 +23,8 @@ export const metadata: Metadata = {
 
 /**
  * The only fully built route. Section order matches the brief:
- * hero, trust bar, services, specialties, split, how it works, insights,
- * closing CTA. Header and Footer come from the root layout.
+ * hero, services, specialties, split, how it works, insights, closing CTA.
+ * Header and Footer come from the root layout.
  *
  * JSON-LD (Organization + WebSite) is emitted here only. This is a server
  * component, so the script tag is in the initial HTML - no client JS needed
@@ -42,7 +41,6 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: jsonLd }}
       />
       <Hero />
-      <TrustBar />
       <Services />
       <Specialties />
       <SplitSection />

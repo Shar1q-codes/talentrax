@@ -54,9 +54,6 @@ export function InsightsTeaser() {
               <p className="mt-3 flex-1 text-base text-ink-muted">
                 {article.excerpt}
               </p>
-              <p className="mt-5 text-sm text-ink-subtle">
-                {article.readingTime}
-              </p>
             </div>
           </Card>
         ))}
