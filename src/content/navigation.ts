@@ -9,10 +9,11 @@
  * anchor on a built page. All 20 routes exist today. Built: "/",
  * "/employers", "/employers/services", "/employers/request-talent",
  * "/job-seekers", "/job-seekers/upload-resume", "/jobs", "/about",
- * "/contact", "/faq", "/accessibility", "/privacy-policy" and "/terms",
- * plus the /jobs/[slug] detail route, which generates a page per posting and
- * so generates none today. The other 5 render the shared ComingSoon page,
- * are noindex, and are registered in `comingSoonRoutes` below.
+ * "/contact", "/faq", "/resources", "/accessibility", "/privacy-policy" and
+ * "/terms", plus the /jobs/[slug] detail route, which generates a page per
+ * posting and so generates none today. The other 4 render the shared
+ * ComingSoon page, are noindex, and are registered in `comingSoonRoutes`
+ * below.
  *
  * /industries, /specialties and /research have been DELETED, not hidden.
  * Nothing linked to the first two and their subject was already built at
@@ -100,7 +101,7 @@ export const primaryNav: NavItem[] = [
       {
         label: "Resources",
         href: "/resources",
-        description: "Interview and resume guidance",
+        description: "Interview preparation and resume guidance",
       },
       {
         label: "Upload Resume",
@@ -226,13 +227,6 @@ export const comingSoonRoutes: ComingSoonRoute[] = [
     section: "Insights",
     description:
       "Hiring, workforce and labor market commentary from the Talentrax Global recruiting team.",
-  },
-  {
-    href: "/resources",
-    title: "Resources",
-    section: "Insights",
-    description:
-      "Interview preparation, resume guidance and hiring advice from Talentrax Global recruiters.",
   },
   {
     href: "/login",

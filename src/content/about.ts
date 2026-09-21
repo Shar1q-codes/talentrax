@@ -19,15 +19,8 @@
  */
 
 import { commitments } from "./commitments";
-import { engagementModels } from "./taxonomy";
+import { engagementNamesSentence } from "./taxonomy";
 import type { CtaBandContent, ProcessCommitment, SectionIntro } from "./types";
-
-/** "Direct Hire, Contract and Executive Search", built from the taxonomy. */
-function listModelNames(): string {
-  const names = engagementModels.map((model) => model.name);
-  if (names.length <= 1) return names.join("");
-  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
-}
 
 export const aboutMeta = {
   title: "About Us",
@@ -51,7 +44,7 @@ export const whatWeDo: SectionIntro & { body: string[]; modelsLine: string } = {
     "Employers come to us with a role that has to be filled by a person who can actually do it. Candidates come to us because applying through a portal is a coin toss. Both sides get the same recruiter, who knows the discipline and has placed the role before.",
   ],
   /** Derived from taxonomy.ts so it cannot drift from the services page. */
-  modelsLine: `The engagement models are ${listModelNames()}, and the commercial arrangement behind each one is set out in plain terms before any search opens.`,
+  modelsLine: `The engagement models are ${engagementNamesSentence()}, and the commercial arrangement behind each one is set out in plain terms before any search opens.`,
 };
 
 export const aboutSpecialtySection: SectionIntro = {

@@ -6,7 +6,7 @@ import { getJobs, isExpired } from "@/lib/jobs";
 /**
  * Sitemap.
  *
- * Built routes only. The other 5 render the coming-soon page and set robots
+ * Built routes only. The other 4 render the coming-soon page and set robots
  * index:false, so listing them would ask crawlers to index pages we have
  * explicitly told them to skip - a contradictory signal.
  *
@@ -25,6 +25,7 @@ const BUILT_ROUTES: { path: string; priority: number }[] = [
   { path: "/about", priority: 0.7 },
   { path: "/contact", priority: 0.7 },
   { path: "/faq", priority: 0.6 },
+  { path: "/resources", priority: 0.6 },
   // Legal pages are indexable but low priority: people arrive at them from
   // the footer or a direct link, not from search.
   { path: "/privacy-policy", priority: 0.3 },

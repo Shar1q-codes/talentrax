@@ -47,6 +47,7 @@ BUILT_ROUTES=(
   /about
   /contact
   /faq
+  /resources
   /privacy-policy
   /terms
   /accessibility
@@ -55,7 +56,6 @@ BUILT_ROUTES=(
 COMING_SOON_ROUTES=(
   /locations
   /insights
-  /resources
   /login
   /register
 )

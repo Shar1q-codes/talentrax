@@ -22,7 +22,11 @@
  */
 
 import { commitments } from "./commitments";
-import { engagementModels, specialtyAreas } from "./taxonomy";
+import {
+  deskNamesSentence,
+  engagementNamesSentence,
+  specialtyAreas,
+} from "./taxonomy";
 import type { CtaBandContent } from "./types";
 
 export type FaqItem = {
@@ -57,20 +61,6 @@ export const faqHero = {
     "Answers to what employers and candidates ask most. Every one of them links to the fuller version on the page it comes from.",
 };
 
-/** "Direct Hire, Contract and Executive Search", built from the taxonomy. */
-function listModelNames(): string {
-  const names = engagementModels.map((model) => model.name);
-  if (names.length <= 1) return names.join("");
-  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
-}
-
-/** "Healthcare, Technology and Professional", built from the taxonomy. */
-function listDeskNames(): string {
-  const names = specialtyAreas.map((area) => area.name);
-  if (names.length <= 1) return names.join("");
-  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
-}
-
 export const faqGroups: FaqGroup[] = [
   {
     id: "for-employers",
@@ -81,7 +71,7 @@ export const faqGroups: FaqGroup[] = [
         id: "what-do-you-recruit-for",
         question: "What kinds of roles do you recruit for?",
         answer: [
-          `We run ${specialtyAreas.length} desks: ${listDeskNames()}. Each one has its own recruiters who work that discipline and nothing else, which is how they learn which credentials matter and which titles mean the same job at different employers.`,
+          `We run ${specialtyAreas.length} desks: ${deskNamesSentence()}. Each one has its own recruiters who work that discipline and nothing else, which is how they learn which credentials matter and which titles mean the same job at different employers.`,
           "Every desk lists the disciplines it covers, so you can check whether your role is one we actually place before you spend time on a brief.",
         ],
         link: { label: "See the three desks", href: "/employers#specialties" },
@@ -90,7 +80,7 @@ export const faqGroups: FaqGroup[] = [
         id: "how-can-we-engage-you",
         question: "How can we engage you?",
         answer: [
-          `Three ways: ${listModelNames()}. Direct hire is a permanent search run against criteria you sign off. Contract puts credentialed talent on our payroll for a defined engagement. Executive search is a retained, research-led search for leadership roles, assessed against a scorecard you agree before it opens.`,
+          `Three ways: ${engagementNamesSentence()}. Direct hire is a permanent search run against criteria you sign off. Contract puts credentialed talent on our payroll for a defined engagement. Executive search is a retained, research-led search for leadership roles, assessed against a scorecard you agree before it opens.`,
           "Each model is set out in full, including how the commercial arrangement works in plain terms.",
         ],
         link: {

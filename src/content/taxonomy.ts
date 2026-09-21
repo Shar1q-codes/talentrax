@@ -323,3 +323,34 @@ export function engagementName(engagementId: string): string {
     engagementId
   );
 }
+
+/* --------------------------------------------------------- Prose helpers */
+
+/** Joins names into "A, B and C" for use inside a sentence. */
+function toSentenceList(names: string[]): string {
+  if (names.length <= 1) return names.join("");
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+/**
+ * "Healthcare, Technology and Professional".
+ *
+ * Copy that names the desks or the models in running text builds the list
+ * from here rather than typing it. Retiring one then rewrites every sentence
+ * that mentions it, which is how the last withdrawn model was still being
+ * advertised in three places a commit later.
+ */
+export function deskNamesSentence(): string {
+  return toSentenceList(specialtyAreas.map((area) => area.name));
+}
+
+/** "Direct Hire, Contract and Executive Search". */
+export function engagementNamesSentence(): string {
+  return toSentenceList(engagementModels.map((model) => model.name));
+}
+
+/** The sub-specialty names on one desk, as "A, B and C". */
+export function subSpecialtyNamesSentence(deskId: string): string {
+  const area = specialtyAreas.find((entry) => entry.id === deskId);
+  return toSentenceList(area?.subSpecialties.map((sub) => sub.name) ?? []);
+}

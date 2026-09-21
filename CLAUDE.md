@@ -172,7 +172,7 @@ first, with its contrast ratio in the comment, then use the generated utility
 ### 4. Coming-soon routes must be noindex
 
 Every coming-soon route sets `robots: { index: false, follow: true }` via
-`buildMetadata({ noIndex: true })`. We do not want 5 empty pages indexed.
+`buildMetadata({ noIndex: true })`. We do not want 4 empty pages indexed.
 `follow` stays true so crawlers still traverse the navigation.
 
 `robots.ts` deliberately allows the crawl: a `Disallow` would stop crawlers
@@ -225,9 +225,10 @@ Built (indexable, in the sitemap):
 /employers                    /about
 /employers/services           /contact
 /employers/request-talent     /faq
-/job-seekers                  /privacy-policy
-/job-seekers/upload-resume    /terms
-/jobs                         /accessibility
+/job-seekers                  /resources
+/job-seekers/upload-resume    /privacy-policy
+/jobs                         /terms
+                              /accessibility
 ```
 
 Coming soon (all noindex, all real routes):
@@ -235,8 +236,11 @@ Coming soon (all noindex, all real routes):
 ```
 /locations                    /login
 /insights                     /register
-/resources
 ```
+
+Those four are everything left. `/locations` and `/insights` need client data
+- markets and articles - and `/login` and `/register` need a backend, so none
+of them can be built from this repo alone.
 
 ### Deleted routes
 
@@ -360,6 +364,24 @@ claims, and a false accessibility claim in the US is what demand letters are
 made of. The admission that no audit has happened is the most valuable
 sentence on the page; it goes when an audit report replaces it, and not
 before. CLIENT-CONFIRM.md items 11 and 12.
+
+### /resources — two subjects, and no numbers
+
+Interview preparation and resume guidance. **Not salary guides, compensation
+benchmarks, market rates or pay data of any kind** - that is the
+no-statistics rule, and narrowing the page to two subjects is what the rule
+left standing. The nav advertised it as "Salary Guides" once; it is not that
+page.
+
+There are **no numbers on it at all**, not even a file size. Most resume
+advice in circulation is a made-up statistic ("six seconds on a resume",
+"70% are filtered"), and the rule forbids them whether or not they happen to
+be true.
+
+**No attributed claims.** Nothing there may say "our recruiters find that",
+"in our experience" or "studies show". Nobody at the client has told us what
+their recruiters observe. It is written as guidance the firm publishes - what
+to do, not what someone noticed. No byline, no named people, no downloads.
 
 ### /faq — every answer is sourced from elsewhere on the site
 
