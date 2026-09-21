@@ -116,7 +116,20 @@ delete the matching `OMITTED` comment there, and strike the item here.
     by anyone writing marketing copy. Until then **nobody may add the words
     "compliant" or "conformant" to that page.**
 
-13. **The copy itself.** Every word on this site is placeholder marketing copy
+13. **Per-market landing pages.** Does the client want location landing
+    pages later, and if so for which markets specifically?
+
+    `/locations` deliberately publishes no market list, no cities and no
+    states. If per-market pages are wanted, each one needs **real
+    differentiated content** - the employers and role types that market
+    actually has, what hiring there is like, why a candidate there should
+    read it. A state name swapped into a template is a thin page, fifty of
+    them is a thin-content problem, and this site deleted `/specialties`
+    over exactly that. So the question is not "which states" but "which
+    markets do you know enough about to write a real page for".
+    *Omitted: every market, city, state and region name on the site.*
+
+14. **The copy itself.** Every word on this site is placeholder marketing copy
     written during the build, not approved client copy. The process sections
     on `/employers` and `/job-seekers` make specific operational promises — a
     named recruiter, consent before every submission, an answer either way,

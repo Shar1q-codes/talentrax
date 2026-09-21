@@ -9,12 +9,12 @@
  * anchor on a built page. All 20 routes exist today. Built: "/",
  * "/employers", "/employers/services", "/employers/request-talent",
  * "/job-seekers", "/job-seekers/upload-resume", "/jobs", "/about",
- * "/contact", "/faq", "/resources", "/insights", "/accessibility",
- * "/privacy-policy" and "/terms", plus the /jobs/[slug] and
- * /insights/[slug] detail routes, which generate a page per posting and per
- * article and so generate none today. The other 3 render the shared
- * ComingSoon page, are noindex, and are registered in `comingSoonRoutes`
- * below.
+ * "/contact", "/faq", "/resources", "/insights", "/locations",
+ * "/accessibility", "/privacy-policy" and "/terms", plus the /jobs/[slug]
+ * and /insights/[slug] detail routes, which generate a page per posting and
+ * per article and so generate none today. Only "/login" and "/register"
+ * still render the shared ComingSoon page; both need a backend. They are
+ * registered in `comingSoonRoutes` below.
  *
  * /industries, /specialties and /research have been DELETED, not hidden.
  * Nothing linked to the first two and their subject was already built at
@@ -97,7 +97,7 @@ export const primaryNav: NavItem[] = [
       {
         label: "Locations",
         href: "/locations",
-        description: "Markets we place candidates in",
+        description: "How location works on a role",
       },
       {
         label: "Resources",
@@ -215,13 +215,6 @@ export type ComingSoonRoute = {
 };
 
 export const comingSoonRoutes: ComingSoonRoute[] = [
-  {
-    href: "/locations",
-    title: "Locations",
-    section: "Job Seekers",
-    description:
-      "The US markets where Talentrax Global places contract and permanent talent.",
-  },
   {
     href: "/login",
     title: "Sign In",

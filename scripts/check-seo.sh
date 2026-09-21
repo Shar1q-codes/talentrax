@@ -49,13 +49,13 @@ BUILT_ROUTES=(
   /faq
   /resources
   /insights
+  /locations
   /privacy-policy
   /terms
   /accessibility
 )
 
 COMING_SOON_ROUTES=(
-  /locations
   /login
   /register
 )

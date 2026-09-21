@@ -172,7 +172,7 @@ first, with its contrast ratio in the comment, then use the generated utility
 ### 4. Coming-soon routes must be noindex
 
 Every coming-soon route sets `robots: { index: false, follow: true }` via
-`buildMetadata({ noIndex: true })`. We do not want 3 empty pages indexed.
+`buildMetadata({ noIndex: true })`. We do not want 2 empty pages indexed.
 `follow` stays true so crawlers still traverse the navigation.
 
 `robots.ts` deliberately allows the crawl: a `Disallow` would stop crawlers
@@ -223,26 +223,26 @@ Built (indexable, in the sitemap):
 ```
 /                             /insights
 /employers                    /insights/[slug]  (one per article: none today)
-/employers/services           /about
-/employers/request-talent     /contact
-/job-seekers                  /faq
-/job-seekers/upload-resume    /resources
-/jobs                         /privacy-policy
-/jobs/[slug]  (one per        /terms
-              posting: none)  /accessibility
+/employers/services           /locations
+/employers/request-talent     /about
+/job-seekers                  /contact
+/job-seekers/upload-resume    /faq
+/jobs                         /resources
+/jobs/[slug]  (one per        /privacy-policy
+              posting: none)  /terms
+                              /accessibility
 ```
 
 Coming soon (all noindex, all real routes):
 
 ```
-/locations
 /login
 /register
 ```
 
-Those three are everything left. `/locations` needs client data - the markets
-they actually place in - and `/login` and `/register` need a backend, so none
-of them can be built from this repo alone.
+Those two are all that is left, and **both need a backend** - an identity
+store, sessions, and something to save. They cannot be built from this repo
+as it stands.
 
 ### Deleted routes
 
@@ -318,6 +318,27 @@ slug returns 404, and that no posting URL has leaked into the sitemap while
   served HTML should be checked too;
 - `validThrough` parses and is in the future;
 - the posting appears in the sitemap, and an expired one answers 410.
+
+### /locations — no market list, and no per-state pages
+
+The page answers "can you help me where I am, and how does location work on
+these roles". It does **not** list markets, cities, states, regions or
+offices, and it carries no map and no count of coverage areas.
+
+**Do not add per-state or per-city sub-routes.** Location landing pages are
+only worth having with real differentiated content - the employers and role
+types that market actually has. A state name swapped into a template is a
+thin page, and fifty of them is the thin-content problem `/specialties` was
+deleted over. CLIENT-CONFIRM.md item 13 asks the client which markets they
+know enough about to justify a real page, not which states to generate.
+
+**No regulatory detail.** Licensure and multistate arrangements are named as
+things that shape a clinical role, and the posting is named as the authority
+for any given role. The page must not list compact member states, claim which
+licences transfer where, or characterise the rules of any licensing board.
+Those change, the page would not, and being wrong about licensure on a
+healthcare staffing site is worse than saying nothing. The disclaimer
+paragraph in `content/locations.ts` stays.
 
 ### The insights index
 
