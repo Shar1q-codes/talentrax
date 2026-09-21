@@ -1,24 +1,39 @@
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { Section, SectionHeader } from "@/components/ui/Section";
-import { specialtyAreas, specialtySection } from "@/content/employers";
+import { specialtyAreas } from "@/content/taxonomy";
+import type { SectionIntro } from "@/content/types";
 
 /**
- * The three desks and the disciplines each one actually recruits.
+ * The three desks and the disciplines each one recruits.
  *
- * The desks are a <ul> of peers, matching the pattern on the home page. Inside
- * each card the sub-specialties are a description list: the discipline is the
- * term and what sits inside it is the description, which is exactly the
- * pairing a <dl> encodes. A flat <ul> would throw that relationship away.
+ * The desk data comes from content/taxonomy.ts, so the Employers page and the
+ * Job Seekers page cannot end up advertising different specialties; only the
+ * surrounding copy differs, and that arrives as `content`.
+ *
+ * The desks are a <ul> of peers, matching the pattern on the home page.
+ * Inside each card the sub-specialties are a description list: the discipline
+ * is the term and what sits inside it is the description, which is exactly
+ * the pairing a <dl> encodes. A flat <ul> would throw that relationship away.
  */
-export function SpecialtyAreas() {
+export function SpecialtyAreas({
+  content,
+  id = "specialties",
+  headingId = "specialties-heading",
+  tone = "muted",
+}: {
+  content: SectionIntro;
+  id?: string;
+  headingId?: string;
+  tone?: "default" | "muted";
+}) {
   return (
-    <Section id="specialties" tone="muted" labelledBy="specialties-heading">
+    <Section id={id} tone={tone} labelledBy={headingId}>
       <SectionHeader
-        headingId="specialties-heading"
-        eyebrow={specialtySection.eyebrow}
-        heading={specialtySection.heading}
-        intro={specialtySection.intro}
+        headingId={headingId}
+        eyebrow={content.eyebrow}
+        heading={content.heading}
+        intro={content.intro}
       />
 
       <ul className="grid gap-6 lg:grid-cols-3">

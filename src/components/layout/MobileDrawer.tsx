@@ -245,7 +245,7 @@ export function MobileDrawer({
             <Link
               href={utilityNav.signIn.href}
               onClick={onClose}
-              className="inline-flex min-h-11 items-center justify-center rounded-md border border-border-strong px-5 py-3 text-base font-semibold text-brand no-underline transition-colors hover:bg-brand-soft"
+              className="inline-flex min-h-11 items-center justify-center rounded-md border border-border-control px-5 py-3 text-base font-semibold text-brand no-underline transition-colors hover:bg-brand-soft"
             >
               {utilityNav.signIn.label}
             </Link>

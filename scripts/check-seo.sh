@@ -41,13 +41,13 @@ BUILT_ROUTES=(
   /employers
   /employers/services
   /employers/request-talent
+  /job-seekers
+  /job-seekers/upload-resume
 )
 
 COMING_SOON_ROUTES=(
   /industries
   /specialties
-  /job-seekers
-  /job-seekers/upload-resume
   /jobs
   /locations
   /insights

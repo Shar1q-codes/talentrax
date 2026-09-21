@@ -4,11 +4,8 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { Section, SectionHeader } from "@/components/ui/Section";
-import {
-  engagementModels,
-  engagementSection,
-  serviceHref,
-} from "@/content/employers";
+import { engagementSection, serviceHref } from "@/content/employers";
+import { engagementModels } from "@/content/taxonomy";
 
 /**
  * The five engagement models as cards, each linking to its own section on the

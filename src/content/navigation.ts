@@ -5,10 +5,12 @@
  * CONTENT RULE: Header, MobileDrawer and Footer map over these arrays. Adding
  * a link is a data edit, never a component edit.
  *
- * ROUTE RULE: every href below must correspond to a real route under src/app.
- * All 20 routes exist today. Built: "/", "/employers", "/employers/services"
- * and "/employers/request-talent". The other 17 render the shared ComingSoon
- * page and are noindex, and are registered in `comingSoonRoutes` below.
+ * ROUTE RULE: every href below must resolve - a route under src/app, or an
+ * anchor on a built page. All 20 routes exist today. Built: "/",
+ * "/employers", "/employers/services", "/employers/request-talent",
+ * "/job-seekers" and "/job-seekers/upload-resume". The other 15 render the
+ * shared ComingSoon page, are noindex, and are registered in
+ * `comingSoonRoutes` below.
  */
 
 export type NavLink = {
@@ -51,15 +53,14 @@ export const primaryNav: NavItem[] = [
         href: "/employers/services",
         description: "The five engagement models, in detail",
       },
-      {
-        label: "Industries",
-        href: "/industries",
-        description: "Sectors we staff across the US",
-      },
+      // One entry, not two: "Industries" and "Specialties" both described
+      // the desks, and the desks are now a real section on /employers. Two
+      // nav items pointing at the same anchor would be a worse answer than
+      // one. The /industries and /specialties routes still exist.
       {
         label: "Specialties",
-        href: "/specialties",
-        description: "Roles and disciplines we recruit for",
+        href: "/employers#specialties",
+        description: "The three desks and what sits on each",
       },
       {
         label: "Request Talent",
@@ -76,7 +77,7 @@ export const primaryNav: NavItem[] = [
       {
         label: "Overview",
         href: "/job-seekers",
-        description: "What working with a recruiter looks like",
+        description: "How applying works, start to answer",
       },
       {
         label: "Browse Jobs",
@@ -96,7 +97,7 @@ export const primaryNav: NavItem[] = [
       {
         label: "Upload Resume",
         href: "/job-seekers/upload-resume",
-        description: "Get on our recruiters radar",
+        description: "One upload, read by a specialist recruiter",
       },
     ],
   },
@@ -164,8 +165,7 @@ export const footerColumns: FooterColumn[] = [
     links: [
       { label: "Overview", href: "/employers" },
       { label: "Services", href: "/employers/services" },
-      { label: "Industries", href: "/industries" },
-      { label: "Specialties", href: "/specialties" },
+      { label: "Specialties", href: "/employers#specialties" },
       { label: "Request Talent", href: "/employers/request-talent" },
     ],
   },
@@ -204,7 +204,8 @@ export const footerColumns: FooterColumn[] = [
 
 /**
  * Registry of every route that currently renders the shared ComingSoon page.
- * "/" and the three Employers routes are excluded because they are built.
+ * "/", the three Employers routes and the two Job Seekers routes are excluded
+ * because they are built.
  *
  * Each entry drives three things for its route: the page h1, the document
  * title, and the meta description. Route files stay three-line stubs.
@@ -231,20 +232,6 @@ export const comingSoonRoutes: ComingSoonRoute[] = [
     section: "Employers",
     description:
       "The roles and disciplines Talentrax Global recruits for across healthcare, IT and professional services.",
-  },
-  {
-    href: "/job-seekers",
-    title: "For Job Seekers",
-    section: "Job Seekers",
-    description:
-      "What working with a Talentrax Global recruiter looks like, from first call to first day.",
-  },
-  {
-    href: "/job-seekers/upload-resume",
-    title: "Upload Your Resume",
-    section: "Job Seekers",
-    description:
-      "Send your resume to the Talentrax Global recruiting team and get on our radar for matching roles.",
   },
   {
     href: "/jobs",

@@ -1,18 +1,21 @@
 import { Icon } from "@/components/ui/Icon";
 import { Section, SectionHeader } from "@/components/ui/Section";
-import { searchProcess } from "@/content/employers";
+import type { ProcessCommitment, ProcessContent } from "@/content/types";
 
 /**
- * How a search runs: five steps, each split into what we do and what the
- * client sees. With no statistics allowed anywhere on this site, this section
- * is what carries the credibility, so it is deliberately the most detailed
- * one on the page.
+ * A numbered process: each step split into what we do and what the reader
+ * gets out of it, with an optional commitments panel underneath.
+ *
+ * Shared by /employers ("how a search runs") and /job-seekers ("how applying
+ * works"). With no statistics or testimonials permitted anywhere on this
+ * site, describing how the work actually runs is what carries the
+ * credibility, and the two audiences should recognise the same shape.
  *
  * Structure:
  *   <ol>            the sequence IS the content, so it is an ordered list
  *     <li>          one step, h3
- *       <div>       "What we do"  - h4 + ul
- *       <div>       "What you get" - h4 + ul
+ *       <div>       "what we do"  - h4 + ul
+ *       <div>       "what you get" - h4 + ul
  *
  * The large "01" numerals duplicate the list order, so they are aria-hidden:
  * a screen reader already announces "1 of 5" and does not need "zero one"
@@ -22,18 +25,28 @@ import { searchProcess } from "@/content/employers";
  * list item, hidden on the last one. It is drawn inside the item's own left
  * padding so nothing overhangs the 16px page gutter at 320px.
  */
-export function SearchProcess() {
+export function ProcessTimeline({
+  content,
+  id,
+  headingId,
+  tone = "default",
+}: {
+  content: ProcessContent;
+  id: string;
+  headingId: string;
+  tone?: "default" | "muted";
+}) {
   return (
-    <Section id="how-a-search-runs" labelledBy="how-a-search-runs-heading">
+    <Section id={id} tone={tone} labelledBy={headingId}>
       <SectionHeader
-        headingId="how-a-search-runs-heading"
-        eyebrow={searchProcess.eyebrow}
-        heading={searchProcess.heading}
-        intro={searchProcess.intro}
+        headingId={headingId}
+        eyebrow={content.eyebrow}
+        heading={content.heading}
+        intro={content.intro}
       />
 
       <ol className="flex flex-col">
-        {searchProcess.steps.map((step) => (
+        {content.steps.map((step) => (
           <li
             key={step.id}
             className={[
@@ -61,7 +74,7 @@ export function SearchProcess() {
             <div className="mt-6 grid gap-4 rounded-lg border border-border bg-surface-muted p-5 sm:grid-cols-2 sm:gap-6 sm:p-6">
               <div>
                 <h4 className="text-sm font-semibold tracking-widest text-ink-muted uppercase">
-                  {searchProcess.labels.weDo}
+                  {content.labels.weDo}
                 </h4>
                 <ul className="mt-3 flex flex-col gap-2">
                   {step.weDo.map((item) => (
@@ -81,7 +94,7 @@ export function SearchProcess() {
 
               <div className="border-t border-border pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-6">
                 <h4 className="text-sm font-semibold tracking-widest text-accent-strong uppercase">
-                  {searchProcess.labels.youGet}
+                  {content.labels.youGet}
                 </h4>
                 <ul className="mt-3 flex flex-col gap-2">
                   {step.youGet.map((item) => (
@@ -103,28 +116,54 @@ export function SearchProcess() {
         ))}
       </ol>
 
-      {/* The commitments that fall out of the process above. */}
-      <div className="mt-12 rounded-xl border border-brand bg-brand-soft p-6 sm:p-8">
-        <h3 className="text-xl font-bold text-ink sm:text-2xl">
-          {searchProcess.commitmentsHeading}
-        </h3>
-        <dl className="mt-6 grid gap-6 sm:grid-cols-2">
-          {searchProcess.commitments.map((commitment) => (
-            <div key={commitment.id}>
-              <dt className="flex items-start gap-2 text-base font-bold text-brand">
-                <Icon
-                  name="check"
-                  className="mt-1 h-5 w-5 shrink-0 text-brand"
-                />
-                {commitment.title}
-              </dt>
-              <dd className="mt-2 pl-7 text-base text-ink-muted">
-                {commitment.detail}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </div>
+      {content.commitments && content.commitmentsHeading ? (
+        <CommitmentPanel
+          heading={content.commitmentsHeading}
+          commitments={content.commitments}
+        />
+      ) : null}
     </Section>
+  );
+}
+
+/**
+ * The promises that fall out of a process. Also used on its own by the Job
+ * Seekers consent section, which is the same shape: a heading over a list of
+ * short title/detail pairs.
+ */
+export function CommitmentPanel({
+  heading,
+  commitments,
+  className = "mt-12",
+  children,
+}: {
+  /** Omitted when the panel sits under a section heading that already names it. */
+  heading?: string;
+  commitments: ProcessCommitment[];
+  className?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div
+      className={`rounded-xl border border-brand bg-brand-soft p-6 sm:p-8 ${className}`}
+    >
+      {heading ? (
+        <h3 className="text-xl font-bold text-ink sm:text-2xl">{heading}</h3>
+      ) : null}
+      <dl className={`grid gap-6 sm:grid-cols-2 ${heading ? "mt-6" : ""}`}>
+        {commitments.map((commitment) => (
+          <div key={commitment.id}>
+            <dt className="flex items-start gap-2 text-base font-bold text-brand">
+              <Icon name="check" className="mt-1 h-5 w-5 shrink-0 text-brand" />
+              {commitment.title}
+            </dt>
+            <dd className="mt-2 pl-7 text-base text-ink-muted">
+              {commitment.detail}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      {children}
+    </div>
   );
 }

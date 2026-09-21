@@ -36,6 +36,47 @@ export type Cta = {
   variant: "primary" | "secondary" | "inverse" | "outline-inverse";
 };
 
+/** Eyebrow + heading + intro, the standard opening of a page section. */
+export type SectionIntro = {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+};
+
+/**
+ * A numbered process, rendered by components/shared/ProcessTimeline.tsx.
+ *
+ * Both the Employers and the Job Seekers pages run one. They describe
+ * different processes but share the shape, which is what makes the two
+ * sections read as one site rather than two.
+ */
+export type ProcessStep = {
+  id: string;
+  /** Visible ordinal, aria-hidden: the <ol> already conveys the order. */
+  number: string;
+  title: string;
+  summary: string;
+  /** What we do at this step. */
+  weDo: string[];
+  /** What the reader receives or decides at this step. */
+  youGet: string[];
+};
+
+export type ProcessCommitment = {
+  id: string;
+  title: string;
+  detail: string;
+};
+
+export type ProcessContent = SectionIntro & {
+  /** Column headings inside each step. */
+  labels: { weDo: string; youGet: string };
+  steps: ProcessStep[];
+  /** Optional panel under the steps. Omit both and it is not rendered. */
+  commitmentsHeading?: string;
+  commitments?: ProcessCommitment[];
+};
+
 /** A closing call-to-action band. Rendered by components/ui/CtaBand.tsx. */
 export type CtaBandContent = {
   heading: string;

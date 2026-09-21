@@ -1,19 +1,7 @@
 import { Container } from "@/components/ui/Container";
 import { Icon } from "@/components/ui/Icon";
-import { engagementModels, servicesPage } from "@/content/employers";
-
-/**
- * Standing note explaining the [COMMERCIAL TERMS] markers further down the
- * page. It sits in the masthead, above the first marker, so nobody meets one
- * without having been told what it means.
- */
-export function CommercialTermsNote() {
-  return (
-    <p className="mt-8 max-w-3xl border-l-4 border-accent py-2 pl-4 text-base text-ink-muted">
-      {servicesPage.commercialPlaceholderNote}
-    </p>
-  );
-}
+import { servicesPage } from "@/content/employers";
+import { engagementModels } from "@/content/taxonomy";
 
 /**
  * In-page anchor nav for the five engagement models.
@@ -34,7 +22,7 @@ export function ServicesAnchorNav() {
           <li key={model.id}>
             <a
               href={`#${model.id}`}
-              className="inline-flex min-h-11 items-center gap-2 text-base font-semibold text-brand underline decoration-border-strong underline-offset-4 transition-colors hover:text-brand-strong hover:decoration-brand"
+              className="inline-flex min-h-11 items-center gap-2 text-base font-semibold text-brand underline decoration-border-control underline-offset-4 transition-colors hover:text-brand-strong hover:decoration-brand"
             >
               <Icon name={model.icon} className="h-5 w-5 shrink-0" />
               {model.name}
@@ -52,10 +40,12 @@ export function ServicesAnchorNav() {
  *
  * Every model covers the same three things in the same order - what it is,
  * when it fits, how the commercial arrangement works - so they can be read
- * against each other. Commercial points the client has not confirmed carry
- * `detail: null` in the content layer and render as a visible
- * [COMMERCIAL TERMS] marker: no fee, rate, percentage or guarantee period is
- * invented here.
+ * against each other.
+ *
+ * A commercial point the client has not confirmed carries `detail: null` and
+ * is skipped entirely: no term, no label, no empty row (CLAUDE.md rule 6).
+ * The unconfirmed points stay in the data so there is a list to fill in, and
+ * they appear on the page the moment they have a value.
  *
  * Bands alternate tone so the boundary between models is visible without
  * relying on a heavier rule.
@@ -120,20 +110,18 @@ export function ServiceDetails() {
                   {servicesPage.headings.commercial}
                 </h3>
                 <dl className="mt-3 flex flex-col gap-4">
-                  {model.commercial.map((point) => (
-                    <div key={point.id}>
-                      <dt className="text-base font-semibold text-ink">
-                        {point.label}
-                      </dt>
-                      <dd className="mt-1 text-base text-ink-muted">
-                        {point.detail ?? (
-                          <span className="inline-block rounded-sm border border-brand bg-brand-soft px-2 py-1 font-mono text-sm font-semibold text-brand">
-                            {servicesPage.commercialPlaceholder}
-                          </span>
-                        )}
-                      </dd>
-                    </div>
-                  ))}
+                  {model.commercial
+                    .filter((point) => point.detail !== null)
+                    .map((point) => (
+                      <div key={point.id}>
+                        <dt className="text-base font-semibold text-ink">
+                          {point.label}
+                        </dt>
+                        <dd className="mt-1 text-base text-ink-muted">
+                          {point.detail}
+                        </dd>
+                      </div>
+                    ))}
                 </dl>
               </div>
             </div>

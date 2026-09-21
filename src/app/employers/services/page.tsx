@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import {
-  CommercialTermsNote,
   ServiceDetails,
   ServicesAnchorNav,
 } from "@/components/employers/ServiceDetails";
@@ -22,8 +21,8 @@ export const metadata: Metadata = buildMetadata({
  * on /employers link straight into these ids, so they are part of the URL
  * contract and should not be renamed casually.
  *
- * Fees, rates and guarantee periods are not published: every unconfirmed
- * commercial point renders the [COMMERCIAL TERMS] marker instead.
+ * Fees, rates and guarantee periods are not published: an unconfirmed
+ * commercial point is simply not rendered.
  */
 export default function Page() {
   return (
@@ -33,7 +32,6 @@ export default function Page() {
         heading={servicesPage.heading}
         intro={servicesPage.intro}
       >
-        <CommercialTermsNote />
         <ServicesAnchorNav />
         <div className="mt-8">
           <ButtonLink

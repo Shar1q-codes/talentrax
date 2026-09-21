@@ -20,8 +20,11 @@ export type ButtonVariant =
  */
 const variantClass: Record<ButtonVariant, string> = {
   primary: "bg-brand text-white hover:bg-brand-strong border border-transparent",
+  // --color-border-control, not --color-border-strong: a secondary button is
+  // identified by its outline, and that outline has to clear 3:1 (WCAG
+  // 1.4.11). --color-border-strong measures 1.5:1 on white.
   secondary:
-    "bg-surface text-brand border border-border-strong hover:bg-brand-soft hover:border-brand",
+    "bg-surface text-brand border border-border-control hover:bg-brand-soft hover:border-brand",
   inverse: "bg-surface text-brand border border-transparent hover:bg-brand-soft",
   "outline-inverse":
     "bg-transparent text-on-brand border border-on-brand hover:bg-white/10",
@@ -117,7 +120,7 @@ export function TextLink({
         "font-semibold underline underline-offset-4 transition-colors",
         tone === "inverse"
           ? "text-on-brand decoration-on-brand-muted hover:decoration-on-brand"
-          : "text-brand decoration-border-strong hover:text-brand-strong hover:decoration-brand",
+          : "text-brand decoration-border-control hover:text-brand-strong hover:decoration-brand",
         className,
       ].join(" ")}
     >

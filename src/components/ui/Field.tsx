@@ -145,7 +145,7 @@ export function TextField({
   value: string;
   onChange: (value: string) => void;
   error?: string;
-  type?: "text" | "email" | "tel" | "number" | "date";
+  type?: "text" | "email" | "tel" | "number" | "date" | "url";
   inputMode?: "numeric" | "tel" | "email";
   min?: string;
   step?: string;
@@ -335,5 +335,224 @@ export function RadioGroupField({
 
       <FieldError field={field} error={error} />
     </fieldset>
+  );
+}
+
+/**
+ * Single checkbox, for a consent statement or any standalone yes/no opt-in.
+ *
+ * The label carries the full sentence, so it is normal weight rather than the
+ * semibold used for short field labels, and the whole sentence is the click
+ * target. A required checkbox gets the `required` attribute and the same
+ * asterisk convention as every other required control.
+ */
+export function CheckboxField({
+  field,
+  checked,
+  onChange,
+  error,
+}: {
+  field: FieldConfig;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  error?: string;
+}) {
+  return (
+    <div>
+      <div
+        className={[
+          "flex items-start gap-3 rounded-md border bg-surface p-4",
+          "transition-colors duration-150",
+          checked ? "border-brand bg-brand-soft" : stateClass(Boolean(error)),
+        ].join(" ")}
+      >
+        <input
+          id={field.id}
+          name={field.id}
+          type="checkbox"
+          checked={checked}
+          required={field.required}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy(field, error)}
+          onChange={(event) => onChange(event.target.checked)}
+          className="mt-1 h-5 w-5 shrink-0 accent-brand"
+        />
+        <span className="flex flex-col">
+          <label htmlFor={field.id} className="text-base text-ink">
+            {field.label}
+            {field.required ? (
+              <span aria-hidden="true" className="text-ink-muted">
+                {" "}
+                {REQUIRED_MARKER}
+              </span>
+            ) : null}
+          </label>
+          {field.hint ? (
+            <span id={`${field.id}-hint`} className="mt-1 text-sm text-ink-muted">
+              {field.hint}
+            </span>
+          ) : null}
+        </span>
+      </div>
+      <FieldError field={field} error={error} />
+    </div>
+  );
+}
+
+/**
+ * Checkbox group: several independent choices under one legend.
+ *
+ * Checkboxes rather than a multi-select listbox, because a native
+ * multi-select is close to unusable with a keyboard or a screen reader and
+ * invisible to most people on a phone. A fieldset gives the group its
+ * accessible name.
+ */
+export function CheckboxGroupField({
+  field,
+  values,
+  onToggle,
+  error,
+  options,
+}: {
+  field: FieldConfig;
+  values: string[];
+  onToggle: (value: string, checked: boolean) => void;
+  error?: string;
+  options: SelectOption[];
+}) {
+  return (
+    <fieldset
+      aria-invalid={error ? true : undefined}
+      aria-describedby={describedBy(field, error)}
+    >
+      <FieldLabel field={field} as="legend" />
+      <Hint field={field} />
+
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {options.map((option) => {
+          const optionId = `${field.id}-${option.value}`;
+          const checked = values.includes(option.value);
+          return (
+            <div
+              key={option.value}
+              className={[
+                "flex min-h-11 items-center gap-3 rounded-md border bg-surface p-3",
+                "transition-colors duration-150",
+                checked ? "border-brand bg-brand-soft" : stateClass(Boolean(error)),
+              ].join(" ")}
+            >
+              <input
+                id={optionId}
+                name={field.id}
+                type="checkbox"
+                value={option.value}
+                checked={checked}
+                onChange={(event) => onToggle(option.value, event.target.checked)}
+                className="h-5 w-5 shrink-0 accent-brand"
+              />
+              <label
+                htmlFor={optionId}
+                className="text-base font-semibold text-ink"
+              >
+                {option.label}
+              </label>
+            </div>
+          );
+        })}
+      </div>
+
+      <FieldError field={field} error={error} />
+    </fieldset>
+  );
+}
+
+/**
+ * File input.
+ *
+ * `accept` is a hint to the file picker and nothing more - it is trivially
+ * bypassed, so the accepted types and the size limit are also stated in
+ * visible text beside the control and enforced in validation.
+ *
+ * The control is uncontrolled, because a file input's value cannot be set
+ * programmatically. `inputRef` belongs to the parent so that resetting the
+ * form can clear the picker; the Remove button uses the same ref.
+ */
+export function FileField({
+  field,
+  file,
+  onChange,
+  error,
+  accept,
+  constraintText,
+  chosenLabel,
+  clearLabel,
+  inputRef,
+}: {
+  field: FieldConfig;
+  file: File | null;
+  onChange: (file: File | null) => void;
+  error?: string;
+  accept: string;
+  constraintText: string;
+  chosenLabel: string;
+  clearLabel: string;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+}) {
+  const constraintId = `${field.id}-constraint`;
+  const described = [
+    constraintId,
+    field.hint ? `${field.id}-hint` : null,
+    error ? `${field.id}-error` : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <div>
+      <FieldLabel field={field} />
+      <Hint field={field} />
+
+      <p id={constraintId} className="mt-1 text-sm text-ink-muted">
+        {constraintText}
+      </p>
+
+      <input
+        ref={inputRef}
+        id={field.id}
+        name={field.id}
+        type="file"
+        accept={accept}
+        required={field.required}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={described}
+        onChange={(event) => onChange(event.target.files?.[0] ?? null)}
+        className={[
+          "mt-2 block w-full rounded-md border bg-surface p-3 text-base text-ink",
+          "file:mr-4 file:min-h-11 file:rounded-md file:border-0 file:bg-brand",
+          "file:px-4 file:py-2 file:text-base file:font-semibold file:text-white",
+          "hover:file:bg-brand-strong",
+          stateClass(Boolean(error)),
+        ].join(" ")}
+      />
+
+      {file ? (
+        <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-ink">
+          <span className="font-semibold">{chosenLabel}</span>
+          <span>{file.name}</span>
+          <button
+            type="button"
+            onClick={() => {
+              if (inputRef.current) inputRef.current.value = "";
+              onChange(null);
+            }}
+            className="min-h-11 font-semibold text-brand underline underline-offset-4 hover:text-brand-strong"
+          >
+            {clearLabel}
+          </button>
+        </p>
+      ) : null}
+
+      <FieldError field={field} error={error} />
+    </div>
   );
 }

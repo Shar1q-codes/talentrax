@@ -10,7 +10,7 @@
  * the form can never drift out of step with the pages that describe them.
  */
 
-import { engagementModels, specialtyAreas } from "./employers";
+import { engagementModels, specialtyAreas } from "./taxonomy";
 
 export type FieldConfig = {
   /** DOM id and form control name. Used for label htmlFor and error anchors. */

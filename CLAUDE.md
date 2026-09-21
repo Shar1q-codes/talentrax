@@ -62,17 +62,31 @@ Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · React 19.
 
 ## Build status
 
-Built: `/`, `/employers`, `/employers/services`, `/employers/request-talent`.
+Built: `/`, the three Employers routes and the two Job Seekers routes (see
+**Routes**). Every other route renders the shared `ComingSoon` component.
+Those routes exist so navigation works and the URL structure is locked in
+early.
 
-Every other route renders the shared `ComingSoon` component. Those routes
-exist so navigation works and the URL structure is locked in early.
+The two forms - `/employers/request-talent` and
+`/job-seekers/upload-resume` - are the only client components on the site.
+Neither has a backend. Each submits through one swappable function that logs
+its payload and returns success:
 
-`/employers/request-talent` holds the only form and the only client component
-on the site. It has **no backend**: the submit handler lives behind
-`submitRequisition()` in `src/lib/request-talent.ts`, which logs the payload
-and returns success. Wiring a real endpoint is a change to that one file.
+| Form | Seam |
+| --- | --- |
+| Request Talent | `submitRequisition()` in `src/lib/request-talent.ts` |
+| Upload Resume | `submitApplication()` in `src/lib/job-seekers.ts` |
 
-## The five rules
+Wiring a real endpoint is a change to that one file. The resume upload is
+stubbed on purpose: the `File` rides in the payload, and the TODO spells out
+the presigned-URL upload it needs instead of a multipart POST.
+
+**Shared data.** `src/content/taxonomy.ts` holds the five engagement models
+and the three desks. Both sections render them and both forms build their
+option lists from them, so Employers and Job Seekers cannot advertise
+different specialties.
+
+## The six rules
 
 ### 1. Content lives in data files, never inline in components
 
@@ -119,18 +133,20 @@ first, with its contrast ratio in the comment, then use the generated utility
 - `prefers-reduced-motion` is honoured globally.
 - Exactly **one `<h1>` per page**, no skipped heading levels.
 - Mobile-first, 16px side gutters, **no horizontal scroll at 320px**.
-- **Forms** (only `/employers/request-talent` so far, primitives in
-  `components/ui/Field.tsx`): a real `<label>` on every control, `fieldset` +
+- **Forms** (`/employers/request-talent` and `/job-seekers/upload-resume`,
+  primitives in `components/ui/Field.tsx`): a real `<label>` on every control, `fieldset` +
   `legend` per group, `noValidate` plus our own messages, `aria-invalid` and
   `aria-describedby` per field, and an error summary with `role="alert"` that
   takes focus on a failed submit. Required is the `required` attribute **and**
   a visible asterisk explained by a line above the form - never colour.
-  Control borders use `--color-border-control`, which clears 3:1 (1.4.11).
+  Control borders - and any other boundary that identifies a control, such as
+  a secondary button - use `--color-border-control`, which clears 3:1
+  (1.4.11). `--color-border-strong` is 1.5:1 and is for decoration only.
 
 ### 4. Coming-soon routes must be noindex
 
 Every coming-soon route sets `robots: { index: false, follow: true }` via
-`buildMetadata({ noIndex: true })`. We do not want 17 empty pages indexed.
+`buildMetadata({ noIndex: true })`. We do not want 15 empty pages indexed.
 `follow` stays true so crawlers still traverse the navigation.
 
 `robots.ts` deliberately allows the crawl: a `Disallow` would stop crawlers
@@ -148,7 +164,23 @@ Miss the last one and `npm run check:seo` fails, which is the point: it
 asserts both directions, that every built route is indexable and in the
 sitemap, and that no noindex route is.
 
-### 5. No external assets, no third-party scripts
+### 5. Null content renders nothing
+
+**Never render a placeholder for missing copy.** No bracketed label, no
+`[TBD]`, no "coming soon" inline marker, no empty row where a value will go.
+If the data is absent, the element is absent.
+
+A commercial point on `/employers/services` carries `detail: string | null`.
+When it is null the whole term is skipped - no label, no container, nothing.
+The unconfirmed points stay in the data so there is a checklist to fill in,
+and they appear on the page the moment they have a value.
+
+This is why `isPlaceholder` (rule 1) exists as data rather than as rendered
+text, and it is the same instinct: the site says what is true or says
+nothing. A coming-soon **route** is a different thing - that is a whole page
+with its own explanation, not a gap in a sentence.
+
+### 6. No external assets, no third-party scripts
 
 - No external image URLs, no placeholder image services, no `<img>`. Where real
   imagery will go, render a token-coloured gradient block marked `image-slot`
@@ -163,23 +195,28 @@ sitemap, and that no noindex route is.
 Built (indexable, in the sitemap):
 
 ```
-/                             /employers/services
-/employers                    /employers/request-talent
+/                             /employers/request-talent
+/employers                    /job-seekers
+/employers/services           /job-seekers/upload-resume
 ```
 
 Coming soon (all noindex, all real routes):
 
 ```
-/industries                   /faq
-/specialties                  /about
-/job-seekers                  /contact
-/job-seekers/upload-resume    /login
-/jobs                         /register
-/locations                    /privacy-policy
-/insights                     /terms
-/research                     /accessibility
-/resources
+/industries                   /about
+/specialties                  /contact
+/jobs                         /login
+/locations                    /register
+/insights                     /privacy-policy
+/research                     /terms
+/resources                    /accessibility
+/faq
 ```
+
+`/industries` and `/specialties` are no longer linked from the header or the
+footer: both described the desks, and the desks are now a real section at
+`/employers#specialties`, so the two nav entries collapsed into one pointing
+there. The routes still exist.
 
 Plus a custom `app/not-found.tsx`.
 

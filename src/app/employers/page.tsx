@@ -2,10 +2,15 @@ import type { Metadata } from "next";
 
 import { EmployersHero } from "@/components/employers/EmployersHero";
 import { EngagementModels } from "@/components/employers/EngagementModels";
-import { SearchProcess } from "@/components/employers/SearchProcess";
-import { SpecialtyAreas } from "@/components/employers/SpecialtyAreas";
+import { ProcessTimeline } from "@/components/shared/ProcessTimeline";
+import { SpecialtyAreas } from "@/components/shared/SpecialtyAreas";
 import { CtaBand } from "@/components/ui/CtaBand";
-import { employersCta, employersMeta } from "@/content/employers";
+import {
+  employersCta,
+  employersMeta,
+  searchProcess,
+  specialtySection,
+} from "@/content/employers";
 import { buildMetadata } from "@/lib/metadata";
 
 // A built route: no noIndex, and it is listed in app/sitemap.ts. Those two
@@ -29,8 +34,12 @@ export default function Page() {
     <>
       <EmployersHero />
       <EngagementModels />
-      <SpecialtyAreas />
-      <SearchProcess />
+      <SpecialtyAreas content={specialtySection} />
+      <ProcessTimeline
+        content={searchProcess}
+        id="how-a-search-runs"
+        headingId="how-a-search-runs-heading"
+      />
       <CtaBand content={employersCta} headingId="employers-cta-heading" />
     </>
   );

@@ -5,7 +5,7 @@ import { SITE_URL } from "@/content/site";
 /**
  * Sitemap.
  *
- * Built routes only. The other 17 render the coming-soon page and set robots
+ * Built routes only. The other 15 render the coming-soon page and set robots
  * index:false, so listing them would ask crawlers to index pages we have
  * explicitly told them to skip - a contradictory signal.
  *
@@ -18,6 +18,8 @@ const BUILT_ROUTES: { path: string; priority: number }[] = [
   { path: "/employers", priority: 0.9 },
   { path: "/employers/services", priority: 0.8 },
   { path: "/employers/request-talent", priority: 0.8 },
+  { path: "/job-seekers", priority: 0.9 },
+  { path: "/job-seekers/upload-resume", priority: 0.8 },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
