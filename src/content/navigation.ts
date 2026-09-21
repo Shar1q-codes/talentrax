@@ -6,8 +6,9 @@
  * a link is a data edit, never a component edit.
  *
  * ROUTE RULE: every href below must correspond to a real route under src/app.
- * All 20 routes exist today; only "/" has real content, the rest render the
- * shared ComingSoon page and are noindex.
+ * All 20 routes exist today. Built: "/", "/employers", "/employers/services"
+ * and "/employers/request-talent". The other 17 render the shared ComingSoon
+ * page and are noindex, and are registered in `comingSoonRoutes` below.
  */
 
 export type NavLink = {
@@ -43,12 +44,12 @@ export const primaryNav: NavItem[] = [
       {
         label: "Overview",
         href: "/employers",
-        description: "How we partner with hiring teams",
+        description: "How we work, and what you see at each step",
       },
       {
         label: "Services",
         href: "/employers/services",
-        description: "Direct hire, contract, RPO and search",
+        description: "The five engagement models, in detail",
       },
       {
         label: "Industries",
@@ -63,7 +64,7 @@ export const primaryNav: NavItem[] = [
       {
         label: "Request Talent",
         href: "/employers/request-talent",
-        description: "Brief us on an open role",
+        description: "Send us a requisition and get a named recruiter",
       },
     ],
   },
@@ -203,7 +204,7 @@ export const footerColumns: FooterColumn[] = [
 
 /**
  * Registry of every route that currently renders the shared ComingSoon page.
- * "/" is excluded because it is fully built.
+ * "/" and the three Employers routes are excluded because they are built.
  *
  * Each entry drives three things for its route: the page h1, the document
  * title, and the meta description. Route files stay three-line stubs.
@@ -217,27 +218,6 @@ export type ComingSoonRoute = {
 };
 
 export const comingSoonRoutes: ComingSoonRoute[] = [
-  {
-    href: "/employers",
-    title: "For Employers",
-    section: "Employers",
-    description:
-      "How Talentrax Global partners with hiring teams across healthcare, IT and professional staffing.",
-  },
-  {
-    href: "/employers/services",
-    title: "Staffing Services",
-    section: "Employers",
-    description:
-      "Direct hire, contract, contract-to-hire, RPO and executive search engagements from Talentrax Global.",
-  },
-  {
-    href: "/employers/request-talent",
-    title: "Request Talent",
-    section: "Employers",
-    description:
-      "Brief the Talentrax Global team on an open role and get matched with a specialist recruiter.",
-  },
   {
     href: "/industries",
     title: "Industries",

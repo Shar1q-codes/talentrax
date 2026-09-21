@@ -27,10 +27,48 @@ const variantClass: Record<ButtonVariant, string> = {
     "bg-transparent text-on-brand border border-on-brand hover:bg-white/10",
 };
 
+/* Shared by the <button> and the <a>: identical geometry, identical focus
+   behaviour. 44px minimum touch target (WCAG 2.5.5 / 2.5.8). */
+const baseClass = [
+  "inline-flex items-center justify-center gap-2",
+  "rounded-md font-semibold no-underline",
+  "transition-colors duration-150",
+  "min-h-11",
+].join(" ");
+
 const sizeClass = {
   md: "px-5 py-3 text-base",
   lg: "px-6 py-3.5 text-lg",
 } as const;
+
+export function Button({
+  children,
+  type = "button",
+  variant = "primary",
+  size = "md",
+  disabled = false,
+  onClick,
+  className = "",
+}: {
+  children: ReactNode;
+  type?: "button" | "submit";
+  variant?: ButtonVariant;
+  size?: keyof typeof sizeClass;
+  disabled?: boolean;
+  onClick?: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type={type}
+      disabled={disabled}
+      onClick={onClick}
+      className={[baseClass, sizeClass[size], variantClass[variant], "disabled:opacity-70", className].join(" ")}
+    >
+      {children}
+    </button>
+  );
+}
 
 export function ButtonLink({
   href,
@@ -49,11 +87,7 @@ export function ButtonLink({
     <Link
       href={href}
       className={[
-        "inline-flex items-center justify-center gap-2",
-        "rounded-md font-semibold no-underline",
-        "transition-colors duration-150",
-        // 44px minimum touch target (WCAG 2.5.5 / 2.5.8).
-        "min-h-11",
+        baseClass,
         sizeClass[size],
         variantClass[variant],
         className,

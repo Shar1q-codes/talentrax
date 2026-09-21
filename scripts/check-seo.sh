@@ -27,14 +27,23 @@
 set -uo pipefail
 
 # ---------------------------------------------------------------------------
-# Routes under test. Keep this list in step with `comingSoonRoutes` in
-# src/content/navigation.ts - when a section is built, remove it from here at
-# the same time you drop its noIndex and add it to app/sitemap.ts.
+# Routes under test.
+#
+# BUILT_ROUTES must match app/sitemap.ts: indexable, canonical, in the sitemap.
+# COMING_SOON_ROUTES must match `comingSoonRoutes` in content/navigation.ts:
+# noindex, and absent from the sitemap.
+#
+# When a section is built it moves from the second list to the first, in the
+# same commit that drops its noIndex and adds it to the sitemap.
 # ---------------------------------------------------------------------------
-COMING_SOON_ROUTES=(
+BUILT_ROUTES=(
+  /
   /employers
   /employers/services
   /employers/request-talent
+)
+
+COMING_SOON_ROUTES=(
   /industries
   /specialties
   /job-seekers
@@ -82,6 +91,14 @@ robots_meta() {
   printf '%s' "${tag%\"}"
 }
 
+# href of the first canonical link, or "" if absent.
+canonical_of() {
+  local tag
+  tag=$(printf '%s' "$1" | grep -o '<link rel="canonical" href="[^"]*"' | head -n 1)
+  tag=${tag#'<link rel="canonical" href="'}
+  printf '%s' "${tag%\"}"
+}
+
 count_matches() {
   printf '%s' "$2" | grep -o "$1" | wc -l | tr -d '[:space:]'
 }
@@ -126,28 +143,35 @@ else
   fail "JSON-LD payload is not valid JSON"
 fi
 
-# --- 2. canonical matches the expected origin -------------------------------
-canonical_tag=$(printf '%s' "$home_html" | grep -o '<link rel="canonical" href="[^"]*"' | head -n 1)
-canonical=${canonical_tag#'<link rel="canonical" href="'}
-canonical=${canonical%\"}
+# --- 2. every built route: correct canonical, and indexable -----------------
+echo
+echo "  built routes (${#BUILT_ROUTES[@]}):"
+for route in "${BUILT_ROUTES[@]}"; do
+  html=$(fetch "$BASE_URL$route")
+  if [ -z "$html" ]; then
+    fail "$route could not be fetched"
+    continue
+  fi
 
-if [ -z "$canonical" ]; then
-  fail "home page has no <link rel=\"canonical\">"
-elif [ "$canonical" = "$EXPECTED_ORIGIN" ] || [ "$canonical" = "$EXPECTED_ORIGIN/" ]; then
-  pass "home canonical is $canonical"
-else
-  fail "home canonical is $canonical, expected $EXPECTED_ORIGIN"
-fi
+  expected="$EXPECTED_ORIGIN$route"
+  canonical=$(canonical_of "$html")
+  if [ -z "$canonical" ]; then
+    fail "$route has no <link rel=\"canonical\">"
+  elif [ "$canonical" = "$expected" ] || [ "$canonical" = "${expected%/}" ]; then
+    pass "$route canonical is $canonical"
+  else
+    fail "$route canonical is $canonical, expected $expected"
+  fi
 
-# --- 3. home page is indexable ----------------------------------------------
-home_robots=$(robots_meta "$home_html")
-case "$home_robots" in
-  '')       fail "home page has no robots meta" ;;
-  *noindex*) fail "home robots meta is \"$home_robots\" - the home page must be indexable" ;;
-  *)        pass "home robots meta is \"$home_robots\" (no noindex)" ;;
-esac
+  robots=$(robots_meta "$html")
+  case "$robots" in
+    '')        fail "$route has no robots meta" ;;
+    *noindex*) fail "$route robots meta is \"$robots\" - a built route must be indexable" ;;
+    *)         pass "$route robots meta is \"$robots\" (no noindex)" ;;
+  esac
+done
 
-# --- 4. every coming-soon route is noindex ----------------------------------
+# --- 3. every coming-soon route is noindex ----------------------------------
 echo
 echo "  coming-soon routes (${#COMING_SOON_ROUTES[@]}):"
 for route in "${COMING_SOON_ROUTES[@]}"; do
@@ -164,12 +188,39 @@ for route in "${COMING_SOON_ROUTES[@]}"; do
   esac
 done
 
+# --- 4. the sitemap lists the built routes and nothing that is noindex ------
+echo
+sitemap_xml=$(fetch "$BASE_URL/sitemap.xml")
+if [ -z "$sitemap_xml" ]; then
+  fail "sitemap.xml could not be fetched"
+else
+  for route in "${BUILT_ROUTES[@]}"; do
+    if printf '%s' "$sitemap_xml" | grep -qF "<loc>$EXPECTED_ORIGIN$route</loc>"; then
+      pass "sitemap lists $route"
+    else
+      fail "sitemap does not list $EXPECTED_ORIGIN$route"
+    fi
+  done
+
+  # Listing a noindex page asks crawlers to index what we told them to skip.
+  sitemap_noindex=0
+  for route in "${COMING_SOON_ROUTES[@]}"; do
+    if printf '%s' "$sitemap_xml" | grep -qF "<loc>$EXPECTED_ORIGIN$route</loc>"; then
+      fail "sitemap lists $route, which is noindex"
+      sitemap_noindex=$((sitemap_noindex + 1))
+    fi
+  done
+  if [ "$sitemap_noindex" -eq 0 ]; then
+    pass "sitemap lists no noindex route"
+  fi
+fi
+
 # --- 5. the name is spelled correctly everywhere ----------------------------
 # "TalentRax" with a capital R is wrong in mixed case. An all-caps TALENTRAX
 # wordmark is fine, so match the capital R specifically rather than the word.
 echo
 name_failures=0
-for route in "/" "${COMING_SOON_ROUTES[@]}"; do
+for route in "${BUILT_ROUTES[@]}" "${COMING_SOON_ROUTES[@]}"; do
   html=$(fetch "$BASE_URL$route")
   [ -z "$html" ] && continue
   hits=$(count_matches 'TalentRax' "$html")

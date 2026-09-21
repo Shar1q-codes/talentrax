@@ -1,20 +1,37 @@
 import type { Metadata } from "next";
 
-import { ComingSoon } from "@/components/ComingSoon";
-import { getComingSoonRoute } from "@/content/navigation";
+import { EmployersHero } from "@/components/employers/EmployersHero";
+import { EngagementModels } from "@/components/employers/EngagementModels";
+import { SearchProcess } from "@/components/employers/SearchProcess";
+import { SpecialtyAreas } from "@/components/employers/SpecialtyAreas";
+import { CtaBand } from "@/components/ui/CtaBand";
+import { employersCta, employersMeta } from "@/content/employers";
 import { buildMetadata } from "@/lib/metadata";
 
-const route = getComingSoonRoute("/employers");
-
-// noIndex: true -> robots { index: false, follow: true }. Crawlers still walk
-// the navigation from here, but this placeholder page is not indexed.
+// A built route: no noIndex, and it is listed in app/sitemap.ts. Those two
+// edits belong together - see CLAUDE.md, rule 4.
 export const metadata: Metadata = buildMetadata({
-  title: route.title,
-  description: route.description,
-  path: route.href,
-  noIndex: true,
+  title: employersMeta.overview.title,
+  description: employersMeta.overview.description,
+  path: "/employers",
 });
 
+/**
+ * Employers landing page. Section order:
+ * hero, engagement models, specialty desks, how a search runs, closing CTA.
+ *
+ * The process section is the long one on purpose. With no statistics or
+ * testimonials permitted anywhere on this site, a description of how the work
+ * actually runs is what has to carry the credibility.
+ */
 export default function Page() {
-  return <ComingSoon route={route} />;
+  return (
+    <>
+      <EmployersHero />
+      <EngagementModels />
+      <SpecialtyAreas />
+      <SearchProcess />
+      <CtaBand content={employersCta} headingId="employers-cta-heading" />
+    </>
+  );
 }

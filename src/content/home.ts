@@ -18,29 +18,7 @@
  * src/components/ui/Icon.tsx. Keeps this file CMS-serialisable.
  */
 
-export type IconName =
-  | "handshake"
-  | "clock"
-  | "layers"
-  | "briefcase"
-  | "users"
-  | "repeat"
-  | "target"
-  | "search"
-  | "stethoscope"
-  | "server"
-  | "chart"
-  | "check";
-
-export type Cta = {
-  label: string;
-  href: string;
-  /**
-   * Visual weight. Maps 1:1 to ButtonVariant in components/ui/Button.tsx.
-   * The two `*-inverse` variants are for use on dark brand bands only.
-   */
-  variant: "primary" | "secondary" | "inverse" | "outline-inverse";
-};
+import type { Cta, CtaBandContent, IconName } from "./types";
 
 /* ---------------------------------------------------------------- 2. Hero */
 
@@ -365,15 +343,7 @@ export const insights: InsightsContent = {
 
 /* ------------------------------------------------------ 8. Closing CTA band */
 
-export type ClosingCtaContent = {
-  heading: string;
-  description: string;
-  ctas: Cta[];
-  /** Small reassurance line under the buttons. */
-  footnote: string;
-};
-
-export const closingCta: ClosingCtaContent = {
+export const closingCta: CtaBandContent = {
   heading: "Have a role to fill?",
   description:
     "Tell us what you are hiring for and we will come back with a realistic timeline, a market read on the salary band, and the recruiter who will run the search.",

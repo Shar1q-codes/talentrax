@@ -62,9 +62,15 @@ Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · React 19.
 
 ## Build status
 
-`/` is fully built. Every other route renders the shared `ComingSoon`
-component. The routes exist so navigation works and the URL structure is
-locked in early.
+Built: `/`, `/employers`, `/employers/services`, `/employers/request-talent`.
+
+Every other route renders the shared `ComingSoon` component. Those routes
+exist so navigation works and the URL structure is locked in early.
+
+`/employers/request-talent` holds the only form and the only client component
+on the site. It has **no backend**: the submit handler lives behind
+`submitRequisition()` in `src/lib/request-talent.ts`, which logs the payload
+and returns success. Wiring a real endpoint is a change to that one file.
 
 ## The five rules
 
@@ -113,18 +119,34 @@ first, with its contrast ratio in the comment, then use the generated utility
 - `prefers-reduced-motion` is honoured globally.
 - Exactly **one `<h1>` per page**, no skipped heading levels.
 - Mobile-first, 16px side gutters, **no horizontal scroll at 320px**.
+- **Forms** (only `/employers/request-talent` so far, primitives in
+  `components/ui/Field.tsx`): a real `<label>` on every control, `fieldset` +
+  `legend` per group, `noValidate` plus our own messages, `aria-invalid` and
+  `aria-describedby` per field, and an error summary with `role="alert"` that
+  takes focus on a failed submit. Required is the `required` attribute **and**
+  a visible asterisk explained by a line above the form - never colour.
+  Control borders use `--color-border-control`, which clears 3:1 (1.4.11).
 
 ### 4. Coming-soon routes must be noindex
 
 Every coming-soon route sets `robots: { index: false, follow: true }` via
-`buildMetadata({ noIndex: true })`. We do not want 19 empty pages indexed.
+`buildMetadata({ noIndex: true })`. We do not want 17 empty pages indexed.
 `follow` stays true so crawlers still traverse the navigation.
 
 `robots.ts` deliberately allows the crawl: a `Disallow` would stop crawlers
 reading the pages at all, so they would never see the `noindex`.
 
-**When a section is built, two edits go together:** drop `noIndex` from its
-route, and add it to `app/sitemap.ts`. The sitemap currently lists `/` only.
+**When a section is built, four edits go together:**
+
+1. drop `noIndex` from the route's `buildMetadata` call,
+2. remove it from `comingSoonRoutes` in `content/navigation.ts`,
+3. add it to `BUILT_ROUTES` in `app/sitemap.ts`,
+4. move it from `COMING_SOON_ROUTES` to `BUILT_ROUTES` in
+   `scripts/check-seo.sh`.
+
+Miss the last one and `npm run check:seo` fails, which is the point: it
+asserts both directions, that every built route is indexable and in the
+sitemap, and that no noindex route is.
 
 ### 5. No external assets, no third-party scripts
 
@@ -138,22 +160,25 @@ route, and add it to `app/sitemap.ts`. The sitemap currently lists `/` only.
 
 ## Routes
 
-Built: `/`
+Built (indexable, in the sitemap):
+
+```
+/                             /employers/services
+/employers                    /employers/request-talent
+```
 
 Coming soon (all noindex, all real routes):
 
 ```
-/employers                    /insights
-/employers/services           /research
-/employers/request-talent     /resources
 /industries                   /faq
 /specialties                  /about
 /job-seekers                  /contact
 /job-seekers/upload-resume    /login
 /jobs                         /register
 /locations                    /privacy-policy
-                              /terms
-                              /accessibility
+/insights                     /terms
+/research                     /accessibility
+/resources
 ```
 
 Plus a custom `app/not-found.tsx`.

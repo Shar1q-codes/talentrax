@@ -33,9 +33,18 @@
   --color-on-brand: #ffffff; /* 11.2:1 on --color-surface-brand */
   --color-on-brand-muted: #c7d8ec; /*  7.7:1 on --color-surface-brand */
 
+  /* --- Colour: validation ------------------------------------------------ */
+  /* Form errors. Never the only signal: an error is always announced through
+     aria-invalid + aria-describedby and carries a glyph as well as colour. */
+  --color-danger: #b42318; /*  6.6:1  - error text on white, 6.0:1 on danger-soft */
+  --color-danger-soft: #fef3f2; /* error summary surface; ink on it = 16.4:1 */
+
   /* --- Colour: lines & focus --------------------------------------------- */
   --color-border: #e2e8f0;
   --color-border-strong: #cbd5e1;
+  /* Form control boundaries. WCAG 1.4.11 wants 3:1 for the edge that
+     identifies an input, which --color-border-strong (1.5:1) does not meet. */
+  --color-border-control: #64748b; /*  4.8:1  on white, 4.3:1 on surface-muted */
   --color-focus: #0e7490;
 
   /* --- Radii ------------------------------------------------------------- */
@@ -151,6 +160,25 @@ p {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ==========================================================================
+   FORMS
+   Native controls, token-coloured. The focus ring comes from the global
+   :focus-visible rule above - nothing here removes it.
+   ========================================================================== */
+
+/* Honeypot. A real input that no human ever sees: off-screen rather than
+   display:none, because some bots skip hidden fields but not positioned ones.
+   It is also aria-hidden and out of the tab order at the call site, so no
+   keyboard or screen-reader user can reach it by accident. */
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 /* ==========================================================================
