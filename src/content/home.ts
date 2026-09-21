@@ -297,62 +297,7 @@ export const howItWorks: HowItWorksContent = {
   ],
 };
 
-/* ------------------------------------------------------ 7. Insights teaser */
-
-export type ArticleCard = {
-  id: string;
-  /** Placeholder category label. */
-  category: string;
-  title: string;
-  excerpt: string;
-  href: string;
-};
-
-export type InsightsContent = {
-  eyebrow: string;
-  heading: string;
-  intro: string;
-  articles: ArticleCard[];
-  cta: Cta;
-  note: string;
-};
-
-export const insights: InsightsContent = {
-  eyebrow: "Insights",
-  heading: "What we are seeing in the market",
-  intro:
-    "Notes from our recruiters on hiring demand, compensation movement and what is actually landing candidates right now.",
-  articles: [
-    {
-      id: "article-1",
-      category: "Healthcare",
-      title: "What is driving time to fill on clinical roles this quarter",
-      excerpt:
-        "Credentialing timelines, shift differentials and the float pool question: where clinical searches are slowing down, and which levers actually move them.",
-      href: "/insights",
-    },
-    {
-      id: "article-2",
-      category: "Information Technology",
-      title: "Hiring for cloud roles when every posting reads the same",
-      excerpt:
-        "Differentiating an infrastructure opening in a crowded market starts with the scope of the role, not the length of the requirements list.",
-      href: "/insights",
-    },
-    {
-      id: "article-3",
-      category: "Professional",
-      title: "Counteroffers are up. Here is what to do before you extend",
-      excerpt:
-        "The offer conversation begins at the first screen. How to surface the real motivators early so the close does not come down to money alone.",
-      href: "/insights",
-    },
-  ],
-  cta: { label: "Read all insights", href: "/insights", variant: "secondary" },
-  note: "Article titles and excerpts are placeholders for layout. No articles are published yet.",
-};
-
-/* ------------------------------------------------------ 8. Closing CTA band */
+/* ------------------------------------------------------ 7. Closing CTA band */
 
 export const closingCta: CtaBandContent = {
   heading: "Have a role to fill?",

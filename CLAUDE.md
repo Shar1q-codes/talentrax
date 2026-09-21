@@ -172,7 +172,7 @@ first, with its contrast ratio in the comment, then use the generated utility
 ### 4. Coming-soon routes must be noindex
 
 Every coming-soon route sets `robots: { index: false, follow: true }` via
-`buildMetadata({ noIndex: true })`. We do not want 10 empty pages indexed.
+`buildMetadata({ noIndex: true })`. We do not want 7 empty pages indexed.
 `follow` stays true so crawlers still traverse the navigation.
 
 `robots.ts` deliberately allows the crawl: a `Disallow` would stop crawlers
@@ -232,17 +232,32 @@ Built (indexable, in the sitemap):
 Coming soon (all noindex, all real routes):
 
 ```
-/industries                   /resources
-/specialties                  /faq
 /locations                    /login
 /insights                     /register
-/research                     /accessibility
+/resources                    /accessibility
+/faq
 ```
 
-Nothing links to `/industries` or `/specialties` any more. Both described the
-desks, and the desks are a real section at `/employers#specialties`, so the
-nav entries collapsed into one pointing there and the home page specialties
-CTA follows it. The routes still exist.
+### Deleted routes
+
+`/industries`, `/specialties` and `/research` were removed, not hidden.
+
+- `/industries` and `/specialties` described the three desks, which are
+  built at `/employers#specialties` and rendered again on `/about` and
+  `/job-seekers` from the same `taxonomy.ts` data. Nothing linked to either.
+- `/research` was a hiring index: demand, time to fill, compensation
+  movement. That is a statistics product, and the content rules do not allow
+  statistics anywhere on this site. It could not have been built as
+  described.
+
+All three were noindex and unlinked, so **no redirects were added and none
+are needed** - nothing external can be pointing at a URL that was never
+indexed and never linked.
+
+The Insights dropdown is down to two items, Articles and FAQ, because
+"Research & Hiring Index" went with the route and "Salary Guides" was a
+second entry pointing at `/resources` under a name that page will never
+earn. Left as-is rather than restructured.
 
 Plus a custom `app/not-found.tsx`.
 
@@ -282,6 +297,21 @@ because JSON-LD fails silently: a malformed payload does not throw, the
 posting simply never appears. `/jobs` itself emits **no** JSON-LD while the
 board is empty - an ItemList of nothing is a claim we have listings - and
 `npm run check:seo` asserts that.
+
+**What check:seo can assert about `/jobs/[slug]` today**: that an unknown
+slug returns 404, and that no posting URL has leaked into the sitemap while
+`getJobs()` is empty. That is all there is to check against zero postings.
+
+**Add when real postings exist**, against a live posting URL:
+
+- exactly one `<script type="application/ld+json">`, and it parses;
+- `@type` is `JobPosting`, with `title`, `description`, `datePosted`,
+  `validThrough`, `hiringOrganization` and `jobLocation` all present;
+- `baseSalary` is present with a min, a max and a `unitText` - the pay range
+  is the promise this site makes, and the type enforces it in code, so the
+  served HTML should be checked too;
+- `validThrough` parses and is in the future;
+- the posting appears in the sitemap, and an expired one answers 410.
 
 ### Expired job postings
 

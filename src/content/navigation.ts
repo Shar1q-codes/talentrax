@@ -11,8 +11,14 @@
  * "/job-seekers", "/job-seekers/upload-resume", "/jobs", "/about",
  * "/contact", "/privacy-policy" and "/terms", plus the /jobs/[slug] detail
  * route, which generates a page per posting and so generates none today. The
- * other 10 render the shared ComingSoon page, are noindex, and are
- * registered in `comingSoonRoutes` below.
+ * other 7 render the shared ComingSoon page, are noindex, and are registered
+ * in `comingSoonRoutes` below.
+ *
+ * /industries, /specialties and /research have been DELETED, not hidden.
+ * Nothing linked to the first two and their subject was already built at
+ * /employers#specialties; the third was a statistics product, which the
+ * content rules do not allow. All three were noindex and unlinked, so no
+ * redirects are needed and none were added.
  */
 
 export type NavLink = {
@@ -119,16 +125,6 @@ export const primaryNav: NavItem[] = [
         description: "Hiring and workforce commentary",
       },
       {
-        label: "Research & Hiring Index",
-        href: "/research",
-        description: "Our periodic labor market read",
-      },
-      {
-        label: "Salary Guides",
-        href: "/resources",
-        description: "Compensation benchmarks by specialty",
-      },
-      {
         label: "FAQ",
         href: "/faq",
         description: "Common questions, answered",
@@ -189,7 +185,6 @@ export const footerColumns: FooterColumn[] = [
       { label: "About Us", href: "/about" },
       { label: "Contact", href: "/contact" },
       { label: "Insights", href: "/insights" },
-      { label: "Research & Hiring Index", href: "/research" },
       { label: "FAQ", href: "/faq" },
     ],
   },
@@ -223,20 +218,6 @@ export type ComingSoonRoute = {
 
 export const comingSoonRoutes: ComingSoonRoute[] = [
   {
-    href: "/industries",
-    title: "Industries",
-    section: "Employers",
-    description:
-      "The sectors Talentrax Global staffs across the United States, from health systems to enterprise IT.",
-  },
-  {
-    href: "/specialties",
-    title: "Specialties",
-    section: "Employers",
-    description:
-      "The roles and disciplines Talentrax Global recruits for across healthcare, IT and professional services.",
-  },
-  {
     href: "/locations",
     title: "Locations",
     section: "Job Seekers",
@@ -251,18 +232,11 @@ export const comingSoonRoutes: ComingSoonRoute[] = [
       "Hiring, workforce and labor market commentary from the Talentrax Global recruiting team.",
   },
   {
-    href: "/research",
-    title: "Research & Hiring Index",
-    section: "Insights",
-    description:
-      "The Talentrax Global periodic read on hiring demand, time to fill and compensation movement.",
-  },
-  {
     href: "/resources",
     title: "Resources",
     section: "Insights",
     description:
-      "Salary guides, interview preparation and resume guidance from Talentrax Global recruiters.",
+      "Interview preparation, resume guidance and hiring advice from Talentrax Global recruiters.",
   },
   {
     href: "/faq",

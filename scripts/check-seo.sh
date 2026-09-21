@@ -51,11 +51,8 @@ BUILT_ROUTES=(
 )
 
 COMING_SOON_ROUTES=(
-  /industries
-  /specialties
   /locations
   /insights
-  /research
   /resources
   /faq
   /login
@@ -83,6 +80,10 @@ RETIRED_ANCHORS=(
 
 # A path no route claims, used for the 404 assertion.
 NOT_FOUND_PATH="/__seo-check-no-such-page__"
+
+# A /jobs/[slug] URL with no posting behind it. While getJobs() returns
+# nothing, EVERY slug is one of these.
+NO_SUCH_JOB_PATH="/jobs/__seo-check-no-such-job__"
 
 BASE_URL="${1:-http://localhost:3000}"
 BASE_URL="${BASE_URL%/}"
@@ -297,7 +298,34 @@ else
   fi
 fi
 
-# --- 7. the name is spelled correctly everywhere ----------------------------
+# --- 7. the job detail route, while there are no postings -------------------
+# /jobs/[slug] generates a page per posting, so today it generates none. What
+# can be asserted now is that it behaves correctly when asked for one that
+# does not exist, and that it has not leaked a URL into the sitemap.
+#
+# The assertions that matter most - that a posting carries valid JobPosting
+# JSON-LD, with a pay range and a validThrough - cannot run until there is a
+# posting to run them against. See CLAUDE.md, "The job board".
+echo
+job_code=$(status_of "$BASE_URL$NO_SUCH_JOB_PATH")
+if [ "$job_code" = "404" ]; then
+  pass "$NO_SUCH_JOB_PATH returns HTTP 404"
+else
+  fail "$NO_SUCH_JOB_PATH returned HTTP $job_code, expected 404"
+fi
+
+# An empty board must not have put a posting URL in the sitemap. Matches
+# /jobs/<anything>, not the board itself.
+if [ -n "$sitemap_xml" ]; then
+  posting_locs=$(printf '%s' "$sitemap_xml" | grep -o "<loc>$EXPECTED_ORIGIN/jobs/[^<]*</loc>" | wc -l | tr -d '[:space:]')
+  if [ "$posting_locs" = "0" ]; then
+    pass "sitemap lists no job postings (getJobs() is empty)"
+  else
+    fail "sitemap lists $posting_locs job posting URL(s) while getJobs() is empty"
+  fi
+fi
+
+# --- 8. the name is spelled correctly everywhere ----------------------------
 # "TalentRax" with a capital R is wrong in mixed case. An all-caps TALENTRAX
 # wordmark is fine, so match the capital R specifically rather than the word.
 echo
@@ -315,7 +343,7 @@ if [ "$name_failures" -eq 0 ]; then
   pass "no page spells the name \"TalentRax\" (the r is lowercase everywhere)"
 fi
 
-# --- 8. unknown URLs 404 ----------------------------------------------------
+# --- 9. unknown URLs 404 ----------------------------------------------------
 echo
 code=$(status_of "$BASE_URL$NOT_FOUND_PATH")
 if [ "$code" = "404" ]; then
@@ -324,7 +352,7 @@ else
   fail "$NOT_FOUND_PATH returned HTTP $code, expected 404"
 fi
 
-# --- 9. the 404 page carries exactly one robots meta ------------------------
+# --- 10. the 404 page carries exactly one robots meta -----------------------
 # Next injects its own noindex on 404s. Setting robots in not-found.tsx as well
 # produced two tags with the same meaning, which confused SEO audits.
 not_found_html=$(curl -s --max-time 20 "$BASE_URL$NOT_FOUND_PATH")
