@@ -11,7 +11,7 @@ import { buildMetadata } from "@/lib/metadata";
 
 // A built route: no noIndex, in app/sitemap.ts, and out of comingSoonRoutes
 // and COMING_SOON_ROUTES. An empty index is a real page with real content,
-// not a coming-soon stub. See CLAUDE.md, rule 4.
+// not a coming-soon stub. See CLAUDE.md, rule 5.
 export const metadata: Metadata = buildMetadata({
   title: insightsMeta.title,
   description: insightsMeta.description,

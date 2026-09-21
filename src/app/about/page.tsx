@@ -17,7 +17,7 @@ import {
 import { buildMetadata } from "@/lib/metadata";
 
 // A built route: no noIndex, in app/sitemap.ts, and out of comingSoonRoutes
-// and COMING_SOON_ROUTES. See CLAUDE.md, rule 4.
+// and COMING_SOON_ROUTES. See CLAUDE.md, rule 5.
 export const metadata: Metadata = buildMetadata({
   title: aboutMeta.title,
   description: aboutMeta.description,

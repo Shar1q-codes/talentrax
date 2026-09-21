@@ -48,7 +48,7 @@ export function EmptyBoard() {
         {emptyBoard.processLinkIntro}{" "}
         <Link
           href={emptyBoard.processLinkHref}
-          className="font-semibold text-brand underline decoration-border-control underline-offset-4 transition-colors hover:text-brand-strong hover:decoration-brand"
+          className="link-inline"
         >
           {emptyBoard.processLinkLabel}
         </Link>

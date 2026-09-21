@@ -209,7 +209,7 @@ export function JobBoard({ jobs }: { jobs: Job[] }) {
               <h3 className="text-xl font-bold text-ink">
                 <Link
                   href={`/jobs/${job.slug}`}
-                  className="no-underline transition-colors hover:text-brand hover:underline hover:underline-offset-4"
+                  className="no-underline transition-colors hover:text-brand hover:underline hover:underline-offset-4 active:text-brand-strong"
                 >
                   {job.title}
                   <span aria-hidden="true"> &rarr;</span>

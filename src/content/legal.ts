@@ -10,7 +10,7 @@
  * is wrong the first time anyone edits a form.
  *
  * Everything this repo cannot know is ABSENT, not approximated and not marked
- * with a bracketed placeholder (CLAUDE.md rule 5). Retention periods, the
+ * with a bracketed placeholder (CLAUDE.md rule 6). Retention periods, the
  * names of processors, the data-rights contact address, international
  * transfers, whether the business sells personal information, and the
  * governing-law state are all unanswered. Each one is a numbered question in

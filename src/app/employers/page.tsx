@@ -14,7 +14,7 @@ import {
 import { buildMetadata } from "@/lib/metadata";
 
 // A built route: no noIndex, and it is listed in app/sitemap.ts. Those two
-// edits belong together - see CLAUDE.md, rule 4.
+// edits belong together - see CLAUDE.md, rule 5.
 export const metadata: Metadata = buildMetadata({
   title: employersMeta.overview.title,
   description: employersMeta.overview.description,

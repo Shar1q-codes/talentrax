@@ -151,7 +151,7 @@ export const reportBarrier: SectionIntro & {
   body: [
     // The dedicated accessibility address is CLIENT-CONFIRM.md item 11. Until
     // it exists, the contact form is the honest route rather than an invented
-    // inbox that bounces (rule 5).
+    // inbox that bounces (rule 6).
     "Use the contact form and say it is an accessibility problem. It reaches a person, not a queue.",
     "If a barrier stops you finishing something on this site - sending a resume, or getting a role to us - tell us what you were trying to do and we will do it with you another way rather than leaving you to fight the page.",
   ],

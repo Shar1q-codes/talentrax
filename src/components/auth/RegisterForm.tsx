@@ -267,7 +267,7 @@ export function RegisterForm() {
           {register.signInIntro}{" "}
           <Link
             href={register.signInHref}
-            className="font-semibold text-brand underline decoration-border-control underline-offset-4 transition-colors hover:text-brand-strong hover:decoration-brand"
+            className="link-inline"
           >
             {register.signInLabel}
           </Link>
@@ -278,7 +278,7 @@ export function RegisterForm() {
           {register.privacyIntro}{" "}
           <Link
             href={register.privacyHref}
-            className="font-semibold text-brand underline decoration-border-control underline-offset-4 transition-colors hover:text-brand-strong hover:decoration-brand"
+            className="link-inline"
           >
             {register.privacyLabel}
           </Link>

@@ -112,7 +112,7 @@ the three desks. Both sections render them and both forms build their
 option lists from them, so Employers and Job Seekers cannot advertise
 different specialties.
 
-## The six rules
+## The seven rules
 
 ### 1. Content lives in data files, never inline in components
 
@@ -142,7 +142,37 @@ the `@theme` block of `src/app/globals.css`.
 first, with its contrast ratio in the comment, then use the generated utility
 (`--color-brand` → `bg-brand` / `text-brand` / `border-brand`).
 
-### 3. Accessibility is non-negotiable — WCAG 2.1 AA
+### 3. Motion is two durations and one curve
+
+Every transition and animation on this site uses tokens from the `@theme`
+block in `globals.css`: `--ease-emphasized`, `--duration-fast` (150ms) and
+`--duration-medium` (250ms). Those two are also set as Tailwind defaults, so
+a bare `transition-colors` inherits them and **no component names a duration
+or a curve**. If a third duration seems necessary, the interaction is wrong.
+
+- **Transform, opacity and colour only.** Never width, height, top, left,
+  margin, padding, border-width or box-shadow - each runs layout or a heavy
+  paint on every frame. For elevation, fade a pseudo-element that carries the
+  shadow.
+- **No layout shift on hover, anywhere.** A border that thickens or a padding
+  that grows nudges its neighbours. Recolour or translate instead.
+- **:active matters more than :hover.** Most visits are on a phone where
+  hover does not exist. `.pressable` (buttons) scales to 0.98; links and nav
+  rows darken. A tap that does nothing feels broken.
+- **The focus ring is never animated** and never delayed - `transition: none`
+  on `:focus-visible`. It clears 3:1 on every background here: 4.6-5.4:1 on
+  the light surfaces, 11.2:1 as white on the brand band.
+- **Form feedback is instant.** `[role="alert"]` has transition and animation
+  forced off, so an error can never race its own screen-reader announcement.
+- **Banned outright:** reveal-on-scroll, parallax, scroll hijacking, custom
+  cursors, marquees, typewriters, count-ups, page-transition overlays, and
+  skeleton loaders on statically rendered pages. **No animation library** -
+  all of this is CSS, and 40KB of JavaScript for hover states is the opposite
+  of premium.
+- The header has **one scroll threshold and one change**: the bottom border
+  gains colour. It does not shrink, change height, or hide on scroll.
+
+### 4. Accessibility is non-negotiable — WCAG 2.1 AA
 
 - **Contrast AA on every text/background pair.** Applies to decorative text
   too. Token comments in `globals.css` record the measured ratios.
@@ -169,7 +199,7 @@ first, with its contrast ratio in the comment, then use the generated utility
   a secondary button - use `--color-border-control`, which clears 3:1
   (1.4.11). `--color-border-strong` is 1.5:1 and is for decoration only.
 
-### 4. Coming-soon routes must be noindex
+### 5. Coming-soon routes must be noindex
 
 Every coming-soon route sets `robots: { index: false, follow: true }` via
 `buildMetadata({ noIndex: true })`. There are no unbuilt pages left, so no
@@ -192,7 +222,7 @@ Miss the last one and `npm run check:seo` fails, which is the point: it
 asserts both directions, that every built route is indexable and in the
 sitemap, and that no noindex route is.
 
-### 5. Null content renders nothing
+### 6. Null content renders nothing
 
 **Never render a placeholder for missing copy.** No bracketed label, no
 `[TBD]`, no "coming soon" inline marker, no empty row where a value will go.
@@ -208,7 +238,7 @@ text, and it is the same instinct: the site says what is true or says
 nothing. A coming-soon **route** is a different thing - that is a whole page
 with its own explanation, not a gap in a sentence.
 
-### 6. No external assets, no third-party scripts
+### 7. No external assets, no third-party scripts
 
 - No external image URLs, no placeholder image services, no `<img>`. Where real
   imagery will go, render a token-coloured gradient block marked `image-slot`
@@ -552,7 +582,7 @@ commercial terms behind `/employers/services`.
 
 **None of them is written into a page as a guess or a placeholder.** The
 sentence that would carry each one is absent, and where that empties a
-section the section is gone too (rule 5). Every omission is marked with an
+section the section is gone too (rule 6). Every omission is marked with an
 `OMITTED` comment in `src/content/legal.ts`, or a `detail: null` in
 `src/content/taxonomy.ts`, pointing at its numbered question.
 

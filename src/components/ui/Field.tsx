@@ -34,7 +34,7 @@ const REQUIRED_MARKER = "*";
 const controlClass = [
   "block w-full min-h-11 rounded-md border bg-surface px-3 py-2.5",
   "text-base text-ink",
-  "transition-colors duration-150",
+  "transition-colors",
 ].join(" ");
 
 /**
@@ -297,7 +297,7 @@ export function RadioGroupField({
               key={option.value}
               className={[
                 "flex min-h-11 items-start gap-3 rounded-md border bg-surface p-3",
-                "transition-colors duration-150",
+                "transition-colors",
                 value === option.value
                   ? "border-brand bg-brand-soft"
                   : stateClass(Boolean(error)),
@@ -362,7 +362,7 @@ export function CheckboxField({
       <div
         className={[
           "flex items-start gap-3 rounded-md border bg-surface p-4",
-          "transition-colors duration-150",
+          "transition-colors",
           checked ? "border-brand bg-brand-soft" : stateClass(Boolean(error)),
         ].join(" ")}
       >
@@ -437,7 +437,7 @@ export function CheckboxGroupField({
               key={option.value}
               className={[
                 "flex min-h-11 items-center gap-3 rounded-md border bg-surface p-3",
-                "transition-colors duration-150",
+                "transition-colors",
                 checked ? "border-brand bg-brand-soft" : stateClass(Boolean(error)),
               ].join(" ")}
             >

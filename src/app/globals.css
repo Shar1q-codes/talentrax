@@ -47,6 +47,27 @@
   --color-border-control: #64748b; /*  4.8:1  on white, 4.3:1 on surface-muted */
   --color-focus: #0e7490;
 
+  /* --- Motion ------------------------------------------------------------ */
+  /* ONE curve and TWO durations. Everything that moves anywhere on this site
+     uses these; nothing defines its own. If a third duration seems necessary
+     the interaction is wrong, not the token set.
+
+     The curve decelerates into place and never overshoots. Bounce and
+     elastic easings read as playful; this site is selling judgement. */
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+
+  /* A state change on something already under the cursor or finger. */
+  --duration-fast: 150ms;
+  /* Something arriving or leaving: a dropdown, the drawer, the scrim. */
+  --duration-medium: 250ms;
+
+  /* Tailwind reads these two for every `transition-*` utility that does not
+     name a duration or a curve - which is all of them. That is deliberate:
+     a component writes `transition-colors` and inherits the tokens, so a
+     stray `duration-300` cannot creep in one file at a time. */
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--ease-emphasized);
+
   /* --- Radii ------------------------------------------------------------- */
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
@@ -136,11 +157,22 @@ p {
    A single global rule so no component can silently ship without a focus
    indicator. Outlines are never removed; components that need a different
    colour override --color-focus locally (see .on-brand).
+
+   THE RING IS NEVER ANIMATED. No transition, no delay, no fade. A focus
+   indicator that eases in reads as lag to someone tabbing quickly, and it is
+   the one piece of feedback that has to be instantaneous. Tailwind's
+   "transition-colors" covers colour, background-color, border-color,
+   text-decoration-color, fill and stroke - not outline - so no utility can
+   animate it by accident. The explicit "transition: none" below closes the
+   gap for anything that tries.
+
+   :focus-visible rather than :focus, so it does not fire on a mouse click.
    ========================================================================== */
 :focus-visible {
   outline: var(--focus-ring-width) solid var(--color-focus);
   outline-offset: var(--focus-ring-offset);
   border-radius: var(--radius-sm);
+  transition: none;
 }
 
 /* Inside dark brand bands the teal ring loses contrast, so swap it for white. */
@@ -149,8 +181,115 @@ p {
 }
 
 /* ==========================================================================
-   MOTION  (WCAG 2.1 AA - 2.3.3 Animation from Interactions)
+   MOTION
+
+   WHAT MAY BE ANIMATED: transform, opacity, and colour. Nothing else.
+
+   Never width, height, top, left, margin, padding or border-WIDTH: each of
+   those runs layout on every frame, which is most of why a cheap site feels
+   heavy. Never box-shadow either - if something needs to gain elevation, put
+   the shadow on a pseudo-element and fade THAT. Colour changes (background,
+   border-colour, text-decoration-colour) are paint-only and are fine.
+
+   NO LAYOUT SHIFT ON HOVER, anywhere. A border that thickens or a padding
+   that grows nudges everything around it. Move it or recolour it instead.
+
+   Durations and the curve come from the tokens at the top of this file.
    ========================================================================== */
+
+/* Pressed state, for buttons and anything else that should answer a finger.
+   ACTIVE MATTERS MORE THAN HOVER: most visits are on a phone, where hover
+   does not exist, and this is the single thing that makes a tap feel
+   answered. Transform only, so nothing around it moves. */
+.pressable {
+  transition-property: transform, color, background-color, border-color;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-emphasized);
+}
+
+.pressable:active {
+  transform: scale(0.98);
+}
+
+/* Inline body links. Underlined at rest and staying that way - revealing an
+   underline on hover is a readability regression dressed up as restraint.
+   The hover state thickens the rule and pulls it closer to the text, which
+   are paint-only properties, rather than sliding a pseudo-element bar. */
+.link-inline {
+  color: var(--color-brand);
+  font-weight: 600;
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-border-control);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+  transition-property: color, text-decoration-color, text-decoration-thickness,
+    text-underline-offset;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-emphasized);
+}
+
+.link-inline:hover {
+  color: var(--color-brand-strong);
+  text-decoration-color: var(--color-brand);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+}
+
+/* The pressed state for a link, where a scale would look wrong. */
+.link-inline:active {
+  color: var(--color-brand-strong);
+  text-decoration-color: var(--color-brand-strong);
+}
+
+/* On a dark brand band the same link needs the inverse palette. */
+.on-brand .link-inline {
+  color: var(--color-on-brand);
+  text-decoration-color: var(--color-on-brand-muted);
+}
+
+.on-brand .link-inline:hover,
+.on-brand .link-inline:active {
+  color: var(--color-on-brand);
+  text-decoration-color: var(--color-on-brand);
+}
+
+/* Desktop nav dropdown panel.
+   Fades and rises a few pixels from its top edge. It is an ENTER animation
+   only: the panel unmounts on close, so there is nothing to animate out, and
+   nothing delays focus returning to the trigger on Escape. No scale, and no
+   slide from the side - both read as a different element arriving rather
+   than this one opening. */
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-panel {
+  transform-origin: top center;
+  animation: dropdown-in var(--duration-medium) var(--ease-emphasized) both;
+}
+
+/* Form feedback is INSTANT. An error message that eases in delays information
+   the reader needs, and on a role="alert" it can race the screen reader
+   announcement. Nothing sets a transition on these today; this makes sure
+   nothing starts. */
+[role="alert"],
+[data-instant] {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* WCAG 2.1 AA - 2.3.3 Animation from Interactions.
+   Durations collapse to effectively nothing, so every END STATE still
+   applies: a hover colour, an open dropdown and a pressed button all still
+   read, they simply arrive without travel. Verify by toggling the OS
+   setting, not by reading this block. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

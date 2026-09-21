@@ -35,7 +35,10 @@ const variantClass: Record<ButtonVariant, string> = {
 const baseClass = [
   "inline-flex items-center justify-center gap-2",
   "rounded-md font-semibold no-underline",
-  "transition-colors duration-150",
+  // .pressable (globals.css) carries the transition AND the :active scale.
+  // The active state matters more than hover: most visits are on a phone,
+  // where hover does not exist and a tap that does nothing feels broken.
+  "pressable",
   "min-h-11",
 ].join(" ");
 

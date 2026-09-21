@@ -51,7 +51,7 @@ export function LegalDocument({
               <li key={section.id}>
                 <a
                   href={`#${section.id}`}
-                  className="inline-flex min-h-11 items-center text-base font-semibold text-brand underline decoration-border-control underline-offset-4 transition-colors hover:text-brand-strong hover:decoration-brand"
+                  className="inline-flex min-h-11 items-center text-base link-inline"
                 >
                   {section.heading}
                 </a>

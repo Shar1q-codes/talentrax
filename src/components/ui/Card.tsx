@@ -17,7 +17,7 @@ export function Card({
     <Tag
       className={[
         "rounded-lg border border-border bg-surface p-6",
-        "transition-colors duration-150",
+        "transition-colors",
         className,
       ].join(" ")}
     >

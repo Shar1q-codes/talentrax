@@ -27,7 +27,7 @@ export const metadata: Metadata = {
  *
  * There is no insights section. There were three placeholder article cards
  * here, which is fabricated content on the one page guaranteed to be indexed
- * (rule 5). A home page does not get an insights section until there are
+ * (rule 6). A home page does not get an insights section until there are
  * articles to put in it.
  *
  * JSON-LD (Organization + WebSite) is emitted here only. This is a server

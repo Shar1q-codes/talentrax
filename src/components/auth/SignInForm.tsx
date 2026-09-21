@@ -177,7 +177,7 @@ export function SignInForm() {
         <p className="text-base">
           <Link
             href={login.forgotHref}
-            className="font-semibold text-brand underline decoration-border-control underline-offset-4 transition-colors hover:text-brand-strong hover:decoration-brand"
+            className="link-inline"
           >
             {login.forgotLabel}
           </Link>
@@ -198,7 +198,7 @@ export function SignInForm() {
           {login.registerIntro}{" "}
           <Link
             href={login.registerHref}
-            className="font-semibold text-brand underline decoration-border-control underline-offset-4 transition-colors hover:text-brand-strong hover:decoration-brand"
+            className="link-inline"
           >
             {login.registerLabel}
           </Link>
@@ -209,7 +209,7 @@ export function SignInForm() {
           {login.uploadIntro}{" "}
           <Link
             href={login.uploadHref}
-            className="font-semibold text-brand underline decoration-border-control underline-offset-4 transition-colors hover:text-brand-strong hover:decoration-brand"
+            className="link-inline"
           >
             {login.uploadLabel}
           </Link>

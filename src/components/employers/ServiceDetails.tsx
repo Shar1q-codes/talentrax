@@ -22,7 +22,7 @@ export function ServicesAnchorNav() {
           <li key={model.id}>
             <a
               href={`#${model.id}`}
-              className="inline-flex min-h-11 items-center gap-2 text-base font-semibold text-brand underline decoration-border-control underline-offset-4 transition-colors hover:text-brand-strong hover:decoration-brand"
+              className="inline-flex min-h-11 items-center gap-2 text-base link-inline"
             >
               <Icon name={model.icon} className="h-5 w-5 shrink-0" />
               {model.name}

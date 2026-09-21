@@ -18,7 +18,7 @@ import {
 import { buildMetadata } from "@/lib/metadata";
 
 // A built route: no noIndex, in app/sitemap.ts, and out of comingSoonRoutes
-// and COMING_SOON_ROUTES. See CLAUDE.md, rule 4.
+// and COMING_SOON_ROUTES. See CLAUDE.md, rule 5.
 export const metadata: Metadata = buildMetadata({
   title: locationsMeta.title,
   description: locationsMeta.description,
@@ -57,7 +57,7 @@ function SectionLink({ label, href }: { label: string; href: string }) {
     <p className="mt-8 text-base">
       <Link
         href={href}
-        className="font-semibold text-brand underline decoration-border-control underline-offset-4 transition-colors hover:text-brand-strong hover:decoration-brand"
+        className="link-inline"
       >
         {label}
         <span aria-hidden="true"> &rarr;</span>

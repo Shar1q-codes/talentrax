@@ -16,7 +16,7 @@ import { buildMetadata } from "@/lib/metadata";
 import { serializeJsonLd } from "@/lib/seo";
 
 // A built route: no noIndex, in app/sitemap.ts, and out of comingSoonRoutes
-// and COMING_SOON_ROUTES. See CLAUDE.md, rule 4.
+// and COMING_SOON_ROUTES. See CLAUDE.md, rule 5.
 export const metadata: Metadata = buildMetadata({
   title: faqMeta.title,
   description: faqMeta.description,
@@ -61,7 +61,7 @@ export default function Page() {
               <li key={group.id}>
                 <a
                   href={`#${group.id}`}
-                  className="inline-flex min-h-11 items-center text-base font-semibold text-brand underline decoration-border-control underline-offset-4 transition-colors hover:text-brand-strong hover:decoration-brand"
+                  className="inline-flex min-h-11 items-center text-base link-inline"
                 >
                   {group.heading}
                 </a>
@@ -106,7 +106,7 @@ export default function Page() {
                       <p className="mt-3 text-base">
                         <Link
                           href={item.link.href}
-                          className="font-semibold text-brand underline decoration-border-control underline-offset-4 transition-colors hover:text-brand-strong hover:decoration-brand"
+                          className="link-inline"
                         >
                           {item.link.label}
                           <span aria-hidden="true"> &rarr;</span>

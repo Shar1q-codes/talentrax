@@ -10,7 +10,7 @@
  * content/site.ts is still `isPlaceholder: true`, including a 555 number
  * reserved for fiction and a mailbox that does not exist. So this page shows
  * none of them, rather than an invented one or a "to be confirmed" line
- * (CLAUDE.md rule 5). CLIENT-CONFIRM.md item 8 is the blocker.
+ * (CLAUDE.md rule 6). CLIENT-CONFIRM.md item 8 is the blocker.
  *
  * The form is the fallback, not the main route. An employer with a role and
  * a candidate with a resume are the two things people actually arrive here

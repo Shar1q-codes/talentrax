@@ -32,7 +32,7 @@ export function ConsentPromise() {
           {consentSection.privacyLinkIntro}{" "}
           <Link
             href={PRIVACY_PATH}
-            className="font-semibold text-brand underline decoration-border-control underline-offset-4 transition-colors hover:text-brand-strong hover:decoration-brand"
+            className="link-inline"
           >
             {consentSection.privacyLinkLabel}
           </Link>

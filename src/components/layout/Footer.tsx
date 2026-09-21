@@ -14,7 +14,7 @@ import { site } from "@/content/site";
  * a 555 number reserved for fiction, an unprovisioned mailbox, and an
  * address line that literally reads "to be confirmed" - so the block does not
  * render at all. Publishing an invented phone number on every page is the
- * same mistake as a bracketed placeholder, and rule 5 covers both.
+ * same mistake as a bracketed placeholder, and rule 6 covers both.
  *
  * Server component - no interactivity.
  *
@@ -104,7 +104,7 @@ export function Footer() {
                     <li key={`${column.id}-${link.href}-${link.label}`}>
                       <Link
                         href={link.href}
-                        className="text-base text-on-brand-muted no-underline transition-colors hover:text-on-brand hover:underline hover:underline-offset-4"
+                        className="text-base text-on-brand-muted no-underline transition-colors hover:text-on-brand hover:underline hover:underline-offset-4 active:text-on-brand"
                       >
                         {link.label}
                       </Link>

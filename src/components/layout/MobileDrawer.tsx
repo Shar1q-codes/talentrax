@@ -108,7 +108,9 @@ export function MobileDrawer({
           close button are the accessible routes out. */}
       <div
         onClick={onClose}
-        className={`fixed inset-0 z-40 bg-ink/50 transition-opacity duration-200 ${
+        // Opacity only, at the same duration as the panel, so the scrim and
+        // the drawer read as one movement rather than two.
+        className={`fixed inset-0 z-40 bg-ink/50 transition-opacity duration-[var(--duration-medium)] ${
           open ? "opacity-100" : "opacity-0"
         }`}
       />
@@ -121,7 +123,10 @@ export function MobileDrawer({
         className={[
           "fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col",
           "border-l border-border bg-surface shadow-xl",
-          "transition-transform duration-200 ease-out",
+          // Transform only: nothing here runs layout on a frame. Escape sets
+          // open=false and focus returns to the trigger immediately; the
+          // slide-out is never waited on.
+          "transition-transform duration-[var(--duration-medium)]",
           open ? "translate-x-0" : "translate-x-full",
         ].join(" ")}
       >
@@ -136,7 +141,7 @@ export function MobileDrawer({
             ref={closeButtonRef}
             type="button"
             onClick={onClose}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink active:bg-brand-soft"
           >
             <span className="sr-only">Close menu</span>
             <svg
@@ -171,7 +176,7 @@ export function MobileDrawer({
                       className={`block rounded-md px-3 py-3 text-base font-semibold no-underline ${
                         current
                           ? "bg-brand-soft text-brand"
-                          : "text-ink hover:bg-surface-muted"
+                          : "text-ink hover:bg-surface-muted active:bg-brand-soft"
                       }`}
                     >
                       {item.label}
@@ -190,12 +195,12 @@ export function MobileDrawer({
                     aria-expanded={isOpen}
                     aria-controls={listId}
                     onClick={() => setExpanded(isOpen ? null : item.id)}
-                    className="flex w-full items-center justify-between rounded-md px-3 py-3 text-left text-base font-semibold text-ink transition-colors hover:bg-surface-muted"
+                    className="flex w-full items-center justify-between rounded-md px-3 py-3 text-left text-base font-semibold text-ink transition-colors hover:bg-surface-muted active:bg-brand-soft"
                   >
                     {item.label}
                     <svg
                       viewBox="0 0 24 24"
-                      className={`h-5 w-5 shrink-0 transition-transform duration-150 ${
+                      className={`h-5 w-5 shrink-0 transition-transform ${
                         isOpen ? "rotate-180" : ""
                       }`}
                       fill="none"
@@ -225,7 +230,7 @@ export function MobileDrawer({
                             className={`block rounded-md px-3 py-2.5 text-base no-underline ${
                               current
                                 ? "bg-brand-soft font-semibold text-brand"
-                                : "text-ink-muted hover:bg-surface-muted hover:text-ink"
+                                : "text-ink-muted hover:bg-surface-muted hover:text-ink active:bg-brand-soft"
                             }`}
                           >
                             {child.label}
@@ -276,7 +281,7 @@ export function MobileDrawer({
             Rendered only once a real number exists. The 555 placeholder in
             content/site.ts is a reserved fictional number, and the drawer is
             in the DOM on every page - publishing an invented phone number
-            site-wide is the same mistake as a bracketed placeholder (rule 5).
+            site-wide is the same mistake as a bracketed placeholder (rule 6).
           */}
           {site.contact.phone.href && !site.contact.phone.isPlaceholder ? (
             <p className="mt-4 text-sm text-ink-muted">

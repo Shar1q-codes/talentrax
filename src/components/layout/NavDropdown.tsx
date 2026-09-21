@@ -139,16 +139,16 @@ export function NavDropdown({
         onKeyDown={onTriggerKeyDown}
         className={[
           "inline-flex h-11 items-center gap-1.5 rounded-md px-3 text-base font-medium",
-          "transition-colors duration-150",
+          "transition-colors",
           sectionIsCurrent
             ? "text-brand"
-            : "text-ink-muted hover:text-brand",
+            : "text-ink-muted hover:text-brand active:text-brand-strong",
         ].join(" ")}
       >
         {item.label}
         <svg
           viewBox="0 0 24 24"
-          className={`h-4 w-4 transition-transform duration-150 ${
+          className={`h-4 w-4 transition-transform ${
             open ? "rotate-180" : ""
           }`}
           fill="none"
@@ -169,8 +169,13 @@ export function NavDropdown({
           id={panelId}
           aria-labelledby={triggerId}
           onKeyDown={onPanelKeyDown}
+          // dropdown-panel (globals.css): fades and rises 4px from its top
+          // edge over the medium duration. An ENTER animation only - the panel
+          // unmounts on close, so nothing delays focus returning to the
+          // trigger on Escape.
           className={[
             "absolute left-0 top-full z-50 w-80 pt-2",
+            "dropdown-panel",
           ].join(" ")}
         >
           <ul className="rounded-lg border border-border bg-surface p-2 shadow-lg">
@@ -186,7 +191,7 @@ export function NavDropdown({
                       "block rounded-md px-3 py-2.5 no-underline transition-colors",
                       current
                         ? "bg-brand-soft text-brand"
-                        : "text-ink hover:bg-surface-muted",
+                        : "text-ink hover:bg-surface-muted active:bg-brand-soft",
                     ].join(" ")}
                   >
                     <span className="block text-base font-semibold">

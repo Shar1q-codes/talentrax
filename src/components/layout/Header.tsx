@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { MobileDrawer } from "@/components/layout/MobileDrawer";
 import { NavDropdown } from "@/components/layout/NavDropdown";
@@ -19,6 +19,15 @@ import { primaryNav, utilityNav } from "@/content/navigation";
  * This is a client component because the dropdowns and drawer hold open/close
  * state and read the current pathname. The page content around it stays a
  * server component.
+ *
+ * ONE SCROLL THRESHOLD, ONE CHANGE: the bottom border appears once the page
+ * has scrolled. That is all. The header does not shrink, does not change
+ * height, and does not hide itself on scroll down - a height change shifts
+ * every page it sits on, and hiding the navigation to reclaim a strip of
+ * screen is hostile to the person trying to use it.
+ *
+ * The border is present at every scroll position and only changes COLOUR, so
+ * nothing reflows when it appears.
  */
 export function Header() {
   const pathname = usePathname();
@@ -33,8 +42,40 @@ export function Header() {
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
+  /**
+   * Whether the page has scrolled away from the top.
+   *
+   * Passive listener so it can never block scrolling, and the state is only
+   * touched inside a requestAnimationFrame - a scroll handler that sets state
+   * on every event is how a sticky header ends up janky.
+   */
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      setScrolled(window.scrollY > 8);
+    };
+    const onScroll = () => {
+      if (frame === 0) frame = window.requestAnimationFrame(read);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame !== 0) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface">
+    <header
+      className={[
+        "sticky top-0 z-40 bg-surface",
+        // Border-COLOUR only. The 1px is always there, so nothing moves.
+        "border-b transition-colors",
+        scrolled ? "border-border" : "border-transparent",
+      ].join(" ")}
+    >
       <Container>
         <div className="flex h-16 items-center justify-between gap-4 lg:h-20">
           <Logo />
@@ -56,10 +97,10 @@ export function Header() {
                       aria-current={isCurrent(item.href) ? "page" : undefined}
                       className={[
                         "inline-flex h-11 items-center rounded-md px-3 text-base font-medium no-underline",
-                        "transition-colors duration-150",
+                        "transition-colors",
                         isCurrent(item.href)
                           ? "text-brand"
-                          : "text-ink-muted hover:text-brand",
+                          : "text-ink-muted hover:text-brand active:text-brand-strong",
                       ].join(" ")}
                     >
                       {item.label}
@@ -88,7 +129,7 @@ export function Header() {
                     key={item.href}
                     href={item.href}
                     aria-current={isCurrent(item.href) ? "page" : undefined}
-                    className="inline-flex h-11 items-center rounded-md px-3 text-base font-medium text-ink-muted no-underline transition-colors hover:text-brand"
+                    className="inline-flex h-11 items-center rounded-md px-3 text-base font-medium text-ink-muted no-underline transition-colors hover:text-brand active:text-brand-strong"
                   >
                     {item.label}
                   </Link>
@@ -104,7 +145,7 @@ export function Header() {
             aria-expanded={drawerOpen}
             aria-controls="mobile-navigation-drawer"
             onClick={() => setDrawerOpen(true)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-ink transition-colors hover:bg-surface-muted lg:hidden"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-ink transition-colors hover:bg-surface-muted active:bg-brand-soft lg:hidden"
           >
             <span className="sr-only">Open menu</span>
             <svg
