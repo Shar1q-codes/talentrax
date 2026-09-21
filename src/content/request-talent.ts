@@ -24,6 +24,13 @@ export type FieldConfig = {
    * their own city into a job location would be actively wrong.
    */
   autoComplete?: string;
+  /**
+   * How this field is named when it is listed OUTSIDE the form - in the
+   * privacy policy, which derives its "what we collect" lists straight from
+   * these definitions. Only needed where the on-screen label does not read as
+   * a standalone noun ("Per", "Range minimum"). Defaults to `label`.
+   */
+  dataLabel?: string;
   required: boolean;
   /** Announced when a required field is left empty. */
   errorRequired?: string;
@@ -95,6 +102,7 @@ export const roleFields = {
   specialty: {
     id: "specialty",
     label: "Specialty",
+    dataLabel: "The specialty the role sits in",
     hint: "Pick the closest discipline. The desk that owns it will pick the brief up.",
     required: true,
     errorRequired: "Choose the specialty this role sits in.",
@@ -102,6 +110,7 @@ export const roleFields = {
   city: {
     id: "city",
     label: "City",
+    dataLabel: "The city the role is based in",
     autoComplete: "off",
     required: true,
     errorRequired: "Enter the city the role is based in.",
@@ -109,6 +118,7 @@ export const roleFields = {
   state: {
     id: "state",
     label: "State",
+    dataLabel: "The state the role is based in",
     autoComplete: "off",
     required: true,
     errorRequired: "Choose the state the role is based in.",
@@ -116,6 +126,7 @@ export const roleFields = {
   workMode: {
     id: "work-mode",
     label: "Work mode",
+    dataLabel: "Whether the role is onsite, hybrid or remote",
     required: true,
     errorRequired: "Choose whether the role is onsite, hybrid or remote.",
   },
@@ -139,6 +150,7 @@ export const roleFields = {
   salaryMin: {
     id: "salary-min",
     label: "Range minimum",
+    dataLabel: "The bottom of the salary or rate range",
     autoComplete: "off",
     required: false,
     errorFormat: "Enter the range minimum as a number.",
@@ -146,6 +158,7 @@ export const roleFields = {
   salaryMax: {
     id: "salary-max",
     label: "Range maximum",
+    dataLabel: "The top of the salary or rate range",
     autoComplete: "off",
     required: false,
     errorFormat: "The range maximum must be the same as or higher than the minimum.",
@@ -153,12 +166,14 @@ export const roleFields = {
   salaryUnit: {
     id: "salary-unit",
     label: "Per",
+    dataLabel: "Whether that range is hourly or annual",
     required: false,
     errorFormat: "Choose whether the range is hourly or annual.",
   },
   requirements: {
     id: "requirements",
     label: "Additional requirements",
+    dataLabel: "Anything else you type into the requirements box",
     hint: "Credentials, shift pattern, certifications, tooling, interview process, anything that would make us discount an otherwise strong candidate.",
     autoComplete: "off",
     required: false,

@@ -178,7 +178,14 @@ export const specialties: SpecialtiesContent = {
       ],
     },
   ],
-  cta: { label: "Explore specialties", href: "/specialties", variant: "secondary" },
+  // The desks live at /employers#specialties. The /specialties route still
+  // exists but is unbuilt, so pointing at it would send people from a real
+  // list of disciplines to a coming-soon page.
+  cta: {
+    label: "Explore specialties",
+    href: "/employers#specialties",
+    variant: "secondary",
+  },
 };
 
 /* ------------------------------------------------------- 5. Split section */

@@ -8,9 +8,9 @@
  * ROUTE RULE: every href below must resolve - a route under src/app, or an
  * anchor on a built page. All 20 routes exist today. Built: "/",
  * "/employers", "/employers/services", "/employers/request-talent",
- * "/job-seekers" and "/job-seekers/upload-resume". The other 15 render the
- * shared ComingSoon page, are noindex, and are registered in
- * `comingSoonRoutes` below.
+ * "/job-seekers", "/job-seekers/upload-resume", "/privacy-policy" and
+ * "/terms". The other 13 render the shared ComingSoon page, are noindex, and
+ * are registered in `comingSoonRoutes` below.
  */
 
 export type NavLink = {
@@ -204,8 +204,8 @@ export const footerColumns: FooterColumn[] = [
 
 /**
  * Registry of every route that currently renders the shared ComingSoon page.
- * "/", the three Employers routes and the two Job Seekers routes are excluded
- * because they are built.
+ * "/", the three Employers routes, the two Job Seekers routes and the two
+ * legal routes are excluded because they are built.
  *
  * Each entry drives three things for its route: the page h1, the document
  * title, and the meta description. Route files stay three-line stubs.
@@ -301,20 +301,6 @@ export const comingSoonRoutes: ComingSoonRoute[] = [
     section: "Account",
     description:
       "Create a Talentrax Global account to track applications and submitted roles.",
-  },
-  {
-    href: "/privacy-policy",
-    title: "Privacy Policy",
-    section: "Legal",
-    description:
-      "How Talentrax Global collects, uses and protects personal information.",
-  },
-  {
-    href: "/terms",
-    title: "Terms of Use",
-    section: "Legal",
-    description:
-      "The terms governing use of the Talentrax Global website and services.",
   },
   {
     href: "/accessibility",

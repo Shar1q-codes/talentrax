@@ -62,8 +62,9 @@ Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · React 19.
 
 ## Build status
 
-Built: `/`, the three Employers routes and the two Job Seekers routes (see
-**Routes**). Every other route renders the shared `ComingSoon` component.
+Built: `/`, the three Employers routes, the two Job Seekers routes and the
+two legal routes (see **Routes**). Every other route renders the shared
+`ComingSoon` component.
 Those routes exist so navigation works and the URL structure is locked in
 early.
 
@@ -146,7 +147,7 @@ first, with its contrast ratio in the comment, then use the generated utility
 ### 4. Coming-soon routes must be noindex
 
 Every coming-soon route sets `robots: { index: false, follow: true }` via
-`buildMetadata({ noIndex: true })`. We do not want 15 empty pages indexed.
+`buildMetadata({ noIndex: true })`. We do not want 13 empty pages indexed.
 `follow` stays true so crawlers still traverse the navigation.
 
 `robots.ts` deliberately allows the crawl: a `Disallow` would stop crawlers
@@ -195,34 +196,51 @@ with its own explanation, not a gap in a sentence.
 Built (indexable, in the sitemap):
 
 ```
-/                             /employers/request-talent
-/employers                    /job-seekers
-/employers/services           /job-seekers/upload-resume
+/                             /job-seekers
+/employers                    /job-seekers/upload-resume
+/employers/services           /privacy-policy
+/employers/request-talent     /terms
 ```
 
 Coming soon (all noindex, all real routes):
 
 ```
-/industries                   /about
-/specialties                  /contact
-/jobs                         /login
-/locations                    /register
-/insights                     /privacy-policy
-/research                     /terms
-/resources                    /accessibility
-/faq
+/industries                   /faq
+/specialties                  /about
+/jobs                         /contact
+/locations                    /login
+/insights                     /register
+/research                     /accessibility
+/resources
 ```
 
-`/industries` and `/specialties` are no longer linked from the header or the
-footer: both described the desks, and the desks are now a real section at
-`/employers#specialties`, so the two nav entries collapsed into one pointing
-there. The routes still exist.
+Nothing links to `/industries` or `/specialties` any more. Both described the
+desks, and the desks are a real section at `/employers#specialties`, so the
+nav entries collapsed into one pointing there and the home page specialties
+CTA follows it. The routes still exist.
 
 Plus a custom `app/not-found.tsx`.
 
 Adding a coming-soon route: add an entry to `comingSoonRoutes` in
 `content/navigation.ts`, then create `app/<path>/page.tsx` from any existing
 coming-soon page (they are all the same four-line stub).
+
+## Unanswered client questions
+
+`CLIENT-CONFIRM.md` at the repo root lists every fact the build could not
+derive from its own code: retention periods, named processors, the
+data-rights contact address, international transfers, governing law, and the
+commercial terms behind `/employers/services`.
+
+**None of them is written into a page as a guess or a placeholder.** The
+sentence that would carry each one is absent, and where that empties a
+section the section is gone too (rule 5). Every omission is marked with an
+`OMITTED` comment in `src/content/legal.ts`, or a `detail: null` in
+`src/content/taxonomy.ts`, pointing at its numbered question.
+
+That file also carries a release gate: **`/job-seekers/upload-resume` must
+not be publicly reachable until the privacy items are answered and the policy
+has been through the client lawyer review.**
 
 ## SEO baseline
 

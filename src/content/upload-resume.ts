@@ -52,6 +52,7 @@ export const aboutYouFields = {
   city: {
     id: "applicant-city",
     label: "City",
+    dataLabel: "The city you are based in",
     autoComplete: "address-level2",
     required: true,
     errorRequired: "Enter the city you are based in.",
@@ -59,6 +60,7 @@ export const aboutYouFields = {
   state: {
     id: "applicant-state",
     label: "State",
+    dataLabel: "The state you are based in",
     autoComplete: "address-level1",
     required: true,
     errorRequired: "Choose the state you are based in.",
@@ -76,6 +78,8 @@ export const workFields = {
   workAuthorization: {
     id: "work-authorization",
     label: "Are you authorized to work in the US without sponsorship?",
+    dataLabel:
+      "Whether you need sponsorship to work in the US - a yes or no, with no visa detail",
     required: true,
     errorRequired:
       "Tell us whether you need sponsorship to work in the US.",
@@ -104,6 +108,7 @@ export const workFields = {
   message: {
     id: "applicant-message",
     label: "Anything else we should know",
+    dataLabel: "Anything else you type into the message box",
     hint: "Optional. Shift preferences, locations you will not travel to, certifications in progress, notice period, anything that changes which roles are worth sending you.",
     required: false,
   },

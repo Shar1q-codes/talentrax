@@ -43,6 +43,8 @@ BUILT_ROUTES=(
   /employers/request-talent
   /job-seekers
   /job-seekers/upload-resume
+  /privacy-policy
+  /terms
 )
 
 COMING_SOON_ROUTES=(
@@ -58,8 +60,6 @@ COMING_SOON_ROUTES=(
   /contact
   /login
   /register
-  /privacy-policy
-  /terms
   /accessibility
 )
 
