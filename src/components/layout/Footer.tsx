@@ -9,6 +9,13 @@ import { site } from "@/content/site";
  * Site footer: four link columns from content/navigation.ts, a contact block
  * from content/site.ts, and the copyright line.
  *
+ * The contact block renders only the details the client has actually
+ * confirmed. Everything in content/site.ts is `isPlaceholder: true` today -
+ * a 555 number reserved for fiction, an unprovisioned mailbox, and an
+ * address line that literally reads "to be confirmed" - so the block does not
+ * render at all. Publishing an invented phone number on every page is the
+ * same mistake as a bracketed placeholder, and rule 5 covers both.
+ *
  * Server component - no interactivity.
  *
  * Each column is its own <nav> labelled by its heading, so screen-reader
@@ -26,7 +33,7 @@ export function Footer() {
     site.contact.email,
     site.contact.address,
     site.contact.hours,
-  ];
+  ].filter((row) => !row.isPlaceholder);
 
   return (
     <footer className="on-brand border-t border-border bg-surface-brand text-on-brand">
@@ -39,25 +46,29 @@ export function Footer() {
               {site.tagline}.
             </p>
 
-            <h2 className="mt-8 text-sm font-semibold tracking-widest text-on-brand uppercase">
-              Contact
-            </h2>
-            <ul className="mt-4 flex flex-col gap-2 text-base text-on-brand-muted">
-              {contactRows.map((row) => (
-                <li key={row.display}>
-                  {row.href ? (
-                    <a
-                      href={row.href}
-                      className="text-on-brand underline decoration-on-brand-muted underline-offset-4 transition-colors hover:decoration-on-brand"
-                    >
-                      {row.display}
-                    </a>
-                  ) : (
-                    row.display
-                  )}
-                </li>
-              ))}
-            </ul>
+            {contactRows.length > 0 ? (
+              <>
+                <h2 className="mt-8 text-sm font-semibold tracking-widest text-on-brand uppercase">
+                  Contact
+                </h2>
+                <ul className="mt-4 flex flex-col gap-2 text-base text-on-brand-muted">
+                  {contactRows.map((row) => (
+                    <li key={row.display}>
+                      {row.href ? (
+                        <a
+                          href={row.href}
+                          className="text-on-brand underline decoration-on-brand-muted underline-offset-4 transition-colors hover:decoration-on-brand"
+                        >
+                          {row.display}
+                        </a>
+                      ) : (
+                        row.display
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
 
             {/* Rendered only once real profile URLs exist in content/site.ts. */}
             {site.social.length > 0 ? (
@@ -110,8 +121,7 @@ export function Footer() {
             &copy; {year} {site.legalName}. All rights reserved.
           </p>
           <p className="mt-2 text-sm text-on-brand-muted">
-            Placeholder site. Contact details and all copy are pending client
-            confirmation.
+            Placeholder site. All copy is pending client confirmation.
           </p>
         </div>
       </Container>

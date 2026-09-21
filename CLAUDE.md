@@ -85,14 +85,14 @@ Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · React 19.
 
 ## Build status
 
-Built: `/`, the three Employers routes, the two Job Seekers routes and the
-two legal routes (see **Routes**). Every other route renders the shared
-`ComingSoon` component.
+Built: `/`, the three Employers routes, the two Job Seekers routes, `/about`,
+`/contact` and the two legal routes (see **Routes**). Every other route
+renders the shared `ComingSoon` component.
 Those routes exist so navigation works and the URL structure is locked in
 early.
 
-The two forms - `/employers/request-talent` and
-`/job-seekers/upload-resume` - are the only client components on the site.
+The three forms - `/employers/request-talent`, `/job-seekers/upload-resume`
+and `/contact` - are the only client components on the site.
 Neither has a backend. Each submits through one swappable function that logs
 its payload and returns success:
 
@@ -100,13 +100,14 @@ its payload and returns success:
 | --- | --- |
 | Request Talent | `submitRequisition()` in `src/lib/request-talent.ts` |
 | Upload Resume | `submitApplication()` in `src/lib/job-seekers.ts` |
+| Contact | `submitContact()` in `src/lib/contact.ts` |
 
 Wiring a real endpoint is a change to that one file. The resume upload is
 stubbed on purpose: the `File` rides in the payload, and the TODO spells out
 the presigned-URL upload it needs instead of a multipart POST.
 
-**Shared data.** `src/content/taxonomy.ts` holds the five engagement models
-and the three desks. Both sections render them and both forms build their
+**Shared data.** `src/content/taxonomy.ts` holds the engagement models and
+the three desks. Both sections render them and both forms build their
 option lists from them, so Employers and Job Seekers cannot advertise
 different specialties.
 
@@ -170,7 +171,7 @@ first, with its contrast ratio in the comment, then use the generated utility
 ### 4. Coming-soon routes must be noindex
 
 Every coming-soon route sets `robots: { index: false, follow: true }` via
-`buildMetadata({ noIndex: true })`. We do not want 13 empty pages indexed.
+`buildMetadata({ noIndex: true })`. We do not want 11 empty pages indexed.
 `follow` stays true so crawlers still traverse the navigation.
 
 `robots.ts` deliberately allows the crawl: a `Disallow` would stop crawlers
@@ -219,22 +220,22 @@ with its own explanation, not a gap in a sentence.
 Built (indexable, in the sitemap):
 
 ```
-/                             /job-seekers
-/employers                    /job-seekers/upload-resume
-/employers/services           /privacy-policy
-/employers/request-talent     /terms
+/                             /job-seekers/upload-resume
+/employers                    /about
+/employers/services           /contact
+/employers/request-talent     /privacy-policy
+/job-seekers                  /terms
 ```
 
 Coming soon (all noindex, all real routes):
 
 ```
-/industries                   /faq
-/specialties                  /about
-/jobs                         /contact
-/locations                    /login
-/insights                     /register
-/research                     /accessibility
-/resources
+/industries                   /resources
+/specialties                  /faq
+/jobs                         /login
+/locations                    /register
+/insights                     /accessibility
+/research
 ```
 
 Nothing links to `/industries` or `/specialties` any more. Both described the
@@ -247,6 +248,20 @@ Plus a custom `app/not-found.tsx`.
 Adding a coming-soon route: add an entry to `comingSoonRoutes` in
 `content/navigation.ts`, then create `app/<path>/page.tsx` from any existing
 coming-soon page (they are all the same four-line stub).
+
+## One wording for a promise
+
+`src/content/commitments.ts` holds the operational promises - a named
+recruiter per search, consent before any resume moves, a search plan before
+sourcing, an answer either way, and the rest. `/about`, `/employers` and
+`/job-seekers` all render objects from that file; none of them writes its own
+version.
+
+They were duplicated once, worded for two audiences, and that is how a
+business ends up making two different promises. **A promise that appears on
+more than one page belongs here, phrased so it reads to either audience.**
+Each one commits someone to doing something on every search, so adding one is
+not a copy decision - see CLIENT-CONFIRM.md item 10.
 
 ## Unanswered client questions
 

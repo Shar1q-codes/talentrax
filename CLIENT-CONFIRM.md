@@ -71,9 +71,17 @@ delete the matching `OMITTED` comment there, and strike the item here.
 
 8. **Contact details.** Phone, email, address and business hours in
    `src/content/site.ts` are all `isPlaceholder: true`. The 555 phone number
-   is a reserved fictional number and the mailbox is not provisioned. JSON-LD
-   and the sitemap already skip them; the footer renders them. Real values
-   would also answer item 3.
+   is a reserved fictional number and the mailbox is not provisioned. Nothing
+   renders any of them now: JSON-LD and the sitemap already skipped them, the
+   footer contact block no longer appears at all, and `/contact` publishes no
+   address of any kind. Real values also answer item 3, and give
+   `submitContact()` somewhere to deliver to.
+   *Omitted: the footer contact block, and every contact detail on
+   `/contact`. The page is a form and two links until these exist.*
+
+11. **Business hours.** If there are published hours, what are they, and in
+    which timezone? `/contact` shows none.
+    *Omitted: any hours block.*
 
 9. **Commercial terms.** `/employers/services` describes how each engagement
    model is charged but publishes no fee, rate, percentage or guarantee

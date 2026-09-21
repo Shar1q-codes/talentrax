@@ -253,7 +253,13 @@ export function MobileDrawer({
               {utilityNav.register.label}
             </ButtonLink>
           </div>
-          {site.contact.phone.href ? (
+          {/*
+            Rendered only once a real number exists. The 555 placeholder in
+            content/site.ts is a reserved fictional number, and the drawer is
+            in the DOM on every page - publishing an invented phone number
+            site-wide is the same mistake as a bracketed placeholder (rule 5).
+          */}
+          {site.contact.phone.href && !site.contact.phone.isPlaceholder ? (
             <p className="mt-4 text-sm text-ink-muted">
               <a
                 href={site.contact.phone.href}

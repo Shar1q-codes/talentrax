@@ -18,6 +18,7 @@
  * `detail: null` and renders as the visible [COMMERCIAL TERMS] marker.
  */
 
+import { commitments } from "./commitments";
 import type { Cta, CtaBandContent, ProcessContent, SectionIntro } from "./types";
 
 /* ----------------------------------------------------------- Shared paths */
@@ -204,31 +205,14 @@ export const searchProcess: ProcessContent = {
       ],
     },
   ],
+  // One wording for these, in content/commitments.ts, shared with /about and
+  // /job-seekers. Two versions of the same promise is how a business ends up
+  // making two different promises.
   commitments: [
-    {
-      id: "named-recruiter",
-      title: "You always know who is working your role",
-      detail:
-        "One named recruiter on the search, with direct contact details. Not a shared inbox, and not a different account manager each time you call.",
-    },
-    {
-      id: "consent",
-      title: "Nothing is submitted without consent",
-      detail:
-        "Every candidate agrees to be put forward for your role specifically. We do not spray resumes and we do not submit the same person to you through two routes.",
-    },
-    {
-      id: "bad-news",
-      title: "You hear the bad news early",
-      detail:
-        "If the band is wrong, the title is wrong or the role is not fillable as briefed, we tell you at the search plan stage while you can still act on it.",
-    },
-    {
-      id: "terms-in-writing",
-      title: "Terms are in writing before we start",
-      detail:
-        "Fees, guarantee periods and payment schedules are agreed and signed before sourcing begins. No invoice should ever be the first time you see a number.",
-    },
+    commitments.namedRecruiter,
+    commitments.consentBeforeSubmission,
+    commitments.badNewsEarly,
+    commitments.termsInWriting,
   ],
 };
 

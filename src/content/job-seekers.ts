@@ -16,6 +16,7 @@
  * form come from the same engagement models. Neither is retyped here.
  */
 
+import { commitments } from "./commitments";
 import type { Cta, CtaBandContent, ProcessContent, SectionIntro } from "./types";
 
 /* ----------------------------------------------------------- Shared paths */
@@ -178,25 +179,12 @@ export const consentSection = {
   heading: "Your resume does not move without you",
   intro:
     "A resume is a personal document and it stays yours. Three things hold, always, and you do not have to ask for them.",
+  // Shared wording, from content/commitments.ts. The first of these is the
+  // same promise /employers and /about make, in the same words.
   promises: [
-    {
-      id: "ask-first",
-      title: "We ask before we send it anywhere",
-      detail:
-        "No employer receives your resume until we have named them to you and you have agreed. Not once, not as a batch, not to fill a quota.",
-    },
-    {
-      id: "you-can-see",
-      title: "You can see who has it",
-      detail:
-        "Ask your recruiter and we will tell you which employers have received your resume and when we sent it. You should not have to guess where you have been put forward.",
-    },
-    {
-      id: "you-can-delete",
-      title: "You can have it deleted",
-      detail:
-        "Ask us to remove your resume and details and we will, without asking you to justify it and without trying to talk you out of it.",
-    },
+    commitments.consentBeforeSubmission,
+    commitments.youCanSeeWhoHasIt,
+    commitments.youCanHaveItDeleted,
   ],
   privacyLinkIntro: "The full detail of what we hold and why is in our",
   privacyLinkLabel: "privacy policy",
