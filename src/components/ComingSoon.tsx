@@ -3,7 +3,7 @@ import { Container } from "@/components/ui/Container";
 import type { ComingSoonRoute } from "@/content/navigation";
 
 /**
- * The single shared coming-soon page body, used by all 7 unbuilt routes.
+ * The single shared coming-soon page body, used by all 5 unbuilt routes.
  *
  * It renders inside the root layout, so the real header and footer stay in
  * place and the site still feels whole while sections are being built.

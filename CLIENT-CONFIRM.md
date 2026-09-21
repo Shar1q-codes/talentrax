@@ -76,12 +76,10 @@ delete the matching `OMITTED` comment there, and strike the item here.
    footer contact block no longer appears at all, and `/contact` publishes no
    address of any kind. Real values also answer item 3, and give
    `submitContact()` somewhere to deliver to.
-   *Omitted: the footer contact block, and every contact detail on
-   `/contact`. The page is a form and two links until these exist.*
-
-11. **Business hours.** If there are published hours, what are they, and in
-    which timezone? `/contact` shows none.
-    *Omitted: any hours block.*
+   Business hours belong here too: if there are published hours, what are
+   they and in which timezone?
+   *Omitted: the footer contact block, every contact detail on `/contact`,
+   and any hours block. That page is a form and two links until these exist.*
 
 9. **Commercial terms.** `/employers/services` describes how each engagement
    model is charged but publishes no fee, rate, percentage or guarantee
@@ -90,7 +88,35 @@ delete the matching `OMITTED` comment there, and strike the item here.
    replacement guarantee; contract bill rate and margin; executive search
    retainer structure and off-limits period.
 
-10. **The copy itself.** Every word on this site is placeholder marketing copy
+10. **Questions the FAQ cannot answer.** Each of these is a question people
+    genuinely ask, with no answer anywhere in this repo, so it is **not on
+    /faq**. Answer one and it goes on the page.
+    - How quickly does someone reply to a resume, a requisition or a contact
+      message? There is no service level stated anywhere and none was
+      invented.
+    - Do you place outside the United States? `/about` says "across the
+      United States" and nothing about anywhere else.
+    - How long is a resume kept? Same as item 1.
+    - How does someone reach you to exercise a data right? Same as item 3.
+    - Where are you based, and what are your hours? Items 8 and 11.
+    - What does it cost? Item 9, and deliberately out of scope for an FAQ
+      until the terms exist.
+
+11. **Accessibility barrier reports.** Which address should accessibility
+    problems go to, and who monitors it? `/accessibility` currently routes
+    people to the contact form, which works but is not a dedicated channel.
+    A named accessibility contact is also what most procurement and public
+    sector RFPs ask for.
+    *Omitted: any accessibility-specific email or phone number.*
+
+12. **An accessibility audit.** `/accessibility` states plainly that the site
+    has not been independently audited and has not been tested with assistive
+    technology, because it has not. That sentence should be replaced with a
+    real conformance statement only after a real audit - not before, and not
+    by anyone writing marketing copy. Until then **nobody may add the words
+    "compliant" or "conformant" to that page.**
+
+13. **The copy itself.** Every word on this site is placeholder marketing copy
     written during the build, not approved client copy. The process sections
     on `/employers` and `/job-seekers` make specific operational promises — a
     named recruiter, consent before every submission, an answer either way,

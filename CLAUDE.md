@@ -172,7 +172,7 @@ first, with its contrast ratio in the comment, then use the generated utility
 ### 4. Coming-soon routes must be noindex
 
 Every coming-soon route sets `robots: { index: false, follow: true }` via
-`buildMetadata({ noIndex: true })`. We do not want 7 empty pages indexed.
+`buildMetadata({ noIndex: true })`. We do not want 5 empty pages indexed.
 `follow` stays true so crawlers still traverse the navigation.
 
 `robots.ts` deliberately allows the crawl: a `Disallow` would stop crawlers
@@ -221,12 +221,13 @@ with its own explanation, not a gap in a sentence.
 Built (indexable, in the sitemap):
 
 ```
-/                             /jobs
-/employers                    /jobs/[slug]   (a page per posting: none today)
-/employers/services           /about
-/employers/request-talent     /contact
+/                             /jobs/[slug]   (a page per posting: none today)
+/employers                    /about
+/employers/services           /contact
+/employers/request-talent     /faq
 /job-seekers                  /privacy-policy
 /job-seekers/upload-resume    /terms
+/jobs                         /accessibility
 ```
 
 Coming soon (all noindex, all real routes):
@@ -234,8 +235,7 @@ Coming soon (all noindex, all real routes):
 ```
 /locations                    /login
 /insights                     /register
-/resources                    /accessibility
-/faq
+/resources
 ```
 
 ### Deleted routes
@@ -343,6 +343,37 @@ accident, so it is deferred until there are postings that can expire. With
    from the same list.
 
 Whichever, the list comes from `getRecentlyExpiredSlugs()` and nowhere else.
+
+## Two pages that constrain what may be written on them
+
+### /accessibility — never claim conformance
+
+Nothing on this site has been operated in a browser by whoever built it: no
+keyboard run-through, no screen reader, no zoom or reflow testing, no
+independent audit. So the page says the site is **built to aim at** WCAG 2.1
+Level AA, lists what is actually implemented, and states plainly that it has
+not been audited or tested with assistive technology.
+
+**Do not add the words "compliant", "conformant" or "conforms" to that page**,
+and do not add a date, a version or a "last reviewed" line. All of those are
+claims, and a false accessibility claim in the US is what demand letters are
+made of. The admission that no audit has happened is the most valuable
+sentence on the page; it goes when an audit report replaces it, and not
+before. CLIENT-CONFIRM.md items 11 and 12.
+
+### /faq — every answer is sourced from elsewhere on the site
+
+No answer on `/faq` may assert anything that is not already true on another
+page. Each one restates content from `/employers`, `/job-seekers`, `/about`,
+`/privacy-policy`, `taxonomy.ts` or `commitments.ts`, and links to it.
+
+A question with no answer in the repo does **not** get one written for it -
+it goes to CLIENT-CONFIRM.md item 10 and stays off the page. No commercial or
+fee questions at all while those terms are unagreed.
+
+The FAQPage structured data is generated from the same array the page
+renders (`src/lib/faq-schema.ts`), so the markup cannot drift from the
+visible answers - which is the rule Google actually enforces on FAQPage.
 
 ## One wording for a promise
 

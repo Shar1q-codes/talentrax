@@ -9,10 +9,10 @@
  * anchor on a built page. All 20 routes exist today. Built: "/",
  * "/employers", "/employers/services", "/employers/request-talent",
  * "/job-seekers", "/job-seekers/upload-resume", "/jobs", "/about",
- * "/contact", "/privacy-policy" and "/terms", plus the /jobs/[slug] detail
- * route, which generates a page per posting and so generates none today. The
- * other 7 render the shared ComingSoon page, are noindex, and are registered
- * in `comingSoonRoutes` below.
+ * "/contact", "/faq", "/accessibility", "/privacy-policy" and "/terms",
+ * plus the /jobs/[slug] detail route, which generates a page per posting and
+ * so generates none today. The other 5 render the shared ComingSoon page,
+ * are noindex, and are registered in `comingSoonRoutes` below.
  *
  * /industries, /specialties and /research have been DELETED, not hidden.
  * Nothing linked to the first two and their subject was already built at
@@ -114,22 +114,13 @@ export const primaryNav: NavItem[] = [
     label: "Jobs",
     href: "/jobs",
   },
+  // No children: the dropdown was down to "Articles", which pointed at this
+  // same page, and FAQ, which sits with the other company pages below. A
+  // disclosure that opens onto a link to itself is worse than no disclosure.
   {
     id: "nav-insights",
     label: "Insights",
     href: "/insights",
-    children: [
-      {
-        label: "Articles",
-        href: "/insights",
-        description: "Hiring and workforce commentary",
-      },
-      {
-        label: "FAQ",
-        href: "/faq",
-        description: "Common questions, answered",
-      },
-    ],
   },
   {
     id: "nav-about",
@@ -145,6 +136,11 @@ export const primaryNav: NavItem[] = [
         label: "Contact",
         href: "/contact",
         description: "Reach the right team directly",
+      },
+      {
+        label: "FAQ",
+        href: "/faq",
+        description: "Common questions, answered",
       },
     ],
   },
@@ -239,13 +235,6 @@ export const comingSoonRoutes: ComingSoonRoute[] = [
       "Interview preparation, resume guidance and hiring advice from Talentrax Global recruiters.",
   },
   {
-    href: "/faq",
-    title: "Frequently Asked Questions",
-    section: "Insights",
-    description:
-      "Common questions about working with Talentrax Global as an employer or as a candidate.",
-  },
-  {
     href: "/login",
     title: "Sign In",
     section: "Account",
@@ -257,13 +246,6 @@ export const comingSoonRoutes: ComingSoonRoute[] = [
     section: "Account",
     description:
       "Create a Talentrax Global account to track applications and submitted roles.",
-  },
-  {
-    href: "/accessibility",
-    title: "Accessibility Statement",
-    section: "Legal",
-    description:
-      "The Talentrax Global commitment to WCAG 2.1 AA and how to report an accessibility barrier.",
   },
 ];
 

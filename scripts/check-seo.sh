@@ -46,18 +46,18 @@ BUILT_ROUTES=(
   /jobs
   /about
   /contact
+  /faq
   /privacy-policy
   /terms
+  /accessibility
 )
 
 COMING_SOON_ROUTES=(
   /locations
   /insights
   /resources
-  /faq
   /login
   /register
-  /accessibility
 )
 
 # The engagement models, as anchors on /employers/services. The cards on
