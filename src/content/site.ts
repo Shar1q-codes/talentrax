@@ -61,7 +61,7 @@ export const site: SiteConfig = {
   legalName: "Talentrax Global",
   tagline: "Staffing and recruiting for healthcare, IT and professional teams",
   description:
-    "Talentrax Global is a US staffing and recruiting firm placing healthcare, IT and professional talent through direct hire, contract, contract-to-hire, RPO and executive search.",
+    "Talentrax Global is a US staffing and recruiting firm placing healthcare, IT and professional talent through direct hire, contract and executive search.",
   url: SITE_URL,
   locale: "en-US",
   foundingCopyrightYear: 2026,

@@ -51,7 +51,7 @@ export const primaryNav: NavItem[] = [
       {
         label: "Services",
         href: "/employers/services",
-        description: "The five engagement models, in detail",
+        description: "The three engagement models, in detail",
       },
       // One entry, not two: "Industries" and "Specialties" both described
       // the desks, and the desks are now a real section on /employers. Two
@@ -245,7 +245,7 @@ export const comingSoonRoutes: ComingSoonRoute[] = [
     title: "Locations",
     section: "Job Seekers",
     description:
-      "The US markets where Talentrax Global places contract, contract-to-hire and permanent talent.",
+      "The US markets where Talentrax Global places contract and permanent talent.",
   },
   {
     href: "/insights",

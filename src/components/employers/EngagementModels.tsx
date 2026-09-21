@@ -8,7 +8,7 @@ import { engagementSection, serviceHref } from "@/content/employers";
 import { engagementModels } from "@/content/taxonomy";
 
 /**
- * The five engagement models as cards, each linking to its own section on the
+ * The three engagement models as cards, each linking to its own section on the
  * services page.
  *
  * One link per card, on the <h3>, matching the pattern used by the insights
@@ -27,7 +27,7 @@ export function EngagementModels() {
         intro={engagementSection.intro}
       />
 
-      <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid gap-6 lg:grid-cols-3">
         {engagementModels.map((model) => (
           <Card
             as="li"

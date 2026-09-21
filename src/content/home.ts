@@ -18,6 +18,7 @@
  * src/components/ui/Icon.tsx. Keeps this file CMS-serialisable.
  */
 
+import { engagementModels } from "./taxonomy";
 import type { Cta, CtaBandContent, IconName } from "./types";
 
 /* ---------------------------------------------------------------- 2. Hero */
@@ -65,7 +66,7 @@ export type ServicesContent = {
 
 export const services: ServicesContent = {
   eyebrow: "What we do",
-  heading: "Five ways to staff a team",
+  heading: "Three ways to staff a team",
   intro:
     "Every engagement starts the same way: a conversation about the role, the team around it, and the timeline you are working to. How we deliver depends on what the hire actually is.",
   cards: [
@@ -86,22 +87,6 @@ export const services: ServicesContent = {
       bestFor: "Best for surge capacity and fixed-scope work",
     },
     {
-      id: "contract-to-hire",
-      icon: "repeat",
-      title: "Contract-to-Hire",
-      description:
-        "Start on contract, convert on a defined schedule. Gives both sides a working trial before a permanent offer, with conversion terms agreed up front.",
-      bestFor: "Best when fit matters more than speed",
-    },
-    {
-      id: "rpo",
-      icon: "layers",
-      title: "RPO",
-      description:
-        "We operate as an extension of your talent function, taking on sourcing, screening and coordination across a requisition set rather than a single role.",
-      bestFor: "Best for sustained, high-volume hiring",
-    },
-    {
       id: "executive-search",
       icon: "target",
       title: "Executive Search",
@@ -112,6 +97,25 @@ export const services: ServicesContent = {
   ],
   cta: { label: "See all services", href: "/employers/services", variant: "secondary" },
 };
+
+/**
+ * The home page carries its own, shorter copy for each service rather than
+ * reusing the engagement models in content/taxonomy.ts - the pitch on a
+ * landing page is not the description on a services page.
+ *
+ * That leaves the two lists free to drift, and retiring a model is exactly
+ * when they do. So assert the link instead of maintaining it by hand: if the
+ * home page advertises a service the business no longer offers, the build
+ * fails here rather than shipping it.
+ */
+const offeredModelIds = new Set(engagementModels.map((model) => model.id));
+for (const card of services.cards) {
+  if (!offeredModelIds.has(card.id)) {
+    throw new Error(
+      `home.ts: service card "${card.id}" is not an engagement model in content/taxonomy.ts. Either the model was retired and this card should go too, or the id is wrong.`,
+    );
+  }
+}
 
 /* --------------------------------------------------------- 4. Specialties */
 
@@ -232,7 +236,7 @@ export const split: SplitContent = {
         "Your resume is never sent anywhere without your permission",
         "Straight answers on compensation, schedule and team structure",
         "Interview preparation from someone who has placed the role before",
-        "Contract, contract-to-hire and permanent openings on one desk",
+        "Contract and permanent openings on one desk",
       ],
       cta: { label: "Browse jobs", href: "/jobs", variant: "primary" },
     },

@@ -51,6 +51,29 @@ Counts inside a heading that describe what is rendered directly beneath it
 ("Five ways to staff a team", above five cards) are not claims about the
 business, and the step ordinals `01`–`04` are structure, not data. Both stay.
 
+## What we offer
+
+Three engagement models, in `src/content/taxonomy.ts`: **Direct Hire**,
+**Contract**, **Executive Search**. Healthcare RPO and Contract-to-Hire were
+withdrawn by the client and must not come back without them asking.
+
+That array is the single source. The services page, its anchors, the cards on
+`/employers`, the requisition form's service select and the upload form's
+engagement checkboxes all derive from it. The home page keeps its own shorter
+card copy but asserts every card id against the array at build time, so it
+cannot advertise a withdrawn service.
+
+**This is separate from the three desks** - Healthcare, Technology,
+Professional - which are the disciplines we recruit in, also in
+`taxonomy.ts`, and untouched by any of that. Healthcare staffing is a desk,
+not a service model; withdrawing Healthcare RPO did not narrow it.
+
+`npm run check:seo` asserts the three anchors exist on the services page,
+that every card on `/employers` links to one that does, and that the two
+withdrawn models are absent. That assertion is why "RPO" and
+"contract-to-hire" still appear in `scripts/check-seo.sh`: like the
+`TalentRax` check, they are guards, not occurrences to fix.
+
 ## Stack
 
 Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · React 19.

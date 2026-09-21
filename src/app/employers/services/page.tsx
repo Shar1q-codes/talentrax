@@ -17,7 +17,7 @@ export const metadata: Metadata = buildMetadata({
 });
 
 /**
- * The five engagement models in detail, one anchored section each. The cards
+ * The three engagement models in detail, one anchored section each. The cards
  * on /employers link straight into these ids, so they are part of the URL
  * contract and should not be renamed casually.
  *

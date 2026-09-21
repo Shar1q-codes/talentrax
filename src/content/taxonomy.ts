@@ -2,7 +2,7 @@
  * The shared taxonomy: the ways we engage, and the desks we recruit on.
  *
  * This is domain data, not page copy. Both the Employers section and the Job
- * Seekers section describe the same five engagement models and the same three
+ * Seekers section describe the same three engagement models and the same three
  * desks, and the Request Talent and Upload Resume forms build their option
  * lists from these arrays. It lives here so neither section owns it and
  * neither one can drift from the other.
@@ -17,7 +17,7 @@
 
 import type { IconName } from "./types";
 
-/* ----------------------------------------------- The five engagement models */
+/* ---------------------------------------------- The three engagement models */
 
 /**
  * One commercial point. `detail: null` means the client has not confirmed the
@@ -114,93 +114,10 @@ export const engagementModels: EngagementModel[] = [
         detail: null,
       },
       {
-        id: "contract-conversion",
-        label: "Converting a contractor to your payroll",
-        detail: null,
-      },
-      {
         id: "contract-admin",
         label: "What we carry",
         detail:
           "Onboarding, licence and credential verification, background and drug screening where the role requires it, timesheet administration, payroll, and the employment paperwork. You approve hours and direct the work.",
-      },
-    ],
-  },
-  {
-    id: "contract-to-hire",
-    icon: "repeat",
-    name: "Contract-to-Hire",
-    summary:
-      "Start the person on contract and convert them to your payroll on a date agreed up front.",
-    bestFor: "Best when fit matters more than speed",
-    whatItIs:
-      "A contract assignment with a permanent outcome written into it from the start. The worker knows the role is intended to convert, both sides get a real working trial, and the conversion date and terms are agreed before the assignment begins rather than negotiated once it is running.",
-    whenItFits: [
-      "The role is permanent but the requisition is not open yet",
-      "The work is hard to assess in an interview and easy to assess on the job",
-      "A previous hire interviewed better than they worked",
-    ],
-    commercial: [
-      {
-        id: "cth-basis",
-        label: "How it is charged",
-        detail:
-          "An hourly bill rate for the contract period, exactly as a contract engagement, followed by a conversion fee when the person moves onto your payroll.",
-      },
-      {
-        id: "cth-conversion-fee",
-        label: "Conversion fee, and how it reduces over the assignment",
-        detail: null,
-      },
-      {
-        id: "cth-trial",
-        label: "Standard trial length before conversion",
-        detail: null,
-      },
-      {
-        id: "cth-transparency",
-        label: "What the candidate is told",
-        detail:
-          "That the assignment is intended to convert, on what date, and on what terms. We do not describe a contract-to-hire role as permanent, and we do not describe a contract role as contract-to-hire to get it filled.",
-      },
-    ],
-  },
-  {
-    id: "healthcare-rpo",
-    icon: "layers",
-    name: "Healthcare RPO",
-    summary:
-      "We run all or part of your talent function across a requisition set rather than a single role.",
-    bestFor: "Best for sustained, high-volume clinical hiring",
-    whatItIs:
-      "Recruitment process outsourcing for health systems and provider groups. Our recruiters work inside your process, on your applicant tracking system and under your employer brand, taking on sourcing, screening, scheduling and offer coordination across an agreed set of requisitions.",
-    whenItFits: [
-      "You hire continuously into the same role families rather than filling one vacancy at a time",
-      "Your internal team is carrying more requisitions than it can run properly",
-      "You want one consistent candidate experience across every opening instead of agency-by-agency variation",
-    ],
-    commercial: [
-      {
-        id: "rpo-basis",
-        label: "How it is charged",
-        detail:
-          "A monthly management fee for an agreed scope of requisitions and recruiter capacity, rather than a fee per hire. Scope, service levels and review points are defined in a statement of work.",
-      },
-      {
-        id: "rpo-fee",
-        label: "Management fee and scope bands",
-        detail: null,
-      },
-      {
-        id: "rpo-term",
-        label: "Minimum term and notice period",
-        detail: null,
-      },
-      {
-        id: "rpo-governance",
-        label: "How it is governed",
-        detail:
-          "A named engagement lead, a standing review with your talent leadership, and reporting drawn from your own applicant tracking system so the record stays yours rather than ours.",
       },
     ],
   },

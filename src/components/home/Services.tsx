@@ -5,7 +5,7 @@ import { Section, SectionHeader } from "@/components/ui/Section";
 import { services } from "@/content/home";
 
 /**
- * Five service cards. Rendered as a <ul> because it is an unordered set of
+ * Three service cards. Rendered as a <ul> because it is an unordered set of
  * peers; each card's <h3> sits under the section <h2>, keeping heading order
  * contiguous (h1 -> h2 -> h3, nothing skipped).
  */
@@ -19,7 +19,7 @@ export function Services() {
         intro={services.intro}
       />
 
-      <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid gap-6 lg:grid-cols-3">
         {services.cards.map((card) => (
           <Card
             as="li"

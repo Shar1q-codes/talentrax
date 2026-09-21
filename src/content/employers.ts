@@ -43,12 +43,12 @@ export const employersMeta = {
   overview: {
     title: "For Employers",
     description:
-      "How Talentrax Global partners with hiring teams: five engagement models, three specialty desks, and a search process you can see into at every step.",
+      "How Talentrax Global partners with hiring teams: three engagement models, three specialty desks, and a search process you can see into at every step.",
   },
   services: {
     title: "Engagement Models",
     description:
-      "Direct hire, contract, contract-to-hire, healthcare RPO and executive search from Talentrax Global - what each model is, when it fits, and how the commercial arrangement works.",
+      "Direct hire, contract and executive search from Talentrax Global - what each model is, when it fits, and how the commercial arrangement works.",
   },
   requestTalent: {
     title: "Request Talent",
@@ -85,11 +85,11 @@ export const employersHero: EmployersHeroContent = {
 
 export const engagementSection = {
   eyebrow: "How we engage",
-  heading: "Five ways to run the hire",
+  heading: "Three ways to run the hire",
   intro:
     "Every engagement starts with the same conversation about the role, the team around it and the timeline you are working to. What differs is how the person is employed and how the arrangement is paid for.",
   cta: {
-    label: "Compare all five in detail",
+    label: "Compare all three in detail",
     href: SERVICES_PATH,
     variant: "secondary",
   } satisfies Cta,
@@ -252,7 +252,7 @@ export const servicesPage = {
   eyebrow: "Employers",
   heading: "Engagement models",
   intro:
-    "Five ways to staff a role, and the commercial arrangement behind each one stated in plain terms. Fees, rates and guarantee periods are agreed in writing with you before a search opens, so they are not published here.",
+    "Three ways to staff a role, and the commercial arrangement behind each one stated in plain terms. Fees, rates and guarantee periods are agreed in writing with you before a search opens, so they are not published here.",
   /** Accessible name for the in-page anchor nav. */
   onThisPageLabel: "On this page",
   headings: {
@@ -270,7 +270,7 @@ export const servicesPage = {
 export const servicesCta: CtaBandContent = {
   heading: "Not sure which model fits?",
   description:
-    "Describe the role and the constraint you are working under - budget, headcount, timeline - and we will tell you which of the five actually suits it, including when the answer is none of them.",
+    "Describe the role and the constraint you are working under - budget, headcount, timeline - and we will tell you which of the three actually suits it, including when the answer is none of them.",
   ctas: [
     { label: "Request talent", href: REQUEST_TALENT_PATH, variant: "inverse" },
     { label: "Ask a question", href: "/contact", variant: "outline-inverse" },

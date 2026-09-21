@@ -63,6 +63,24 @@ COMING_SOON_ROUTES=(
   /accessibility
 )
 
+# The engagement models, as anchors on /employers/services. The cards on
+# /employers deep-link into these ids, so they are part of the URL contract:
+# a retired model has to leave this list at the same time it leaves
+# content/taxonomy.ts, and a renamed id has to be renamed here.
+#
+# RETIRED, and asserted absent so they cannot quietly come back: the client
+# withdrew Healthcare RPO and Contract-to-Hire as offerings.
+ENGAGEMENT_ANCHORS=(
+  direct-hire
+  contract
+  executive-search
+)
+
+RETIRED_ANCHORS=(
+  healthcare-rpo
+  contract-to-hire
+)
+
 # A path no route claims, used for the 404 assertion.
 NOT_FOUND_PATH="/__seo-check-no-such-page__"
 
@@ -215,7 +233,52 @@ else
   fi
 fi
 
-# --- 5. the name is spelled correctly everywhere ----------------------------
+# --- 5. the engagement model anchors on the services page -------------------
+# The cards on /employers link to /employers/services#<id>. If a section id
+# changes or a model is retired without updating the cards, those links land
+# at the top of the page instead of the section, silently.
+echo
+services_html=$(fetch "$BASE_URL/employers/services")
+if [ -z "$services_html" ]; then
+  fail "/employers/services could not be fetched"
+else
+  echo "  engagement models (${#ENGAGEMENT_ANCHORS[@]}):"
+  for anchor in "${ENGAGEMENT_ANCHORS[@]}"; do
+    if printf '%s' "$services_html" | grep -qF "id=\"$anchor\""; then
+      pass "/employers/services has #$anchor"
+    else
+      fail "/employers/services has no #$anchor section"
+    fi
+  done
+
+  # Every card link on /employers must point at one of those anchors.
+  employers_html=$(fetch "$BASE_URL/employers")
+  linked=$(printf '%s' "$employers_html" | grep -o '/employers/services#[a-z-]*' | sort -u)
+  card_failures=0
+  for link in $linked; do
+    anchor=${link#/employers/services#}
+    if ! printf '%s' "$services_html" | grep -qF "id=\"$anchor\""; then
+      fail "/employers links to #$anchor, which does not exist on the services page"
+      card_failures=$((card_failures + 1))
+    fi
+  done
+  if [ "$card_failures" -eq 0 ]; then
+    pass "every engagement card on /employers links to a section that exists"
+  fi
+
+  retired_found=0
+  for anchor in "${RETIRED_ANCHORS[@]}"; do
+    if printf '%s' "$services_html" | grep -qF "id=\"$anchor\""; then
+      fail "/employers/services still has #$anchor - that model was retired"
+      retired_found=$((retired_found + 1))
+    fi
+  done
+  if [ "$retired_found" -eq 0 ]; then
+    pass "no retired engagement model is published (${#RETIRED_ANCHORS[@]} checked)"
+  fi
+fi
+
+# --- 6. the name is spelled correctly everywhere ----------------------------
 # "TalentRax" with a capital R is wrong in mixed case. An all-caps TALENTRAX
 # wordmark is fine, so match the capital R specifically rather than the word.
 echo
@@ -233,7 +296,7 @@ if [ "$name_failures" -eq 0 ]; then
   pass "no page spells the name \"TalentRax\" (the r is lowercase everywhere)"
 fi
 
-# --- 6. unknown URLs 404 ----------------------------------------------------
+# --- 7. unknown URLs 404 ----------------------------------------------------
 echo
 code=$(status_of "$BASE_URL$NOT_FOUND_PATH")
 if [ "$code" = "404" ]; then
@@ -242,7 +305,7 @@ else
   fail "$NOT_FOUND_PATH returned HTTP $code, expected 404"
 fi
 
-# --- 7. the 404 page carries exactly one robots meta ------------------------
+# --- 8. the 404 page carries exactly one robots meta ------------------------
 # Next injects its own noindex on 404s. Setting robots in not-found.tsx as well
 # produced two tags with the same meaning, which confused SEO audits.
 not_found_html=$(curl -s --max-time 20 "$BASE_URL$NOT_FOUND_PATH")

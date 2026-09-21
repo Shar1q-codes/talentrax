@@ -79,10 +79,8 @@ delete the matching `OMITTED` comment there, and strike the item here.
    model is charged but publishes no fee, rate, percentage or guarantee
    period. Those points carry `detail: null` in `src/content/taxonomy.ts` and
    render nothing. Each one is a question: direct-hire fee percentage and
-   replacement guarantee; contract bill rate, margin and conversion terms;
-   contract-to-hire conversion fee and trial length; RPO management fee,
-   scope bands, minimum term and notice; executive search retainer structure
-   and off-limits period.
+   replacement guarantee; contract bill rate and margin; executive search
+   retainer structure and off-limits period.
 
 10. **The copy itself.** Every word on this site is placeholder marketing copy
     written during the build, not approved client copy. The process sections

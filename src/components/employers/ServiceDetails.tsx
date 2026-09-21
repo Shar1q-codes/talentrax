@@ -4,7 +4,7 @@ import { servicesPage } from "@/content/employers";
 import { engagementModels } from "@/content/taxonomy";
 
 /**
- * In-page anchor nav for the five engagement models.
+ * In-page anchor nav for the three engagement models.
  *
  * A plain list of same-page links, labelled as a nav landmark so it shows up
  * in a screen reader's landmark list next to the site nav rather than
