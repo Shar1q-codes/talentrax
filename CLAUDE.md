@@ -172,7 +172,7 @@ first, with its contrast ratio in the comment, then use the generated utility
 ### 4. Coming-soon routes must be noindex
 
 Every coming-soon route sets `robots: { index: false, follow: true }` via
-`buildMetadata({ noIndex: true })`. We do not want 4 empty pages indexed.
+`buildMetadata({ noIndex: true })`. We do not want 3 empty pages indexed.
 `follow` stays true so crawlers still traverse the navigation.
 
 `robots.ts` deliberately allows the crawl: a `Disallow` would stop crawlers
@@ -221,25 +221,27 @@ with its own explanation, not a gap in a sentence.
 Built (indexable, in the sitemap):
 
 ```
-/                             /jobs/[slug]   (a page per posting: none today)
-/employers                    /about
-/employers/services           /contact
-/employers/request-talent     /faq
-/job-seekers                  /resources
-/job-seekers/upload-resume    /privacy-policy
-/jobs                         /terms
-                              /accessibility
+/                             /insights
+/employers                    /insights/[slug]  (one per article: none today)
+/employers/services           /about
+/employers/request-talent     /contact
+/job-seekers                  /faq
+/job-seekers/upload-resume    /resources
+/jobs                         /privacy-policy
+/jobs/[slug]  (one per        /terms
+              posting: none)  /accessibility
 ```
 
 Coming soon (all noindex, all real routes):
 
 ```
-/locations                    /login
-/insights                     /register
+/locations
+/login
+/register
 ```
 
-Those four are everything left. `/locations` and `/insights` need client data
-- markets and articles - and `/login` and `/register` need a backend, so none
+Those three are everything left. `/locations` needs client data - the markets
+they actually place in - and `/login` and `/register` need a backend, so none
 of them can be built from this repo alone.
 
 ### Deleted routes
@@ -316,6 +318,36 @@ slug returns 404, and that no posting URL has leaked into the sitemap while
   served HTML should be checked too;
 - `validThrough` parses and is in the future;
 - the posting appears in the sitemap, and an expired one answers 410.
+
+### The insights index
+
+Same machine as the job board, same rule. `getArticles()` in
+`src/lib/insights.ts` returns `[]`, `/insights` renders an honest empty
+state, and `/insights/[slug]` generates zero pages. The list UI sits behind
+the check and appears when articles do. No category or tag filters until
+there is something to filter.
+
+**Never add a sample article.** The home page shipped three invented article
+cards once and they had to be torn out; an invented article at its own URL
+with BlogPosting markup attached is the same mistake with a search engine
+repeating it. Fixtures live in `src/lib/insights.fixture.ts`, imported only
+by `*.test.ts`, and carry the same `DO-NOT-SHIP-FIXTURE` sentinel as the job
+fixtures, so one grep covers both.
+
+**No author field exists on the Article type**, and `article-schema.ts` emits
+no `author`. Nobody has been named anywhere on this site; adding the field is
+what invites a byline to be invented to fill it. If real attribution is
+wanted later that is a decision to take deliberately.
+
+**The body is structured blocks**, not an HTML string - paragraph, heading,
+list. A CMS swap stays a mapping exercise, and nothing is ever handed
+untrusted markup to render. There is deliberately no quote block: a pull
+quote from a named person is a testimonial with better typography.
+
+`npm run check:seo` asserts that `/insights` emits no JSON-LD, that an
+unknown slug 404s, and that nothing under `/insights/` has reached the
+sitemap. The BlogPosting assertions that matter get added when an article
+exists to run them against.
 
 ### Expired job postings
 

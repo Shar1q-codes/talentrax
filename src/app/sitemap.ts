@@ -1,12 +1,13 @@
 import type { MetadataRoute } from "next";
 
 import { SITE_URL } from "@/content/site";
+import { getArticles } from "@/lib/insights";
 import { getJobs, isExpired } from "@/lib/jobs";
 
 /**
  * Sitemap.
  *
- * Built routes only. The other 4 render the coming-soon page and set robots
+ * Built routes only. The other 3 render the coming-soon page and set robots
  * index:false, so listing them would ask crawlers to index pages we have
  * explicitly told them to skip - a contradictory signal.
  *
@@ -26,6 +27,7 @@ const BUILT_ROUTES: { path: string; priority: number }[] = [
   { path: "/contact", priority: 0.7 },
   { path: "/faq", priority: 0.6 },
   { path: "/resources", priority: 0.6 },
+  { path: "/insights", priority: 0.6 },
   // Legal pages are indexable but low priority: people arrive at them from
   // the footer or a direct link, not from search.
   { path: "/privacy-policy", priority: 0.3 },
@@ -61,5 +63,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
 
-  return [...pages, ...postings];
+  /**
+   * One entry per published article. Empty today because getArticles() is,
+   * and wired now so that real articles appear here without a code change.
+   */
+  const articles = await getArticles();
+  const posts: MetadataRoute.Sitemap = articles.map((article) => ({
+    url: `${SITE_URL}/insights/${article.slug}`,
+    lastModified: new Date(article.dateModified),
+    changeFrequency: "monthly",
+    priority: 0.5,
+  }));
+
+  return [...pages, ...postings, ...posts];
 }

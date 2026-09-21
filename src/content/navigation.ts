@@ -9,9 +9,10 @@
  * anchor on a built page. All 20 routes exist today. Built: "/",
  * "/employers", "/employers/services", "/employers/request-talent",
  * "/job-seekers", "/job-seekers/upload-resume", "/jobs", "/about",
- * "/contact", "/faq", "/resources", "/accessibility", "/privacy-policy" and
- * "/terms", plus the /jobs/[slug] detail route, which generates a page per
- * posting and so generates none today. The other 4 render the shared
+ * "/contact", "/faq", "/resources", "/insights", "/accessibility",
+ * "/privacy-policy" and "/terms", plus the /jobs/[slug] and
+ * /insights/[slug] detail routes, which generate a page per posting and per
+ * article and so generate none today. The other 3 render the shared
  * ComingSoon page, are noindex, and are registered in `comingSoonRoutes`
  * below.
  *
@@ -220,13 +221,6 @@ export const comingSoonRoutes: ComingSoonRoute[] = [
     section: "Job Seekers",
     description:
       "The US markets where Talentrax Global places contract and permanent talent.",
-  },
-  {
-    href: "/insights",
-    title: "Insights",
-    section: "Insights",
-    description:
-      "Hiring, workforce and labor market commentary from the Talentrax Global recruiting team.",
   },
   {
     href: "/login",

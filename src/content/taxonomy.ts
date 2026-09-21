@@ -326,10 +326,19 @@ export function engagementName(engagementId: string): string {
 
 /* --------------------------------------------------------- Prose helpers */
 
-/** Joins names into "A, B and C" for use inside a sentence. */
-function toSentenceList(names: string[]): string {
+/**
+ * Joins names into "A, B and C" for use inside a sentence.
+ *
+ * Takes a serial comma when any item already contains " and ", because
+ * without one the Professional desk read "Sales and marketing and Trades"
+ * and the reader has to work out where the item boundary is. Exported for
+ * the test rather than for callers.
+ */
+export function toSentenceList(names: string[]): string {
   if (names.length <= 1) return names.join("");
-  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+  const serial = names.some((name) => name.includes(" and ")) ? "," : "";
+  const head = names.slice(0, -1).join(", ");
+  return `${head}${serial} and ${names[names.length - 1]}`;
 }
 
 /**

@@ -48,6 +48,7 @@ BUILT_ROUTES=(
   /contact
   /faq
   /resources
+  /insights
   /privacy-policy
   /terms
   /accessibility
@@ -55,7 +56,6 @@ BUILT_ROUTES=(
 
 COMING_SOON_ROUTES=(
   /locations
-  /insights
   /login
   /register
 )
@@ -81,9 +81,19 @@ RETIRED_ANCHORS=(
 # A path no route claims, used for the 404 assertion.
 NOT_FOUND_PATH="/__seo-check-no-such-page__"
 
-# A /jobs/[slug] URL with no posting behind it. While getJobs() returns
-# nothing, EVERY slug is one of these.
-NO_SUCH_JOB_PATH="/jobs/__seo-check-no-such-job__"
+# Index pages whose source is empty. Each must publish NO structured data:
+# an ItemList of nothing is a machine-readable claim to have listings.
+EMPTY_INDEX_ROUTES=(
+  /jobs
+  /insights
+)
+
+# Detail URLs with nothing behind them. While getJobs() and getArticles()
+# return nothing, EVERY slug under these is one of these.
+MISSING_DETAIL_PATHS=(
+  /jobs/__seo-check-no-such-job__
+  /insights/__seo-check-no-such-article__
+)
 
 BASE_URL="${1:-http://localhost:3000}"
 BASE_URL="${BASE_URL%/}"
@@ -279,50 +289,58 @@ else
   fi
 fi
 
-# --- 6. the job board publishes no structured data while it is empty --------
+# --- 6. empty indexes publish no structured data ----------------------------
 # An ItemList of nothing, or a JobPosting for a job that does not exist, is a
-# machine-readable claim that we have listings when we do not. Google removes
+# machine-readable claim to have listings we do not have. Google removes
 # domains from Google for Jobs over fabricated postings, so this is asserted
-# rather than trusted. The board carries JSON-LD only once a posting does,
-# and then it lives on the posting, not here.
+# rather than trusted. Each index carries JSON-LD only once an item does, and
+# then it lives on the item, not on the index.
 echo
-jobs_html=$(fetch "$BASE_URL/jobs")
-if [ -z "$jobs_html" ]; then
-  fail "/jobs could not be fetched"
-else
-  jobs_ld=$(count_matches '<script type="application/ld+json">' "$jobs_html")
-  if [ "$jobs_ld" = "0" ]; then
-    pass "/jobs emits no JSON-LD (the board is empty)"
-  else
-    fail "/jobs emits $jobs_ld JSON-LD block(s) - an empty board must publish none"
+for route in "${EMPTY_INDEX_ROUTES[@]}"; do
+  index_html=$(fetch "$BASE_URL$route")
+  if [ -z "$index_html" ]; then
+    fail "$route could not be fetched"
+    continue
   fi
-fi
+  index_ld=$(count_matches '<script type="application/ld+json">' "$index_html")
+  if [ "$index_ld" = "0" ]; then
+    pass "$route emits no JSON-LD (nothing published)"
+  else
+    fail "$route emits $index_ld JSON-LD block(s) - an empty index must publish none"
+  fi
+done
 
-# --- 7. the job detail route, while there are no postings -------------------
-# /jobs/[slug] generates a page per posting, so today it generates none. What
-# can be asserted now is that it behaves correctly when asked for one that
-# does not exist, and that it has not leaked a URL into the sitemap.
+# --- 7. detail routes, while their sources are empty ------------------------
+# /jobs/[slug] and /insights/[slug] generate a page per item, so today they
+# generate none. What can be asserted now is that they behave correctly when
+# asked for one that does not exist, and that neither has leaked a URL into
+# the sitemap.
 #
 # The assertions that matter most - that a posting carries valid JobPosting
-# JSON-LD, with a pay range and a validThrough - cannot run until there is a
-# posting to run them against. See CLAUDE.md, "The job board".
+# JSON-LD with a pay range and a validThrough, that an article carries valid
+# BlogPosting JSON-LD - cannot run until there is one to run them against.
+# See CLAUDE.md, "The job board" and "The insights index".
 echo
-job_code=$(status_of "$BASE_URL$NO_SUCH_JOB_PATH")
-if [ "$job_code" = "404" ]; then
-  pass "$NO_SUCH_JOB_PATH returns HTTP 404"
-else
-  fail "$NO_SUCH_JOB_PATH returned HTTP $job_code, expected 404"
-fi
-
-# An empty board must not have put a posting URL in the sitemap. Matches
-# /jobs/<anything>, not the board itself.
-if [ -n "$sitemap_xml" ]; then
-  posting_locs=$(printf '%s' "$sitemap_xml" | grep -o "<loc>$EXPECTED_ORIGIN/jobs/[^<]*</loc>" | wc -l | tr -d '[:space:]')
-  if [ "$posting_locs" = "0" ]; then
-    pass "sitemap lists no job postings (getJobs() is empty)"
+for path in "${MISSING_DETAIL_PATHS[@]}"; do
+  detail_code=$(status_of "$BASE_URL$path")
+  if [ "$detail_code" = "404" ]; then
+    pass "$path returns HTTP 404"
   else
-    fail "sitemap lists $posting_locs job posting URL(s) while getJobs() is empty"
+    fail "$path returned HTTP $detail_code, expected 404"
   fi
+done
+
+# An empty source must not have put a detail URL in the sitemap. Matches
+# /jobs/<anything> and /insights/<anything>, not the index pages themselves.
+if [ -n "$sitemap_xml" ]; then
+  for prefix in /jobs /insights; do
+    detail_locs=$(printf '%s' "$sitemap_xml" | grep -o "<loc>$EXPECTED_ORIGIN$prefix/[^<]*</loc>" | wc -l | tr -d '[:space:]')
+    if [ "$detail_locs" = "0" ]; then
+      pass "sitemap lists nothing under $prefix/ (its source is empty)"
+    else
+      fail "sitemap lists $detail_locs URL(s) under $prefix/ while its source is empty"
+    fi
+  done
 fi
 
 # --- 8. the name is spelled correctly everywhere ----------------------------
