@@ -56,8 +56,12 @@ export type ProcessStep = {
   number: string;
   title: string;
   summary: string;
-  /** What we do at this step. */
-  weDo: string[];
+  /**
+   * What we do at this step. Optional, and currently unused: the site
+   * publishes what the reader receives, not the mechanics behind it. The
+   * column renders only when a step carries it and the labels name it.
+   */
+  weDo?: string[];
   /** What the reader receives or decides at this step. */
   youGet: string[];
 };
@@ -69,8 +73,8 @@ export type ProcessCommitment = {
 };
 
 export type ProcessContent = SectionIntro & {
-  /** Column headings inside each step. */
-  labels: { weDo: string; youGet: string };
+  /** Column headings inside each step. `weDo` only when steps carry one. */
+  labels: { weDo?: string; youGet: string };
   steps: ProcessStep[];
   /** Optional panel under the steps. Omit both and it is not rendered. */
   commitmentsHeading?: string;

@@ -30,14 +30,14 @@ export const commitments = {
     id: "named-recruiter",
     title: "One named recruiter per search",
     detail:
-      "Every role and every candidate has one recruiter, with a name and direct contact details. Not a shared inbox, and not a different account manager each time you call.",
+      "Every role and every candidate has one recruiter, with a name and direct contact details, who stays with the search from brief to placement.",
   },
 
   consentBeforeSubmission: {
     id: "consent-before-submission",
     title: "No resume moves without consent",
     detail:
-      "A candidate agrees to every submission before their resume is sent. Every time, for every role, with no exceptions. We do not circulate resumes to a list of clients and we do not submit the same person twice through two routes.",
+      "A candidate agrees to every submission before their resume is sent. Every time, for every role. Each submission is one candidate to one employer, made with that candidate's agreement and made once.",
   },
 
   searchPlanFirst: {
@@ -51,7 +51,7 @@ export const commitments = {
     id: "answer-either-way",
     title: "An answer either way",
     detail:
-      "Candidates hear the outcome whether or not it went their way, with the employer's reason where we are allowed to share it. This is the step that usually goes missing, so we treat it as part of the job rather than a courtesy.",
+      "Candidates hear the outcome whether or not it went their way, with the employer's reason where we are allowed to share it. It is part of the job on every search.",
   },
 
   badNewsEarly: {
@@ -65,20 +65,20 @@ export const commitments = {
     id: "terms-in-writing",
     title: "Terms are in writing before we start",
     detail:
-      "Fees, guarantee periods and payment schedules are agreed and signed before sourcing begins. No invoice should ever be the first time a client sees a number.",
+      "Fees, guarantee periods and payment schedules are agreed and signed before sourcing begins, so every figure on an invoice is one you have already seen and signed.",
   },
 
   youCanSeeWhoHasIt: {
     id: "you-can-see",
     title: "You can see who has it",
     detail:
-      "Ask your recruiter and we will tell you which employers have received your resume and when we sent it. You should not have to guess where you have been put forward.",
+      "Ask your recruiter and we will tell you which employers have received your resume and when we sent it. Where you have been put forward is yours to know, whenever you ask.",
   },
 
   youCanHaveItDeleted: {
     id: "you-can-delete",
     title: "You can have it deleted",
     detail:
-      "Ask us to remove your resume and details and we will, without asking you to justify it and without trying to talk you out of it.",
+      "Ask us to remove your resume and details and we will, on your word alone.",
   },
 } satisfies Record<string, ProcessCommitment>;

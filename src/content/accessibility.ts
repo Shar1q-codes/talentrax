@@ -32,7 +32,7 @@ export const accessibilityHero = {
   eyebrow: "Legal",
   heading: "Accessibility",
   intro:
-    "What this site is built to aim at, what is actually in place, and what has not been tested yet.",
+    "The standard this site is built to, the measures in place, and what remains to be tested.",
 };
 
 /**
@@ -45,8 +45,8 @@ export const standard: SectionIntro & { body: string[] } = {
   intro:
     "This site is built to aim at the Web Content Accessibility Guidelines (WCAG) 2.1, Level AA.",
   body: [
-    "That is the target the work is measured against, not a claim about the result. This site has not been independently audited, and it has not been tested with a screen reader, with speech input, or by anyone who relies on assistive technology to use the web. Until it has, we are not in a position to tell you it meets the standard, and we are not going to say it does.",
-    "What we can tell you is exactly what has been built in, and exactly what has not been checked. Both are below.",
+    "That is the target the work is measured against. This site has not yet been independently audited, or tested with a screen reader, with speech input, or by people who rely on assistive technology to use the web, so we make no claim that it meets the standard.",
+    "What has been built in, and what has yet to be checked, are both set out below.",
   ],
 };
 
@@ -60,19 +60,19 @@ export const measures: SectionIntro & { items: Measure[] } = {
   eyebrow: "In place",
   heading: "What has been built in",
   intro:
-    "Each of these is implemented across every page and enforced in the codebase rather than left to habit.",
+    "Each of these is implemented across every page and enforced in the codebase.",
   items: [
     {
       id: "headings",
       title: "One page title, in order",
       detail:
-        "Every page has exactly one h1 and no skipped heading levels, so the heading outline can be used to navigate the page rather than just to size text.",
+        "Every page has exactly one h1 and no skipped heading levels, so the heading outline can be used to navigate the page.",
     },
     {
       id: "landmarks",
       title: "Named landmarks and a skip link",
       detail:
-        "A skip-to-content link is the first thing you reach with a keyboard, the main region can actually take focus, and each navigation region carries its own name so a landmark list is useful rather than a row of identical entries.",
+        "A skip-to-content link is the first thing you reach with a keyboard, the main region can actually take focus, and each navigation region carries its own name so a landmark list reads as distinct regions.",
     },
     {
       id: "keyboard",
@@ -82,9 +82,9 @@ export const measures: SectionIntro & { items: Measure[] } = {
     },
     {
       id: "focus",
-      title: "A focus indicator that is never removed",
+      title: "A focus indicator on every control",
       detail:
-        "One global rule draws the focus outline, so no component can ship without one, and it switches to white against dark bands where the default would lose contrast.",
+        "One global rule draws the focus outline on every component, and it switches to white against dark bands where the default would lose contrast.",
     },
     {
       id: "forms",
@@ -100,9 +100,9 @@ export const measures: SectionIntro & { items: Measure[] } = {
     },
     {
       id: "colour",
-      title: "Never colour on its own",
+      title: "Colour is always paired with text and a symbol",
       detail:
-        "An error is colour plus an icon plus text plus a programmatic state. A required field is a glyph and an attribute, not a red label.",
+        "An error is colour plus an icon plus text plus a programmatic state. A required field is marked by a glyph and an attribute.",
     },
     {
       id: "motion",
@@ -120,7 +120,7 @@ export const measures: SectionIntro & { items: Measure[] } = {
       id: "no-third-party",
       title: "Nothing third-party in the way",
       detail:
-        "No cookie banner, no chat widget, no overlay, no advertising. Accessibility overlays in particular are not used here: they do not fix underlying problems and they interfere with the assistive technology people already have set up.",
+        "No cookie banner, no chat widget, no overlay, no advertising. Accessibility overlays in particular are left out, because they interfere with the assistive technology people already have set up.",
     },
   ],
 };
@@ -129,7 +129,7 @@ export const notTested: SectionIntro & { items: string[]; closing: string } = {
   eyebrow: "Not yet verified",
   heading: "What has not been tested",
   intro:
-    "Being straight about this is more useful to you than a badge would be.",
+    "The checks still to be done.",
   items: [
     "No independent accessibility audit has been carried out.",
     "The site has not been tested with a screen reader, with voice control, or with a switch device.",
@@ -137,7 +137,7 @@ export const notTested: SectionIntro & { items: string[]; closing: string } = {
     "It has not been tested by people with disabilities, which is the only test that really answers the question.",
   ],
   closing:
-    "The measures in the previous section are implemented and checked by review and by automated checks of the delivered HTML. That catches a missing label or a broken heading order. It does not tell you whether the page is usable with a screen reader, and we are not going to imply that it does.",
+    "The measures above are implemented and checked by review and by automated checks of the delivered HTML, which catches a missing label or a broken heading order. Whether the page is usable with a screen reader is a separate question, and one that only testing with assistive technology can answer.",
 };
 
 export const reportBarrier: SectionIntro & {
@@ -152,8 +152,8 @@ export const reportBarrier: SectionIntro & {
     // The dedicated accessibility address is CLIENT-CONFIRM.md item 11. Until
     // it exists, the contact form is the honest route rather than an invented
     // inbox that bounces (rule 6).
-    "Use the contact form and say it is an accessibility problem. It reaches a person, not a queue.",
-    "If a barrier stops you finishing something on this site - sending a resume, or getting a role to us - tell us what you were trying to do and we will do it with you another way rather than leaving you to fight the page.",
+    "Use the contact form and say it is an accessibility problem. It reaches a person.",
+    "If a barrier stops you finishing something on this site - sending a resume, or getting a role to us - tell us what you were trying to do and we will do it with you another way.",
   ],
   cta: { label: "Contact us", href: "/contact" },
 };

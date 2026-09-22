@@ -8,9 +8,10 @@
  * BlogPosting markup attached, is the same mistake with a search engine
  * repeating it. See src/lib/insights.ts.
  *
- * The empty state is written as a true and ordinary state of a young
- * publication - nothing yet, here is what to do instead - not as a
- * "coming soon" and not as an apology.
+ * The empty state leads with what the reader can do - the pages that
+ * describe how the work runs - and lets the absence of articles follow
+ * quietly. It is not a "coming soon", not an apology, and it does not
+ * comment on its own editorial standards.
  *
  * NO AUTHOR COPY anywhere: no byline label, no "written by", no contributor
  * line. The Article type has no author field and this file gives nothing to
@@ -40,14 +41,14 @@ export const insightsHero = {
 /**
  * Shown when getArticles() returns nothing, which is today.
  *
- * It says the true thing plainly and routes both audiences somewhere useful.
- * It does not promise a date, apologise, or imply something is broken.
+ * It routes both audiences somewhere useful. It does not promise a date,
+ * apologise, or imply something is broken.
  */
 export const emptyIndex = {
-  heading: "Nothing published yet",
+  heading: "Start with how the work runs",
   body: [
-    "We would rather publish nothing than publish filler. When there is something worth saying about hiring in the disciplines we recruit, it will be here.",
-    "In the meantime the useful material on this site is on the pages that describe how the work actually runs, and both of those are more concrete than an article would be.",
+    "This is where commentary on hiring in the disciplines we recruit will sit, written from the desks that do the recruiting.",
+    "Today the most concrete material on the site is on the pages that describe how a search runs and how applying works.",
   ],
   routes: [
     {
@@ -62,12 +63,12 @@ export const emptyIndex = {
       id: "candidate",
       title: "You are looking for work",
       description:
-        "Send your resume once. A recruiter who works your discipline reads it, and nothing goes to an employer until you have agreed to the submission.",
+        "Send your resume once. A recruiter who works your discipline reads it, and every submission is made with your agreement.",
       linkLabel: "Upload your resume",
       href: "/job-seekers/upload-resume",
     },
   ],
-  guidanceLinkIntro: "There is practical guidance for candidates already:",
+  guidanceLinkIntro: "Practical guidance for candidates:",
   guidanceLinkLabel: "Interview preparation and resume guidance",
   guidanceLinkHref: "/resources",
 };
@@ -93,9 +94,9 @@ export const articleDetail = {
 };
 
 export const insightsCta: CtaBandContent = {
-  heading: "Talk to someone instead",
+  heading: "Talk to someone",
   description:
-    "An article is a poor substitute for a conversation about a specific role or a specific career. Both of ours start with a form and reach a named recruiter.",
+    "A conversation about a specific role or a specific career starts with a form and reaches a named recruiter.",
   ctas: [
     {
       label: "Request talent",

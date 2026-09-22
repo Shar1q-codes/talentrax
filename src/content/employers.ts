@@ -73,7 +73,7 @@ export const employersHero: EmployersHeroContent = {
   eyebrow: "For Employers",
   headline: "Hire from a desk that only recruits your discipline",
   subhead:
-    "Talentrax Global staffs clinical, technical and professional roles for US employers. You get a named recruiter who works your specialty, a written search plan before sourcing starts, and straight answers about what the market will and will not give you.",
+    "Talentrax Global staffs clinical, technical and professional roles for US employers. You get a named recruiter who works your specialty, a written search plan before sourcing starts, and a straight answer on what the market will bear for the role.",
   ctas: [
     { label: "Request talent", href: REQUEST_TALENT_PATH, variant: "primary" },
     { label: "See how we engage", href: SERVICES_PATH, variant: "secondary" },
@@ -102,34 +102,28 @@ export const specialtySection: SectionIntro = {
   eyebrow: "Where we recruit",
   heading: "Three desks, each with its own recruiters",
   intro:
-    "A recruiter sits on one desk and stays there. That is how they learn which credentials matter, which titles mean the same job at different employers, and which candidates are genuinely available rather than merely listed.",
+    "A recruiter sits on one desk and stays there. That is how they learn which credentials matter, which titles mean the same job at different employers, and which candidates are genuinely available.",
 };
 
 /* ------------------------------------------------------ 4. How a search runs */
 
 export const searchProcess: ProcessContent = {
   eyebrow: "How a search runs",
-  heading: "Five steps, and you can see into every one of them",
+  heading: "Five stages, and what you receive at each one",
   intro:
-    "Most staffing relationships go wrong in the gap between the brief and the first shortlist, where the client cannot see what is happening and the recruiter has no incentive to explain. This is the process we run on every engagement, and what you get to see at each step.",
-  /** Column headings inside each step. */
+    "The same five stages run on every engagement, and each one ends with something in your hands: a document, a decision or a shortlist. You can see where a search has got to at any point.",
+  /** Column heading inside each step. Outcomes only: see types.ts. */
   labels: {
-    weDo: "What we do",
     youGet: "What you get",
   },
-  commitmentsHeading: "What that means you can hold us to",
+  commitmentsHeading: "What you can hold us to",
   steps: [
     {
       id: "intake",
       number: "01",
       title: "Intake and role scoping",
       summary:
-        "A working session with the hiring manager, not a form. We need the job as it is actually done, the team it sits in, and what would make you say no to an otherwise strong candidate.",
-      weDo: [
-        "Interview the hiring manager about the role, the team and the reason it is open",
-        "Agree the must-haves, the nice-to-haves and the genuine deal-breakers, in that order",
-        "Establish the approval chain and who can move an interview slot",
-      ],
+        "A working session with the hiring manager to capture the job as it is actually done, the team it sits in, and what would rule out an otherwise strong candidate.",
       youGet: [
         "A written role brief you approve before anything else happens",
         "An honest read on whether the brief is fillable as written",
@@ -141,12 +135,7 @@ export const searchProcess: ProcessContent = {
       number: "02",
       title: "Market read and search plan",
       summary:
-        "Before sourcing starts we tell you what the market looks like for this role, at this level, in this location, at this band. This is where a search gets repositioned if it needs to be.",
-      weDo: [
-        "Map where this talent currently sits, by employer type and title",
-        "Test the compensation band and the work mode against what comparable roles are offering",
-        "Flag any requirement that will materially shrink the candidate pool",
-      ],
+        "Before sourcing starts you see what the market looks like for this role, at this level, in this location, at this band, and the search is repositioned here if it needs to be.",
       youGet: [
         "A written search plan: channels, target employers, expected objections",
         "A direct recommendation if the band, the title or the work mode needs to change",
@@ -158,16 +147,11 @@ export const searchProcess: ProcessContent = {
       number: "03",
       title: "Sourcing and screening",
       summary:
-        "Our recruiter works their own desk network alongside active search. Everyone we submit has spoken to a human here about your specific role and agreed to be put forward for it.",
-      weDo: [
-        "Approach candidates individually, referencing your role rather than a generic pitch",
-        "Screen against the agreed criteria in a structured conversation",
-        "Verify licences, certifications and right to work before submission where the role requires it",
-      ],
+        "Everyone we submit has spoken to a recruiter here about your specific role, agreed to be put forward for it, and been screened against the criteria you approved.",
       youGet: [
-        "A scheduled progress update while the search is live, whether or not there is good news",
-        "Early notice when the market is pushing back, with what it is pushing back on",
-        "Confirmation that no resume reaches you without that candidate's explicit consent",
+        "A scheduled progress update while the search is live, including when the market is pushing back and on what",
+        "Every resume that reaches you carrying that candidate's explicit consent",
+        "Licences, certifications and right to work verified before submission, where the role requires it",
       ],
     },
     {
@@ -176,14 +160,10 @@ export const searchProcess: ProcessContent = {
       title: "Shortlist and interviews",
       summary:
         "A shortlist you can work through in one sitting, each candidate written up against the criteria you approved at intake, including where they fall short.",
-      weDo: [
-        "Submit a shortlist with written notes on fit, motivation and compensation expectations",
-        "Coordinate scheduling and brief both sides before each round",
-        "Collect structured feedback after every interview and relay it in both directions",
-      ],
       youGet: [
         "A like-for-like written assessment per candidate, reservations included",
         "Each candidate's current situation, notice period and what else they are considering",
+        "Scheduling handled and both sides briefed before each round, with structured feedback relayed after it",
         "A named backup plan if the shortlist does not convert",
       ],
     },
@@ -192,16 +172,11 @@ export const searchProcess: ProcessContent = {
       number: "05",
       title: "Offer, close and start",
       summary:
-        "The offer conversation starts at the first screen, not at the end. By this point we already know what the candidate will accept, what they will counter, and who else is in play.",
-      weDo: [
-        "Pre-close on the agreed package before any offer is formally extended",
-        "Manage notice periods, counteroffer risk and start-date logistics",
-        "Stay in contact with both sides through the first weeks on site",
-      ],
+        "The offer conversation starts at the first screen, so by this point we already know what the candidate will accept, what they will counter, and who else is in play.",
       youGet: [
-        "Advance warning of a likely decline, rather than a surprise on offer day",
+        "Advance warning of a likely decline, before offer day",
         "A written summary of what was agreed and when the person starts",
-        "A single point of contact if anything wobbles after the start date",
+        "A single point of contact through the first weeks on site",
       ],
     },
   ],
@@ -227,7 +202,7 @@ export const employersCta: CtaBandContent = {
     { label: "Talk to our team", href: "/contact", variant: "outline-inverse" },
   ],
   footnote:
-    "No obligation. We will tell you if we are not the right firm for the search.",
+    "No obligation, and a straight answer if the search needs a different firm.",
 };
 
 /* --------------------------------------------- 6. /employers/services page */
@@ -236,7 +211,7 @@ export const servicesPage = {
   eyebrow: "Employers",
   heading: "Engagement models",
   intro:
-    "Three ways to staff a role, and the commercial arrangement behind each one stated in plain terms. Fees, rates and guarantee periods are agreed in writing with you before a search opens, so they are not published here.",
+    "Three ways to staff a role, and the commercial arrangement behind each one stated in plain terms. Fees, rates and guarantee periods are agreed in writing with you before a search opens.",
   /** Accessible name for the in-page anchor nav. */
   onThisPageLabel: "On this page",
   headings: {
@@ -254,10 +229,10 @@ export const servicesPage = {
 export const servicesCta: CtaBandContent = {
   heading: "Not sure which model fits?",
   description:
-    "Describe the role and the constraint you are working under - budget, headcount, timeline - and we will tell you which of the three actually suits it, including when the answer is none of them.",
+    "Describe the role and the constraint you are working under - budget, headcount, timeline - and we will tell you which of the three suits it, or that none does.",
   ctas: [
     { label: "Request talent", href: REQUEST_TALENT_PATH, variant: "inverse" },
     { label: "Ask a question", href: "/contact", variant: "outline-inverse" },
   ],
-  footnote: "We would rather talk you out of the wrong model than sell it to you.",
+  footnote: "The model is agreed with you before anything is signed.",
 };

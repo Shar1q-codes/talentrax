@@ -59,7 +59,7 @@ export const engagementModels: EngagementModel[] = [
       "A contingent permanent search. We take the brief, agree the criteria in writing, run the search, and present a shortlist with written notes on every candidate. The hire goes on your payroll from day one and the relationship is yours.",
     whenItFits: [
       "The role is permanent, budgeted and signed off",
-      "You want one recruiter accountable for the search rather than several agencies racing each other",
+      "You want one recruiter accountable for the whole search",
       "The criteria are firm enough to screen against, or you want help making them firm",
     ],
     commercial: [
@@ -67,7 +67,7 @@ export const engagementModels: EngagementModel[] = [
         id: "direct-hire-basis",
         label: "How it is charged",
         detail:
-          "A one-time placement fee calculated on the hire's first-year base salary and invoiced after they start. Nothing is payable while the search runs, and nothing is payable if you do not hire.",
+          "A one-time placement fee calculated on the hire's first-year base salary and invoiced after they start. The fee is payable only when someone starts.",
       },
       {
         id: "direct-hire-rate",
@@ -83,7 +83,7 @@ export const engagementModels: EngagementModel[] = [
         id: "direct-hire-terms",
         label: "Agreed before we start",
         detail:
-          "The fee, the guarantee period and the payment schedule are set out in a signed agreement before any sourcing begins. We do not open a search on unagreed terms.",
+          "The fee, the guarantee period and the payment schedule are set out in a signed agreement before any sourcing begins, and the search opens on those terms.",
       },
     ],
   },
@@ -106,7 +106,7 @@ export const engagementModels: EngagementModel[] = [
         id: "contract-basis",
         label: "How it is charged",
         detail:
-          "An hourly bill rate per worker, invoiced on approved timesheets. The rate is all-inclusive: pay, employer taxes, workers compensation, benefits administration and our margin, so there is no separate placement fee.",
+          "An hourly bill rate per worker, invoiced on approved timesheets. The rate is all-inclusive: pay, employer taxes, workers compensation, benefits administration and our margin, and it is the only charge.",
       },
       {
         id: "contract-rate",
@@ -129,18 +129,18 @@ export const engagementModels: EngagementModel[] = [
       "Confidential, research-led search for leadership roles, assessed against a scorecard you sign off.",
     bestFor: "Best for director level and above",
     whatItIs:
-      "A retained search. We map the market, approach passive candidates discreetly, and assess against a scorecard agreed before the search opens. You receive the research, including who declined and why, not only the shortlist.",
+      "A retained search. We map the market, approach passive candidates discreetly, and assess against a scorecard agreed before the search opens. You receive the research, including who declined and why, alongside the shortlist.",
     whenItFits: [
       "The appointment is significant enough that a miss is expensive",
       "The search must stay confidential, from the market or from your own organisation",
-      "The people you want are employed rather than applying, and have to be approached individually",
+      "The people you want are in post, and have to be approached individually",
     ],
     commercial: [
       {
         id: "search-basis",
         label: "How it is charged",
         detail:
-          "A retained fee paid in instalments across the search rather than on placement: one to open the search, one at shortlist, one on start. Retention is what buys the research time an executive search actually needs.",
+          "A retained fee paid in instalments: one to open the search, one at shortlist, one on start. Retention buys the research time an executive search needs.",
       },
       {
         id: "search-fee",
@@ -217,7 +217,7 @@ export const specialtyAreas: SpecialtyArea[] = [
     icon: "server",
     name: "Technology",
     description:
-      "Engineering, infrastructure and security roles for product teams and internal IT, screened against the stack you actually run rather than the keywords in the posting.",
+      "Engineering, infrastructure and security roles for product teams and internal IT, screened against the stack you actually run.",
     subSpecialties: [
       {
         id: "software-engineering",

@@ -32,16 +32,16 @@ export const aboutHero = {
   eyebrow: "Company",
   heading: "A staffing firm you can see into",
   intro:
-    "Talentrax Global places clinical, technical and professional talent for US employers. We work for hiring teams who want one accountable recruiter instead of four agencies racing, and for candidates who want to know where their resume went and what happened to it.",
+    "Talentrax Global places clinical, technical and professional talent for US employers. We work for hiring teams who want one accountable recruiter on a search, and for candidates who want to know where their resume went and what happened to it.",
 };
 
 export const whatWeDo: SectionIntro & { body: string[]; modelsLine: string } = {
   eyebrow: "What we do",
   heading: "Placement, on three desks",
   intro:
-    "We are a recruiting firm, not a job board and not a resume database. Someone here reads every resume and briefs every role.",
+    "We are a recruiting firm. Someone here reads every resume and briefs every role.",
   body: [
-    "Employers come to us with a role that has to be filled by a person who can actually do it. Candidates come to us because applying through a portal is a coin toss. Both sides get the same recruiter, who knows the discipline and has placed the role before.",
+    "Employers come to us with a role that has to be filled by a person who can actually do it. Candidates come to us to have their resume read by someone who knows their field. Both sides get the same recruiter, who knows the discipline and has placed the role before.",
   ],
   /** Derived from taxonomy.ts so it cannot drift from the services page. */
   modelsLine: `The engagement models are ${engagementNamesSentence()}, and the commercial arrangement behind each one is set out in plain terms before any search opens.`,
@@ -51,7 +51,7 @@ export const aboutSpecialtySection: SectionIntro = {
   eyebrow: "Our desks",
   heading: "Three desks, each with its own recruiters",
   intro:
-    "A recruiter sits on one desk and stays there. That is how they learn which credentials matter, which titles mean the same job at different employers, and which candidates are genuinely available rather than merely listed.",
+    "A recruiter sits on one desk and stays there. That is how they learn which credentials matter, which titles mean the same job at different employers, and which candidates are genuinely available.",
 };
 
 /**
@@ -65,7 +65,7 @@ export const howWeWork: SectionIntro & {
   eyebrow: "How we work",
   heading: "Four things that hold on every search",
   intro:
-    "Not values, and not a pledge. These are operational: each one is something a recruiter here has to do on every role, and something you can hold us to when it does not happen.",
+    "These are operational: each one is something a recruiter here does on every role, and something you can hold us to.",
   commitments: [
     commitments.namedRecruiter,
     commitments.consentBeforeSubmission,
@@ -83,7 +83,7 @@ export const whereWeRecruit: SectionIntro & { body: string[] } = {
     // No state list, no market count, no office locations: none of that is
     // confirmed, and an invented list of cities is exactly the kind of claim
     // the content rules exist to stop.
-    "Where a role sits determines who is available for it and what it has to pay, so location is part of the brief from the first conversation rather than a filter applied at the end.",
+    "Where a role sits determines who is available for it and what it has to pay, so location is part of the brief from the first conversation.",
   ],
 };
 

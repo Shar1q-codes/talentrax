@@ -60,7 +60,7 @@ export const intents = {
       id: "candidate",
       title: "You are looking for work",
       description:
-        "Send your resume once. A recruiter who works your discipline reads it, and nothing goes to an employer until you have agreed to the submission.",
+        "Send your resume once. A recruiter who works your discipline reads it, and every submission is made with your agreement.",
       linkLabel: "Upload your resume",
       href: "/job-seekers/upload-resume",
     },
@@ -139,7 +139,7 @@ export const enquiryTypeOptions: {
 export const contactForm = {
   heading: "Send us a message",
   intro:
-    "For anything that is not a role to fill or a resume to send: a question, a complaint, a data request, or something we have not thought of.",
+    "For everything else: a question, a complaint, a data request, or something we have not thought of.",
   fieldset: {
     legend: "Your message",
     hint: "All of it goes to one inbox that a person reads.",

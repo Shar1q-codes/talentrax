@@ -40,19 +40,19 @@ export const locationsHero = {
   eyebrow: "Job Seekers",
   heading: "Recruiting across the United States",
   intro:
-    "The short answer to the question that brings most people here: yes, probably, wherever you are. The longer answer is that location belongs to the role rather than to us, and this page explains what that means in practice.",
+    "The short answer is yes, wherever you are, provided the role and you line up. Location belongs to the role, and this page explains what that means in practice.",
 };
 
 /* ------------------------------------------------- 1. Nationwide, no list */
 
 export const nationwide: SectionIntro & { body: string[] } = {
   eyebrow: "Coverage",
-  heading: "Nationwide, not market by market",
+  heading: "Nationwide, by discipline",
   intro:
-    "We recruit and place throughout the United States. There is no list of cities on this page because there is no list to give: a desk works a discipline nationally rather than a territory.",
+    "We recruit and place throughout the United States. Each desk works its discipline nationally, so wherever a role sits, it is covered.",
   body: [
-    "That means a role is not off the table because of where it sits, and you are not off the table because of where you are. What matters is whether the requirement and the candidate line up, and location is one part of that rather than the gate in front of it.",
-    "It also means we are not going to tell you we have a presence somewhere to make a page look busier. If a role is in a market, it is because an employer has a requirement there.",
+    "What matters is whether the requirement and the candidate line up, and location is one part of that.",
+    "A role is in a market because an employer has a requirement there.",
   ],
 };
 
@@ -65,9 +65,9 @@ export const onRole: SectionIntro & {
   link: { label: string; href: string };
 } = {
   eyebrow: "On a role",
-  heading: "Location is a property of the role, not of us",
+  heading: "Location is set by the role",
   intro:
-    "Onsite, hybrid and remote are the employer's requirement. They are set when the role is briefed, they differ between two roles at the same employer, and they are not something we can flex on your behalf.",
+    "Onsite, hybrid and remote are the employer's requirement, set when the role is briefed. They can differ between two roles at the same employer, and they hold as the employer set them.",
   modes: workModeOptions,
   body: [
     "Every posting carries its own location and its own work arrangement, and the posting is the authoritative answer for that role. If a listing and this page ever disagree, the listing is right.",
@@ -82,7 +82,7 @@ export const clinical: SectionIntro & { body: string[]; note: string } = {
   eyebrow: "Clinical roles",
   heading: "What location means for licensed work",
   intro:
-    "For clinical roles, where you can work is shaped by where you are licensed, and licensure is granted state by state. Multistate and compact arrangements exist and change what that means for some professions, which is why a clinical posting states its own requirement rather than relying on a general rule.",
+    "For clinical roles, where you can work is shaped by where you are licensed, and licensure is granted state by state. Multistate and compact arrangements exist and change what that means for some professions, so a clinical posting states its own requirement.",
   body: [
     "Read the requirement on the posting. It says which licence or certification the role needs and which state it has to be valid in. If yours covers it, say so when you apply. If it does not, tell us anyway - the same desk usually has work that it does fit.",
     "Where a role needs licensure, we verify it before you are submitted anywhere, so it is worth having the detail to hand: the licence, the issuing state, the expiry date, and the states it covers if it is a multistate one.",
@@ -97,9 +97,9 @@ export const relocation: SectionIntro & { body: string[] } = {
   eyebrow: "Relocation",
   heading: "If a role involves moving",
   intro:
-    "Some roles do. Whether relocation is part of a role, and what the employer offers with it, is the employer's to say - so it is on the posting, and it is a conversation with your recruiter rather than a policy of ours.",
+    "Some roles do. Whether relocation is part of a role, and what the employer offers with it, is the employer's to say - so it is on the posting, and it is a conversation with your recruiter.",
   body: [
-    "If you are willing to relocate, tell us where and under what conditions when you send your resume. It widens what we can put in front of you, and it is better said at the start than discovered at offer stage.",
+    "If you are willing to relocate, tell us where and under what conditions when you send your resume. It widens what we can put in front of you, and it is best said at the start.",
   ],
 };
 
@@ -112,9 +112,9 @@ export const forEmployers: SectionIntro & {
   eyebrow: "For employers",
   heading: "Your requisition sets the location",
   intro:
-    "Wherever the role sits, that is where we recruit for it. We are not working a territory, so there is no question of whether a market is one we cover.",
+    "Wherever the role sits, that is where we recruit for it, and every market is one we cover.",
   body: [
-    "Tell us the city and state the role is based in and whether it is onsite, hybrid or remote, and the search is built around that. Where a location makes a requirement harder to fill, you hear it at the search plan stage rather than after a month of silence.",
+    "Tell us the city and state the role is based in and whether it is onsite, hybrid or remote, and the search is built around that. Where a location makes a requirement harder to fill, you hear it at the search plan stage.",
   ],
   link: { label: "Send us a requisition", href: "/employers/request-talent" },
 };

@@ -273,7 +273,7 @@ export const requestTalent = {
   /** Reassurance list above the form. No figures, no response-time promises. */
   beforeYouStart: [
     "One named recruiter replies - the same person who would run the search",
-    "Nothing is shared outside Talentrax Global",
+    "Your brief stays inside Talentrax Global",
     "Asking a question costs nothing and commits you to nothing",
   ],
   fieldsets: {

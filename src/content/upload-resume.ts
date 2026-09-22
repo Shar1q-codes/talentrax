@@ -87,7 +87,7 @@ export const workFields = {
   engagementTypes: {
     id: "engagement-types",
     label: "Engagement types you would consider",
-    hint: "Choose as many as apply. We will not put you forward for a type you did not pick.",
+    hint: "Choose as many as apply. You are put forward only for the types you pick.",
     required: true,
     errorRequired: "Choose at least one type of engagement.",
   },
@@ -197,10 +197,10 @@ export const uploadResume = {
   eyebrow: "Job Seekers",
   heading: "Upload your resume",
   intro:
-    "One form, then a recruiter who works your discipline reads it. Your resume is not sent to any employer until you have agreed to that submission.",
+    "One form, then a recruiter who works your discipline reads it. Every submission of it is one you have agreed to.",
   beforeYouStart: [
     "Read by a person on the desk that recruits your specialty",
-    "Nothing is submitted to an employer without your say-so",
+    "Every submission is made with your say-so",
     "You can ask us to delete your resume at any time",
   ],
   fieldsets: {
@@ -219,7 +219,7 @@ export const uploadResume = {
   },
   location: {
     legend: "Where you are based",
-    hint: "Your own location, not a location you are willing to relocate to. Tell us about relocation in the message box.",
+    hint: "Where you live now. Tell us about relocation in the message box.",
   },
   selectPlaceholder: "Choose one",
   required: {

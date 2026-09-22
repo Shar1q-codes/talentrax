@@ -71,8 +71,8 @@ export const faqGroups: FaqGroup[] = [
         id: "what-do-you-recruit-for",
         question: "What kinds of roles do you recruit for?",
         answer: [
-          `We run ${specialtyAreas.length} desks: ${deskNamesSentence()}. Each one has its own recruiters who work that discipline and nothing else, which is how they learn which credentials matter and which titles mean the same job at different employers.`,
-          "Every desk lists the disciplines it covers, so you can check whether your role is one we actually place before you spend time on a brief.",
+          `We run ${specialtyAreas.length} desks: ${deskNamesSentence()}. Each one has its own recruiters who work that discipline full time, which is how they learn which credentials matter and which titles mean the same job at different employers.`,
+          "Every desk lists the disciplines it covers, so you can check that your role is one we place before you spend time on a brief.",
         ],
         link: { label: "See the three desks", href: "/employers#specialties" },
       },
@@ -92,8 +92,8 @@ export const faqGroups: FaqGroup[] = [
         id: "what-happens-after-we-brief-you",
         question: "What happens after we send you a role?",
         answer: [
-          "A five-step process, the same on every engagement: intake and role scoping, a market read and written search plan, sourcing and screening, shortlist and interviews, then offer, close and start.",
-          "Each step sets out both what we do and what you receive from it, so you can see where a search has got to rather than having to ask.",
+          "Five stages, the same on every engagement, and each one ends with something in your hands: a written role brief to approve, a market read and search plan before anyone is approached, screened candidates who have each agreed to be put forward, a shortlist written up against your criteria, and a managed offer through to start date.",
+          "Each stage is something you receive, so you can see where a search has got to at any point.",
         ],
         link: {
           label: "Read how a search runs",
@@ -163,7 +163,7 @@ export const faqGroups: FaqGroup[] = [
         id: "do-i-need-an-account",
         question: "Do I need to create an account?",
         answer: [
-          "No. There is no portal to register for, no password, and no application to re-key. You send one resume and it goes to the desk that recruits your discipline.",
+          "No. You send one resume and it goes to the desk that recruits your discipline.",
         ],
         link: {
           label: "How applying works",
@@ -175,7 +175,7 @@ export const faqGroups: FaqGroup[] = [
         question: "What happens after I send my resume?",
         answer: [
           "Five steps: you send it once, a recruiter who works your discipline reads it, we talk about what you actually want before anything moves, you approve every submission, and you get an answer either way.",
-          "A person reads it. It is not matched by a keyword filter and then forgotten.",
+          "A person reads it, and the same recruiter keeps working your file.",
         ],
         link: {
           label: "Read how applying works",
@@ -187,7 +187,7 @@ export const faqGroups: FaqGroup[] = [
         question: "Will my resume be sent to employers without asking me?",
         answer: [
           commitments.consentBeforeSubmission.detail,
-          "That decision is separate from agreeing to let us store your resume. Neither consent on the upload form allows us to send it anywhere on its own.",
+          "That agreement is given per submission, separately from the consent on the upload form that lets us store your resume.",
         ],
         link: {
           label: "Your data and your consent",
@@ -240,8 +240,8 @@ export const faqGroups: FaqGroup[] = [
         id: "no-jobs-listed",
         question: "Why are no roles listed on the job board?",
         answer: [
-          "Most of our searches are filled from candidates already on file and never reach a public board, so the board is often quiet. Being on file is the move that matters.",
-          "When something is posted here, it is open. We would rather show an empty board than pad it with roles that are already filled or were never real.",
+          "Most roles are filled from candidates already on file, before a posting is written, so the board is often quiet and the useful move is to be on file before the next role opens.",
+          "Every role posted is open at the time you read it, with its pay range, location and engagement type stated.",
         ],
         link: { label: "See the board", href: "/jobs" },
       },
@@ -252,7 +252,7 @@ export const faqGroups: FaqGroup[] = [
 export const faqCta: CtaBandContent = {
   heading: "Not answered here?",
   description:
-    "Ask. A question costs nothing and reaches a person rather than a queue.",
+    "Ask. A question costs nothing and reaches a person.",
   ctas: [
     { label: "Contact us", href: "/contact", variant: "inverse" },
     {

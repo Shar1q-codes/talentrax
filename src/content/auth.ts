@@ -136,7 +136,7 @@ export const register = {
     "An account keeps your details current with the desk that recruits your discipline. You do not need one to apply - the resume form works without one.",
   /** No account-type selector: employer accounts are not self-service. */
   employerNotice:
-    "Hiring rather than looking? Employer accounts are set up by our team rather than self-service. Send us a requisition or get in touch and we will arrange it.",
+    "Hiring? Employer accounts are set up by our team. Send us a requisition or get in touch and we will arrange it.",
   employerLinkLabel: "Request talent",
   employerLinkHref: "/employers/request-talent",
   fieldsetLegend: "Your details",

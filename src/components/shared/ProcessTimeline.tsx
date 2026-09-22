@@ -3,8 +3,9 @@ import { Section, SectionHeader } from "@/components/ui/Section";
 import type { ProcessCommitment, ProcessContent } from "@/content/types";
 
 /**
- * A numbered process: each step split into what we do and what the reader
- * gets out of it, with an optional commitments panel underneath.
+ * A numbered process: each step states what the reader receives, with an
+ * optional commitments panel underneath. A step may also carry a "what we
+ * do" list; when it does not, the outcomes list takes the full width.
  *
  * Shared by /employers ("how a search runs") and /job-seekers ("how applying
  * works"). With no statistics or testimonials permitted anywhere on this
@@ -14,7 +15,7 @@ import type { ProcessCommitment, ProcessContent } from "@/content/types";
  * Structure:
  *   <ol>            the sequence IS the content, so it is an ordered list
  *     <li>          one step, h3
- *       <div>       "what we do"  - h4 + ul
+ *       <div>       "what we do"  - h4 + ul (only when the step carries it)
  *       <div>       "what you get" - h4 + ul
  *
  * The large "01" numerals duplicate the list order, so they are aria-hidden:
@@ -71,28 +72,41 @@ export function ProcessTimeline({
               {step.summary}
             </p>
 
-            <div className="mt-6 grid gap-4 rounded-lg border border-border bg-surface-muted p-5 sm:grid-cols-2 sm:gap-6 sm:p-6">
-              <div>
-                <h4 className="text-sm font-semibold tracking-widest text-ink-muted uppercase">
-                  {content.labels.weDo}
-                </h4>
-                <ul className="mt-3 flex flex-col gap-2">
-                  {step.weDo.map((item) => (
-                    <li
-                      key={item}
-                      className="flex items-start gap-2 text-base text-ink-muted"
-                    >
-                      <Icon
-                        name="check"
-                        className="mt-1.5 h-4 w-4 shrink-0 text-accent"
-                      />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <div
+              className={[
+                "mt-6 grid gap-4 rounded-lg border border-border bg-surface-muted p-5 sm:gap-6 sm:p-6",
+                step.weDo && content.labels.weDo ? "sm:grid-cols-2" : "",
+              ].join(" ")}
+            >
+              {step.weDo && content.labels.weDo ? (
+                <div>
+                  <h4 className="text-sm font-semibold tracking-widest text-ink-muted uppercase">
+                    {content.labels.weDo}
+                  </h4>
+                  <ul className="mt-3 flex flex-col gap-2">
+                    {step.weDo.map((item) => (
+                      <li
+                        key={item}
+                        className="flex items-start gap-2 text-base text-ink-muted"
+                      >
+                        <Icon
+                          name="check"
+                          className="mt-1.5 h-4 w-4 shrink-0 text-accent"
+                        />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
 
-              <div className="border-t border-border pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-6">
+              <div
+                className={
+                  step.weDo && content.labels.weDo
+                    ? "border-t border-border pt-4 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-6"
+                    : ""
+                }
+              >
                 <h4 className="text-sm font-semibold tracking-widest text-accent-strong uppercase">
                   {content.labels.youGet}
                 </h4>

@@ -215,11 +215,11 @@ export const split: SplitContent = {
     {
       id: "for-employers",
       eyebrow: "For Employers",
-      title: "Shortlists you can act on, not a stack of resumes",
+      title: "Shortlists you can act on",
       description:
         "You get one point of contact, candidates screened against your actual criteria, and honest feedback when a role needs repositioning to fill.",
       benefits: [
-        "A specialist recruiter for your discipline, not a generalist",
+        "A specialist recruiter for your discipline",
         "Candidates screened, referenced and credential-checked before submission",
         "Transparent terms and a written replacement guarantee",
         "Market feedback when comp or scope is blocking the search",
@@ -231,9 +231,9 @@ export const split: SplitContent = {
       eyebrow: "For Job Seekers",
       title: "A recruiter who knows your field and answers the phone",
       description:
-        "We tell you what the role pays, who you would report to, and where you stand. No submissions without your say-so, ever.",
+        "We tell you what the role pays, who you would report to, and where you stand. Every submission is one you have agreed to.",
       benefits: [
-        "Your resume is never sent anywhere without your permission",
+        "Your resume moves only with your permission",
         "Straight answers on compensation, schedule and team structure",
         "Interview preparation from someone who has placed the role before",
         "Contract and permanent openings on one desk",
@@ -271,28 +271,28 @@ export const howItWorks: HowItWorksContent = {
       number: "01",
       title: "Scope the role",
       description:
-        "We walk through the requirement, the team it sits in, the must-have credentials and the realistic salary band before anyone starts sourcing.",
+        "A written brief covering the requirement, the team it sits in, the must-have credentials and a realistic salary band, agreed before anyone starts sourcing.",
     },
     {
       id: "step-2",
       number: "02",
       title: "Source and screen",
       description:
-        "Your recruiter works their desk network plus active search, then screens against the agreed criteria. You see candidates, not a keyword match.",
+        "Candidates screened against the agreed criteria by a recruiter who works your discipline.",
     },
     {
       id: "step-3",
       number: "03",
       title: "Submit and interview",
       description:
-        "You get a shortlist with written notes on each candidate. We coordinate scheduling, prepare both sides, and collect structured feedback after each round.",
+        "A shortlist with written notes on each candidate, scheduling handled, and structured feedback after each round.",
     },
     {
       id: "step-4",
       number: "04",
       title: "Offer and onboard",
       description:
-        "We manage the offer conversation, notice periods and start-date logistics, then stay in contact through the first weeks on site.",
+        "The offer, notice period and start date managed through to the first weeks on site.",
     },
   ],
 };
@@ -307,5 +307,5 @@ export const closingCta: CtaBandContent = {
     { label: "Request talent", href: "/employers/request-talent", variant: "inverse" },
     { label: "Talk to our team", href: "/contact", variant: "outline-inverse" },
   ],
-  footnote: "No obligation. We will tell you if we are not the right fit for the search.",
+  footnote: "No obligation, and a straight answer if the search needs a different firm.",
 };

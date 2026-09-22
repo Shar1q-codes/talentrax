@@ -6,13 +6,14 @@
  * get the whole domain removed from Google for Jobs, and a candidate who
  * applies to an invented role has been lied to. See src/lib/jobs.ts.
  *
- * The empty state below is written to read as a consequence of how the
- * business works - most searches are filled from file and never posted, so
- * be on file - rather than as a broken page, an apology or a "coming soon".
- * It must never imply volume that does not exist: no "check back soon", no
- * "new roles added daily", no "always hiring". The FAQ answer
- * "Why are no roles listed on the job board?" in content/faq.ts says the
- * same thing and the two must stay consistent.
+ * The empty state below leads with how the business works - most roles are
+ * filled from file before a posting is written, so be on file - and lets the
+ * empty board follow as a quiet consequence. It is not an apology, not a
+ * "coming soon", and it never comments on its own honesty. It must never
+ * imply volume that does not exist: no "check back soon", no "new roles
+ * added daily", no "always hiring". The FAQ answer "Why are no roles listed
+ * on the job board?" in content/faq.ts says the same thing and the two must
+ * stay consistent.
  *
  * NUMBERS: the results count on the board is the one number this site
  * publishes, and it is the exact case the content rules allow - counted live
@@ -39,28 +40,28 @@ export const jobsHero = {
 /**
  * Shown when getJobs() returns nothing, which is today.
  *
- * It leads with how the work runs, lets the empty board follow from that,
- * and then routes people somewhere useful. What it does not do is
- * apologise, promise a date, or pretend a posting exists.
+ * It leads with how the work runs and what the reader should do, and then
+ * routes them there. It does not apologise, promise a date, or pretend a
+ * posting exists.
  */
 export const emptyBoard = {
-  heading: "Most of our searches never reach a public board",
+  heading: "Most roles are filled from candidates already on file",
   body: [
-    "A recruiter fills most roles from candidates already on file, before a posting is ever written. So the board is often quiet, as it is now, and being on file is the move that matters.",
-    "When something is posted here, it is open. We would rather show you an empty board than pad it out with roles that are already filled or were never real.",
+    "A recruiter fills most roles from the candidates already on file, before a posting is written, so the board is often quiet and the useful move is to be on file before the next role opens.",
+    "Every role posted here is open at the time you read it, with its pay range, location and engagement type stated.",
   ],
   routes: [
     {
       id: "candidate",
       title: "Send us your resume",
       description:
-        "A recruiter who works your discipline reads it, and contacts you when something matches what you told us you want. Nothing goes to an employer without your say-so.",
+        "A recruiter who works your discipline reads it, and contacts you when something matches what you told us you want. Every submission is made with your agreement.",
       linkLabel: "Upload your resume",
       href: "/job-seekers/upload-resume",
     },
     {
       id: "employer",
-      title: "You are hiring, not looking",
+      title: "You are hiring",
       description:
         "Tell us what you need to fill and a recruiter from the matching desk picks it up with a market read on the band.",
       linkLabel: "Request talent",
@@ -127,7 +128,7 @@ export const jobDetail = {
   applyLabel: "Apply for this role",
   applyHref: "/job-seekers/upload-resume",
   applyNote:
-    "Applying sends us your resume through the same form as any other application. Your recruiter will reference this role, and nothing goes to the employer until you have agreed.",
+    "Applying sends us your resume through the same form as any other application. Your recruiter will reference this role, and the submission is made once you have agreed to it.",
   backLabel: "All open roles",
 };
 
@@ -148,5 +149,5 @@ export const jobsCta: CtaBandContent = {
     },
   ],
   footnote:
-    "No account to create. Your resume is not shared with any employer until you approve them by name.",
+    "No account to create. Every submission of your resume is one you have agreed to.",
 };

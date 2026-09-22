@@ -47,7 +47,7 @@ export const resourcesHero = {
   eyebrow: "Job Seekers",
   heading: "Interview preparation and resume guidance",
   intro:
-    "Practical guidance for candidates, whether or not you are working with us. No templates to download and nothing to sign up for - just what to have ready and how to present it.",
+    "Practical guidance for candidates, whether or not you are working with us: what to have ready and how to present it.",
 };
 
 export type GuidanceBlock = {
@@ -74,12 +74,12 @@ export const interviewPrep: SectionIntro & {
       intro:
         "This is the first conversation, and it is short. Have these to hand so none of it has to be looked up afterwards.",
       items: [
-        "The compensation you would accept, as a range you have actually thought about rather than a number you will regret saying.",
+        "The compensation you would accept, as a range you have thought about.",
         "Your notice period, and any date you cannot start before.",
-        "Whether you need sponsorship to work in the US. A yes is not a problem to hide; it changes which roles are worth sending you.",
+        "Whether you need sponsorship to work in the US. Saying so early changes which roles are worth sending you.",
         "How far you are willing to travel, and whether onsite, hybrid or remote is a preference or a hard requirement.",
         "The licences, certifications and clearances you hold, with the states or jurisdictions they cover.",
-        "Any employer you do not want to be submitted to, and why. It is easier to say at the start than to unwind later.",
+        "Any employer you would rule out, and why. It is easiest said at the start.",
       ],
     },
     {
@@ -89,7 +89,7 @@ export const interviewPrep: SectionIntro & {
         "Preparation here is mostly recall. The questions will be about work you have done, and the answers are more convincing when the detail is ready.",
       items: [
         "Three or four pieces of work you can describe end to end: what the situation was, what you decided, what you did, and how it turned out. Include one that did not go well.",
-        "The shape of the team around you in each of those, and which part was yours rather than the team's.",
+        "The shape of the team around you in each of those, and which part was yours.",
         "Why you left each role, in a sentence you are comfortable saying out loud.",
         "Questions of your own about the work itself - who you would report to, how the team is structured, what the first months would involve.",
         "The practical details: who you are meeting, in what format, and how long it is scheduled for.",
@@ -102,7 +102,7 @@ export const interviewPrep: SectionIntro & {
       items: [
         "Write down what you were asked while it is fresh. The same questions recur across employers in the same discipline.",
         "Tell your recruiter how it went before they tell you. Your read on the conversation is worth more than the employer's summary of it.",
-        "If you have changed your mind about the role, say so early rather than letting an offer arrive you do not want.",
+        "If you have changed your mind about the role, say so early, before an offer arrives.",
       ],
     },
   ],
@@ -121,17 +121,17 @@ export const resumeGuidance: SectionIntro & {
   eyebrow: "Resume guidance",
   heading: "Writing a resume that can be read quickly",
   intro:
-    "A first pass is trying to answer four questions: can you do the job, are you available, are you licensed or qualified for it, and how does anyone reach you. Make all four answerable without hunting.",
+    "Make four things findable at a glance: what you do, when you are available, what you are licensed or qualified for, and how to reach you.",
   blocks: [
     {
       id: "structure",
       heading: "Structure",
       items: [
-        "Name, city and state, phone and email at the top. Not in a header or a footer, where some systems will not read them.",
+        "Name, city and state, phone and email at the top of the page body, where every system reads them.",
         "A short line saying what you do and what you are looking for, if the two differ.",
         "Roles in reverse date order, each with the employer, your title, and the month and year you started and finished.",
-        "Dates on every role. A missing date reads as something being hidden even when it is not.",
-        "Length follows the work: enough to show what you have done, and no more. What is right differs by discipline, so do not cut a clinical history to fit a rule you read somewhere.",
+        "Dates on every role. A missing date raises a question the rest of the resume then has to answer.",
+        "Length follows the work: enough to show what you have done. What is right differs by discipline, and a clinical history needs the room it takes.",
       ],
     },
     {
@@ -140,9 +140,9 @@ export const resumeGuidance: SectionIntro & {
       items: [
         "What you were responsible for, distinguished from what your team was responsible for.",
         "The setting: the kind of employer, the size and shape of the operation, who you worked alongside.",
-        "The tools, systems and methods you actually used, not the ones that were in the building.",
-        "Outcomes where you can describe them honestly without inventing a measurement.",
-        "Gaps, briefly explained. An unexplained gap invites a worse assumption than the real reason usually is.",
+        "The tools, systems and methods you personally used.",
+        "Outcomes you can describe honestly, with or without a figure.",
+        "Gaps, briefly explained. The real reason is usually better than the assumption a blank invites.",
       ],
     },
     {
@@ -153,7 +153,7 @@ export const resumeGuidance: SectionIntro & {
         "Acronyms that are specific to one employer, with no expansion anywhere.",
         "A skills list with no roles attached to the skills.",
         "Titles that describe internal grades rather than the job. Put the real job alongside the internal title.",
-        "Photographs, dates of birth, marital status and similar personal details. They are not asked for here and they are not wanted on an application.",
+        "Photographs, dates of birth, marital status and similar personal details. Leave them off.",
       ],
     },
   ],
@@ -198,7 +198,7 @@ export const deskSection: SectionIntro & {
         "The stack you personally worked in, separated from the stack the company ran.",
         "What you owned: a service, a component, a migration, an on-call rotation. Ownership is more informative than a list of technologies.",
         "The delivery model and where you sat in it - product team, platform team, internal IT, agency.",
-        "Whether the environment was cloud, on-premises or in the middle of moving, because the work is not the same.",
+        "Whether the environment was cloud, on-premises or in the middle of moving, because each is different work.",
         "Clearances or compliance environments you have worked under, if any.",
       ],
     },
@@ -206,7 +206,7 @@ export const deskSection: SectionIntro & {
       deskId: "professional",
       items: [
         "The systems you worked in by name, and which modules of them.",
-        "The scope you were accountable for, described in what you did rather than what it was worth.",
+        "The scope you were accountable for, described as the work you did.",
         "Where you sat in the cycle - close, payroll, hiring, renewal - and what you owned within it.",
         "Licences, memberships and qualifications with their standing, including anything in progress.",
         "For trades roles, tickets, cards and safety certifications with their expiry dates.",
@@ -230,7 +230,7 @@ export function deskLabel(deskId: string): string {
 export const resourcesCta: CtaBandContent = {
   heading: "Ready when you are",
   description:
-    "Send us your resume and a recruiter who works your discipline reads it. Nothing goes to an employer until you have agreed to the submission.",
+    "Send us your resume and a recruiter who works your discipline reads it, and every submission is made with your agreement.",
   ctas: [
     {
       label: "Upload your resume",
