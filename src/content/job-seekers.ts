@@ -53,7 +53,7 @@ export const jobSeekersHero: SectionIntro & { ctas: Cta[] } = {
   eyebrow: "For Job Seekers",
   heading: "Apply once. A person reads it. You get an answer either way.",
   intro:
-    "Send us one resume and it goes to the recruiter who works your discipline, not into a queue. Nothing is sent to an employer until you have said yes to that employer by name, and you hear back from us whether the answer is good or not.",
+    "Send us one resume and it goes to the recruiter who works your discipline, not into a queue. Nothing is sent to an employer until you have agreed to the submission, and you hear back from us whether the answer is good or not.",
   ctas: [
     { label: "Upload your resume", href: UPLOAD_RESUME_PATH, variant: "primary" },
     // /jobs is still a coming-soon route. It is linked like any other route
@@ -131,14 +131,14 @@ export const applyProcess: ProcessContent = {
       number: "04",
       title: "You approve every submission",
       summary:
-        "When a role fits, we tell you which employer, what the job is and what it pays, and we ask. Your resume goes nowhere until you say yes to that specific employer.",
+        "When a role fits, we tell you what the job is and what it pays, and we ask. Your resume goes nowhere until you say yes to that submission.",
       weDo: [
-        "Name the employer and the role before asking for your permission",
-        "Submit only after you have agreed to that employer by name",
+        "Describe the role and what it pays before asking for your permission",
+        "Submit only after you have said yes, and never before",
         "Prepare you for the interview format and who you will be meeting",
       ],
       youGet: [
-        "Control over where your resume goes and who sees it",
+        "Control over every submission made on your behalf",
         "No surprise submissions and no duplicate submissions to the same employer",
         "Interview preparation from the recruiter who briefed the hiring manager",
       ],

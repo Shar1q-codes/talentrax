@@ -230,7 +230,7 @@ export function deskLabel(deskId: string): string {
 export const resourcesCta: CtaBandContent = {
   heading: "Ready when you are",
   description:
-    "Send us your resume and a recruiter who works your discipline reads it. Nothing goes to an employer until you have agreed to that employer by name.",
+    "Send us your resume and a recruiter who works your discipline reads it. Nothing goes to an employer until you have agreed to the submission.",
   ctas: [
     {
       label: "Upload your resume",

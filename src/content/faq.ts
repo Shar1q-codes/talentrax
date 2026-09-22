@@ -240,8 +240,8 @@ export const faqGroups: FaqGroup[] = [
         id: "no-jobs-listed",
         question: "Why are no roles listed on the job board?",
         answer: [
-          "Because none are open right now. We would rather show an empty board than pad it with roles that are already filled or were never real.",
-          "Most of our work is not posted anyway - a recruiter matches candidates already on file before a role reaches a board, which is why being on file is the useful move.",
+          "Most of our searches are filled from candidates already on file and never reach a public board, so the board is often quiet. Being on file is the move that matters.",
+          "When something is posted here, it is open. We would rather show an empty board than pad it with roles that are already filled or were never real.",
         ],
         link: { label: "See the board", href: "/jobs" },
       },

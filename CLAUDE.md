@@ -373,6 +373,16 @@ states mandate a posted range, and the positioning of this site is that every
 role shows one. If an upstream system can return a posting without a range,
 the mapping layer drops it or fails - it does not make the field optional.
 
+**`hiringOrganization` is always Talentrax Global, never a client.** The
+detail page passes `site.name` and `SITE_URL` into `jobPostingJsonLd()`, and
+that is the only organization a posting may carry. The `Job` type has no
+employer or client field, and none is to be added. The site deliberately
+says nothing about when, or whether, a candidate learns which employer a
+role is for (see `consentBeforeSubmission` in `content/commitments.ts`, and
+do not reintroduce that claim anywhere), so a posting that named the client
+in its markup would disclose in structured data what no page says. If an
+upstream system supplies a client name, the mapping layer drops it.
+
 **Structured data.** `src/lib/job-posting-schema.ts` builds the schema.org
 JobPosting, and it is the one thing here with real unit tests (`npm test`),
 because JSON-LD fails silently: a malformed payload does not throw, the

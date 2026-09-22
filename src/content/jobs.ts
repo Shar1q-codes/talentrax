@@ -6,9 +6,13 @@
  * get the whole domain removed from Google for Jobs, and a candidate who
  * applies to an invented role has been lied to. See src/lib/jobs.ts.
  *
- * The empty state below is written to read as a deliberate state of the
- * business - we have nothing open right now, here is what to do instead -
- * rather than as a broken page or a "coming soon".
+ * The empty state below is written to read as a consequence of how the
+ * business works - most searches are filled from file and never posted, so
+ * be on file - rather than as a broken page, an apology or a "coming soon".
+ * It must never imply volume that does not exist: no "check back soon", no
+ * "new roles added daily", no "always hiring". The FAQ answer
+ * "Why are no roles listed on the job board?" in content/faq.ts says the
+ * same thing and the two must stay consistent.
  *
  * NUMBERS: the results count on the board is the one number this site
  * publishes, and it is the exact case the content rules allow - counted live
@@ -35,15 +39,15 @@ export const jobsHero = {
 /**
  * Shown when getJobs() returns nothing, which is today.
  *
- * It says the true thing plainly and then routes people somewhere useful.
- * What it does not do is apologise, promise a date, or pretend a posting
- * exists.
+ * It leads with how the work runs, lets the empty board follow from that,
+ * and then routes people somewhere useful. What it does not do is
+ * apologise, promise a date, or pretend a posting exists.
  */
 export const emptyBoard = {
-  heading: "No roles are open right now",
+  heading: "Most of our searches never reach a public board",
   body: [
-    "Not every desk has something live at every moment, and we would rather show you an empty board than pad it out with roles that are already filled or were never real.",
-    "Most of our work is not posted anyway. A recruiter matches candidates already on file before a role reaches a job board, so the useful move is to be on file.",
+    "A recruiter fills most roles from candidates already on file, before a posting is ever written. So the board is often quiet, as it is now, and being on file is the move that matters.",
+    "When something is posted here, it is open. We would rather show you an empty board than pad it out with roles that are already filled or were never real.",
   ],
   routes: [
     {

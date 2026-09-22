@@ -100,7 +100,7 @@ export const privacyPolicy: LegalDocumentContent = {
   heading: "Privacy policy",
   intro: `This explains what ${site.name} collects through this website, why, who else sees it, and what you can tell us to do about it.`,
   scopeNote:
-    "It covers this website and the two forms on it. It does not cover what an employer does with your information after you have agreed to be submitted to them - that is their policy, not ours.",
+    "It covers this website and the two forms on it. It does not cover what an employer does with your information once a submission you agreed to has reached them - that is their policy, not ours.",
   sections: [
     {
       id: "what-we-collect",
@@ -152,7 +152,7 @@ export const privacyPolicy: LegalDocumentContent = {
         {
           kind: "paragraph",
           id: "why-upload",
-          text: "A resume goes to the recruiter who works your discipline. They use it to judge whether the roles on that desk fit you, to contact you about them, and - once you have agreed to a named employer - to represent you to that employer.",
+          text: "A resume goes to the recruiter who works your discipline. They use it to judge whether the roles on that desk fit you, to contact you about them, and - once you have agreed to a submission - to represent you for that role.",
         },
         {
           kind: "paragraph",
@@ -193,7 +193,7 @@ export const privacyPolicy: LegalDocumentContent = {
         {
           kind: "paragraph",
           id: "consent-per-submission",
-          text: "Neither consent lets us send your resume to an employer. That is a separate decision each time: we name the employer and the role, and your resume goes to them only after you have said yes to that employer.",
+          text: "Neither consent lets us send your resume to an employer. That is a separate decision each time: we describe the role, and your resume is sent only after you have agreed to that submission.",
         },
         {
           kind: "paragraph",
@@ -213,7 +213,7 @@ export const privacyPolicy: LegalDocumentContent = {
         {
           kind: "paragraph",
           id: "share-employers",
-          text: "Employers, one at a time, and only after you have agreed to that employer by name. We do not circulate resumes to a list of clients, and we do not submit the same person to the same employer through two routes.",
+          text: "Employers, one submission at a time, and only after you have agreed to that submission. We do not circulate resumes to a list of clients, and we do not submit the same person to the same employer through two routes.",
         },
         // OMITTED: the named service providers that process this data - the
         // applicant tracking system, email provider, file storage and

@@ -26,6 +26,11 @@ type JsonLdValue =
 
 export type JobPostingJsonLd = Record<string, JsonLdValue>;
 
+/**
+ * Always Talentrax Global, never a client. A posting on this board is
+ * published by the agency, and the Job type carries no employer or client
+ * field on purpose - see "The job board" in CLAUDE.md.
+ */
 export type HiringOrganization = {
   name: string;
   /** Absolute origin, no trailing slash. */

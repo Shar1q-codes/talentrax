@@ -197,7 +197,7 @@ export const uploadResume = {
   eyebrow: "Job Seekers",
   heading: "Upload your resume",
   intro:
-    "One form, then a recruiter who works your discipline reads it. Your resume is not sent to any employer until we have named them to you and you have agreed.",
+    "One form, then a recruiter who works your discipline reads it. Your resume is not sent to any employer until you have agreed to that submission.",
   beforeYouStart: [
     "Read by a person on the desk that recruits your specialty",
     "Nothing is submitted to an employer without your say-so",

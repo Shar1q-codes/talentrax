@@ -60,7 +60,7 @@ export const intents = {
       id: "candidate",
       title: "You are looking for work",
       description:
-        "Send your resume once. A recruiter who works your discipline reads it, and nothing goes to an employer until you have agreed to that employer by name.",
+        "Send your resume once. A recruiter who works your discipline reads it, and nothing goes to an employer until you have agreed to the submission.",
       linkLabel: "Upload your resume",
       href: "/job-seekers/upload-resume",
     },

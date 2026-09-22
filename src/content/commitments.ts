@@ -37,7 +37,7 @@ export const commitments = {
     id: "consent-before-submission",
     title: "No resume moves without consent",
     detail:
-      "A candidate is told which employer and which role, and agrees, before their resume is sent. Every time, for every submission. We do not circulate resumes to a list of clients and we do not submit the same person twice through two routes.",
+      "A candidate agrees to every submission before their resume is sent. Every time, for every role, with no exceptions. We do not circulate resumes to a list of clients and we do not submit the same person twice through two routes.",
   },
 
   searchPlanFirst: {
