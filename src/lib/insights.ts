@@ -23,11 +23,12 @@
  * HRSA or NSI figures with a source attached. See CLAUDE.md, "Content
  * rules". Every article carries its sources as visible links.
  *
- * The only value import is the generated index, by relative path with its
- * extension, so the unit tests can load this module directly under
- * `node --test` without a path-alias resolver.
+ * The only value imports are the generated index and the hand-owned order,
+ * by relative path with their extensions, so the unit tests can load this
+ * module directly under `node --test` without a path-alias resolver.
  */
 
+import { articleOrder } from "../content/article-order.ts";
 import { articles as importedArticles } from "../content/articles/index.ts";
 
 /**
@@ -120,12 +121,23 @@ export type Article = {
   dateModified: string;
 };
 
-/** Newest first, then alphabetical so the order is stable within a day. */
-export function sortArticles(articles: Article[]): Article[] {
+/**
+ * Newest first, by the explicit list in content/article-order.ts - NOT by
+ * datePublished, which is the same import date on every article. See that
+ * file before changing this. A slug the list does not name sorts after
+ * every listed one, alphabetically by title; `npm test` fails on that case
+ * so it never reaches a build, but a page still renders if it did.
+ */
+export function sortArticles(
+  articles: Article[],
+  order: readonly string[] = articleOrder,
+): Article[] {
+  const rank = (slug: string) => {
+    const index = order.indexOf(slug);
+    return index === -1 ? order.length : index;
+  };
   return [...articles].sort(
-    (a, b) =>
-      b.datePublished.localeCompare(a.datePublished) ||
-      a.title.localeCompare(b.title),
+    (a, b) => rank(a.slug) - rank(b.slug) || a.title.localeCompare(b.title),
   );
 }
 
