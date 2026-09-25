@@ -65,8 +65,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
   /**
-   * One entry per published article. Empty today because getArticles() is,
-   * and wired now so that real articles appear here without a code change.
+   * One entry per published article, from the same source the routes are
+   * generated from, so the sitemap and generateStaticParams cannot disagree.
    */
   const articles = await getArticles();
   const posts: MetadataRoute.Sitemap = articles.map((article) => ({

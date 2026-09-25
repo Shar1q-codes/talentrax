@@ -100,11 +100,19 @@ NOT_FOUND_PATH="/__seo-check-no-such-page__"
 # an ItemList of nothing is a machine-readable claim to have listings.
 EMPTY_INDEX_ROUTES=(
   /jobs
-  /insights
 )
 
-# Detail URLs with nothing behind them. While getJobs() and getArticles()
-# return nothing, EVERY slug under these is one of these.
+# The article index. Populated, but it still publishes no structured data of
+# its own: BlogPosting and FAQPage live on each article, and the index is
+# asserted to link to at least one.
+ARTICLE_INDEX=/insights
+
+# How many published articles get the full detail-page assertions. Every one
+# is checked for presence in the sitemap; the sample gets the JSON-LD parse.
+ARTICLE_SAMPLE_SIZE=5
+
+# Detail URLs with nothing behind them. An unknown slug is a 404 whether the
+# source is empty or not.
 MISSING_DETAIL_PATHS=(
   /jobs/__seo-check-no-such-job__
   /insights/__seo-check-no-such-article__
@@ -145,6 +153,36 @@ canonical_of() {
 
 count_matches() {
   printf '%s' "$2" | grep -o "$1" | wc -l | tr -d '[:space:]'
+}
+
+# Every JSON-LD payload on a page, one per line. The payloads hold no "<"
+# (serializeJsonLd escapes it), so [^<]* stops at the closing tag.
+ld_payloads() {
+  printf '%s' "$1" | grep -o '<script type="application/ld+json">[^<]*</script>' \
+    | sed 's/^<script type="application\/ld+json">//; s/<\/script>$//'
+}
+
+# ld_assert JSON TYPE FIELD... - the payload parses, is of TYPE, carries every
+# FIELD non-empty, and (for a BlogPosting) names no author. Prints the reason
+# on failure. grep cannot parse JSON; node built the site, so it is the
+# honest way to make this assertion real.
+ld_assert() {
+  local json="$1"
+  shift
+  printf '%s' "$json" | node -e '
+    const [type, ...fields] = process.argv.slice(1);
+    let s = "";
+    process.stdin.on("data", (c) => (s += c)).on("end", () => {
+      let o;
+      try { o = JSON.parse(s); } catch (e) { console.error("       " + e.message); process.exit(1); }
+      const problems = [];
+      if (o["@type"] !== type) problems.push("@type is " + o["@type"] + ", expected " + type);
+      for (const f of fields) if (o[f] === undefined || o[f] === null || o[f] === "") problems.push("missing " + f);
+      if (type === "BlogPosting" && "author" in o) problems.push("carries an author");
+      if (type === "FAQPage" && !(Array.isArray(o.mainEntity) && o.mainEntity.length > 0)) problems.push("FAQPage with no questions");
+      if (problems.length) { console.error("       " + problems.join("; ")); process.exit(1); }
+    });
+  ' "$@"
 }
 
 echo "SEO check"
@@ -353,15 +391,12 @@ for route in "${EMPTY_INDEX_ROUTES[@]}"; do
   fi
 done
 
-# --- 8. detail routes, while their sources are empty ------------------------
-# /jobs/[slug] and /insights/[slug] generate a page per item, so today they
-# generate none. What can be asserted now is that they behave correctly when
-# asked for one that does not exist, and that neither has leaked a URL into
-# the sitemap.
-#
-# The assertions that matter most - that a posting carries valid JobPosting
-# JSON-LD with a pay range and a validThrough, that an article carries valid
-# BlogPosting JSON-LD - cannot run until there is one to run them against.
+# --- 8. detail routes ---------------------------------------------------------
+# /jobs/[slug] and /insights/[slug] generate a page per item. Both must 404
+# for a slug that does not exist. /jobs generates none today, so the only
+# further assertion is that no posting URL has leaked into the sitemap; the
+# JobPosting assertions (pay range, validThrough) wait for a real posting.
+# /insights is populated and gets its own section (8b) below.
 # See CLAUDE.md, "The job board" and "The insights index".
 echo
 for path in "${MISSING_DETAIL_PATHS[@]}"; do
@@ -374,24 +409,132 @@ for path in "${MISSING_DETAIL_PATHS[@]}"; do
 done
 
 # An empty source must not have put a detail URL in the sitemap. Matches
-# /jobs/<anything> and /insights/<anything>, not the index pages themselves.
+# /jobs/<anything>, not the index page itself.
 if [ -n "$sitemap_xml" ]; then
-  for prefix in /jobs /insights; do
-    detail_locs=$(printf '%s' "$sitemap_xml" | grep -o "<loc>$EXPECTED_ORIGIN$prefix/[^<]*</loc>" | wc -l | tr -d '[:space:]')
-    if [ "$detail_locs" = "0" ]; then
-      pass "sitemap lists nothing under $prefix/ (its source is empty)"
-    else
-      fail "sitemap lists $detail_locs URL(s) under $prefix/ while its source is empty"
-    fi
-  done
+  job_locs=$(printf '%s' "$sitemap_xml" | grep -o "<loc>$EXPECTED_ORIGIN/jobs/[^<]*</loc>" | wc -l | tr -d '[:space:]')
+  if [ "$job_locs" = "0" ]; then
+    pass "sitemap lists nothing under /jobs/ (its source is empty)"
+  else
+    fail "sitemap lists $job_locs URL(s) under /jobs/ while its source is empty"
+  fi
 fi
+
+# --- 8b. the article index and every published article ---------------------
+# The index links to each article; the sitemap must list exactly those and
+# nothing else under /insights/. The index itself emits no JSON-LD: the
+# BlogPosting (and the FAQPage, where the article has FAQs) live on the
+# article page, generated from the same data the page renders.
+#
+# What is asserted per article, on a sample: 200, canonical, indexable,
+# exactly one <h1>, and every JSON-LD block parses - the first a BlogPosting
+# with headline, description, both dates, publisher and url and no author;
+# the second, if present, a FAQPage with at least one question.
+echo
+insights_html=$(fetch "$BASE_URL$ARTICLE_INDEX")
+ARTICLE_PATHS=()
+if [ -z "$insights_html" ]; then
+  fail "$ARTICLE_INDEX could not be fetched"
+else
+  index_ld=$(count_matches '<script type="application/ld+json">' "$insights_html")
+  if [ "$index_ld" = "0" ]; then
+    pass "$ARTICLE_INDEX emits no JSON-LD (structured data lives on each article)"
+  else
+    fail "$ARTICLE_INDEX emits $index_ld JSON-LD block(s) - the index must publish none"
+  fi
+
+  while IFS= read -r path; do
+    [ -n "$path" ] && ARTICLE_PATHS+=("$path")
+  done < <(printf '%s' "$insights_html" | grep -o "href=\"$ARTICLE_INDEX/[a-z0-9-]*\"" | sed 's/^href="//; s/"$//' | sort -u)
+
+  if [ "${#ARTICLE_PATHS[@]}" -gt 0 ]; then
+    pass "$ARTICLE_INDEX links to ${#ARTICLE_PATHS[@]} article(s)"
+  else
+    fail "$ARTICLE_INDEX links to no articles - either the source is empty (then the empty state should show) or the links are missing"
+  fi
+
+  if [ -n "$sitemap_xml" ]; then
+    missing_from_sitemap=0
+    for path in "${ARTICLE_PATHS[@]}"; do
+      if ! printf '%s' "$sitemap_xml" | grep -qF "<loc>$EXPECTED_ORIGIN$path</loc>"; then
+        fail "sitemap does not list $path"
+        missing_from_sitemap=$((missing_from_sitemap + 1))
+      fi
+    done
+    article_locs=$(printf '%s' "$sitemap_xml" | grep -o "<loc>$EXPECTED_ORIGIN$ARTICLE_INDEX/[^<]*</loc>" | wc -l | tr -d '[:space:]')
+    if [ "$missing_from_sitemap" -eq 0 ] && [ "$article_locs" = "${#ARTICLE_PATHS[@]}" ]; then
+      pass "sitemap lists exactly the ${#ARTICLE_PATHS[@]} article(s) the index links to"
+    elif [ "$missing_from_sitemap" -eq 0 ]; then
+      fail "sitemap lists $article_locs URL(s) under $ARTICLE_INDEX/ but the index links to ${#ARTICLE_PATHS[@]}"
+    fi
+  fi
+fi
+
+ARTICLE_SAMPLE=("${ARTICLE_PATHS[@]:0:$ARTICLE_SAMPLE_SIZE}")
+if [ "${#ARTICLE_SAMPLE[@]}" -gt 0 ]; then
+  echo
+  echo "  published articles (${#ARTICLE_SAMPLE[@]} of ${#ARTICLE_PATHS[@]} sampled):"
+fi
+for path in "${ARTICLE_SAMPLE[@]}"; do
+  code=$(status_of "$BASE_URL$path")
+  if [ "$code" != "200" ]; then
+    fail "$path returned HTTP $code, expected 200"
+    continue
+  fi
+  html=$(fetch "$BASE_URL$path")
+
+  canonical=$(canonical_of "$html")
+  if [ "$canonical" = "$EXPECTED_ORIGIN$path" ]; then
+    pass "$path canonical is $canonical"
+  else
+    fail "$path canonical is \"$canonical\", expected $EXPECTED_ORIGIN$path"
+  fi
+
+  robots=$(robots_meta "$html")
+  case "$robots" in
+    '')        fail "$path has no robots meta" ;;
+    *noindex*) fail "$path robots meta is \"$robots\" - a published article must be indexable" ;;
+    *)         pass "$path robots meta is \"$robots\" (no noindex)" ;;
+  esac
+
+  h1_count=$(count_matches '<h1[ >]' "$html")
+  if [ "$h1_count" = "1" ]; then
+    pass "$path has exactly one <h1>"
+  else
+    fail "$path has $h1_count <h1> elements, expected exactly 1"
+  fi
+
+  ld_total=$(count_matches '<script type="application/ld+json">' "$html")
+  case "$ld_total" in
+    1|2) pass "$path has $ld_total JSON-LD block(s)" ;;
+    *)   fail "$path has $ld_total JSON-LD blocks, expected 1 (BlogPosting) or 2 (plus FAQPage)" ;;
+  esac
+
+  ld_index=0
+  while IFS= read -r payload; do
+    [ -z "$payload" ] && continue
+    ld_index=$((ld_index + 1))
+    if [ "$ld_index" -eq 1 ]; then
+      if ld_assert "$payload" BlogPosting headline description datePublished dateModified publisher url mainEntityOfPage; then
+        pass "$path BlogPosting parses, carries every field and names no author"
+      else
+        fail "$path BlogPosting is malformed (see above)"
+      fi
+    else
+      if ld_assert "$payload" FAQPage mainEntity; then
+        pass "$path FAQPage parses with at least one question"
+      else
+        fail "$path FAQPage is malformed (see above)"
+      fi
+    fi
+  done < <(ld_payloads "$html")
+done
 
 # --- 9. the name is spelled correctly everywhere ----------------------------
 # "TalentRax" with a capital R is wrong in mixed case. An all-caps TALENTRAX
 # wordmark is fine, so match the capital R specifically rather than the word.
 echo
 name_failures=0
-for route in "${BUILT_ROUTES[@]}" "${UNLISTED_ROUTES[@]}" "${COMING_SOON_ROUTES[@]}"; do
+for route in "${BUILT_ROUTES[@]}" "${UNLISTED_ROUTES[@]}" "${COMING_SOON_ROUTES[@]}" "${ARTICLE_SAMPLE[@]}"; do
   html=$(fetch "$BASE_URL$route")
   [ -z "$html" ] && continue
   hits=$(count_matches 'TalentRax' "$html")

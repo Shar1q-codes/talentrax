@@ -44,9 +44,9 @@ describe("blogPostingJsonLd", () => {
     }
   });
 
-  it("takes the headline from the title and the description from the standfirst", () => {
+  it("takes the headline from the title and the description from the meta description", () => {
     assert.equal(payload.headline, fullArticle.title);
-    assert.equal(payload.description, fullArticle.standfirst);
+    assert.equal(payload.description, fullArticle.metaDescription);
   });
 
   it("passes both dates through as ISO dates", () => {

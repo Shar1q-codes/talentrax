@@ -375,3 +375,111 @@ p {
     var(--color-surface-muted) 100%
   );
 }
+
+/* ==========================================================================
+   THE ARTICLE MODAL
+   A native <dialog>, opened with showModal() by
+   components/insights/ArticleModal.tsx and mounted by the intercepted route
+   under app/insights/(index)/@modal. The frame lives here because it needs
+   ::backdrop, @starting-style and @supports, none of which read well as
+   utilities.
+
+   READABILITY BEATS THE GLASS EFFECT. The surface under the body text is
+   SOLID --color-surface, so every text token keeps the contrast ratio
+   recorded beside it in the @theme block (ink-muted 7.6:1, ink-subtle
+   5.5:1). Glass is confined to the chrome: the backdrop behind the panel
+   and the sticky bar at its top. The bar is 92% surface over the article
+   scrolling beneath it; measured against the darkest thing that can pass
+   under it (a block of --color-ink), ink-muted on that mix is 6.4:1 and the
+   worst case never gets darker than that. Without backdrop-filter the bar
+   is plain --color-surface and the backdrop is a heavier tint, so nothing
+   floats over the page beneath.
+
+   Below the small breakpoint (40rem, Tailwind's `sm`) it is a full-screen
+   sheet: an article is long-form reading and a small centred box on a
+   phone is worse than the page.
+
+   Motion: transform and opacity only, medium duration, the one curve. The
+   global prefers-reduced-motion rule above collapses it, and ::backdrop is
+   covered separately below because that rule's selector does not reach it.
+   ========================================================================== */
+.article-modal {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.article-modal::backdrop {
+  background: color-mix(in srgb, var(--color-ink) 60%, transparent);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .article-modal::backdrop {
+    background: color-mix(in srgb, var(--color-ink) 45%, transparent);
+    backdrop-filter: blur(6px);
+  }
+}
+
+@media (min-width: 40rem) {
+  .article-modal {
+    margin: auto;
+    width: min(48rem, calc(100% - 2rem));
+    height: auto;
+    max-height: calc(100dvh - 3rem);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+  }
+}
+
+/* The sticky bar: solid unless the browser can blur, then 92% surface. */
+.article-modal-bar {
+  background: var(--color-surface);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  .article-modal-bar {
+    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* Entry only: the dialog unmounts on close, so there is nothing to animate
+   out and nothing delays focus returning to the card. */
+.article-modal[open] {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--duration-medium) var(--ease-emphasized),
+    transform var(--duration-medium) var(--ease-emphasized);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+.article-modal[open]::backdrop {
+  opacity: 1;
+  transition: opacity var(--duration-medium) var(--ease-emphasized);
+
+  @starting-style {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-modal[open],
+  .article-modal[open]::backdrop {
+    transition: none;
+  }
+}

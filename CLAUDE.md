@@ -51,6 +51,16 @@ Counts inside a heading that describe what is rendered directly beneath it
 ("Five ways to staff a team", above five cards) are not claims about the
 business, and the step ordinals `01`–`04` are structure, not data. Both stay.
 
+**Cited third-party statistics in the insights articles are allowed, and
+are preserved exactly.** The rule above bans invented claims about
+Talentrax's own performance. It does not ban a figure from BLS, HRSA, NSI or
+any other named source when the attribution stays attached to the number:
+those citations are the entire value of the articles under `/insights`.
+Nothing rounds, restates, drops or "cleans up" a figure, on import or
+afterwards, and every article renders its sources as visible links. A
+statistic about Talentrax itself is still forbidden, in an article or
+anywhere else, and a figure with no source attached does not go in one.
+
 ## What we offer
 
 Three engagement models, in `src/content/taxonomy.ts`: **Direct Hire**,
@@ -75,8 +85,6 @@ withdrawn models are absent. That assertion is why "RPO" and
 `TalentRax` check, they are guards, not occurrences to fix.
 
 ## Stack
-
-Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · React 19.
 
 - Tailwind v4 is **CSS-first**: there is no `tailwind.config.js`. Theme tokens
   live in the `@theme` block in `src/app/globals.css`.
@@ -116,14 +124,7 @@ different specialties.
 
 ### 1. Content lives in data files, never inline in components
 
-All copy and navigation live in typed objects under `src/content/`:
-
-| File | Owns |
-| --- | --- |
-| `content/site.ts` | company name, tagline, contact details, social, `SITE_URL` |
-| `content/navigation.ts` | nav tree, footer columns, the coming-soon route registry |
-| `content/home.ts` | every landing page section's copy |
-
+All copy and navigation live in typed objects under `src/content/`.
 Components import a typed object and map over it. **A new nav link or a copy
 change is an edit to `src/content/`, not to a component.** This site moves to a
 CMS later; when it does, only the data source changes and no component is
@@ -292,29 +293,6 @@ with its own explanation, not a gap in a sentence.
 
 ## Routes
 
-Built (indexable, in the sitemap):
-
-```
-/                             /insights
-/employers                    /insights/[slug]  (one per article: none today)
-/employers/services           /locations
-/employers/request-talent     /about
-/job-seekers                  /contact
-/job-seekers/upload-resume    /faq
-/jobs                         /resources
-/jobs/[slug]  (one per        /privacy-policy
-              posting: none)  /terms
-                              /accessibility
-```
-
-Built, but deliberately noindex and **absent from the sitemap**:
-
-```
-/login
-/register
-/forgot-password
-```
-
 Nothing is coming soon any more: every route is built. `comingSoonRoutes` in
 `content/navigation.ts` is empty and the shared `ComingSoon` component has no
 callers. Both are kept as the mechanism for the next unbuilt section rather
@@ -394,16 +372,8 @@ board is empty - an ItemList of nothing is a claim we have listings - and
 slug returns 404, and that no posting URL has leaked into the sitemap while
 `getJobs()` is empty. That is all there is to check against zero postings.
 
-**Add when real postings exist**, against a live posting URL:
-
-- exactly one `<script type="application/ld+json">`, and it parses;
-- `@type` is `JobPosting`, with `title`, `description`, `datePosted`,
-  `validThrough`, `hiringOrganization` and `jobLocation` all present;
-- `baseSalary` is present with a min, a max and a `unitText` - the pay range
-  is the promise this site makes, and the type enforces it in code, so the
-  served HTML should be checked too;
-- `validThrough` parses and is in the future;
-- the posting appears in the sitemap, and an expired one answers 410.
+**The check:seo assertions to add when real postings exist** are listed in
+the `wire-expired-postings` skill.
 
 ### /locations — no market list, and no per-state pages
 
@@ -428,64 +398,118 @@ paragraph in `content/locations.ts` stays.
 
 ### The insights index
 
-Same machine as the job board, same rule. `getArticles()` in
-`src/lib/insights.ts` returns `[]`, `/insights` renders an honest empty
-state, and `/insights/[slug]` generates zero pages. The list UI sits behind
-the check and appears when articles do. No category or tag filters until
-there is something to filter.
+Thirty articles, imported from the client's `.docx` files by
+`scripts/import-articles.ts` into `src/content/articles/`, one typed file
+per article plus a generated index. `getArticles()` in `src/lib/insights.ts`
+returns them newest first, `/insights/[slug]` generates one page each, and
+the sitemap lists them. The empty state still works: if the source is ever
+empty again the index renders it, and `check:seo` fails, on purpose, until
+someone decides that is intended.
 
-**Never add a sample article.** The home page shipped three invented article
-cards once and they had to be torn out; an invented article at its own URL
-with BlogPosting markup attached is the same mistake with a search engine
-repeating it. Fixtures live in `src/lib/insights.fixture.ts`, imported only
-by `*.test.ts`, and carry the same `DO-NOT-SHIP-FIXTURE` sentinel as the job
-fixtures, so one grep covers both.
+**Every article is imported, never typed in.** The importer is the only way
+content enters `src/content/articles/`; the files say so in their header and
+the next import overwrites them. A fix to an article is a fix to the source
+document followed by `npm run import:articles -- <directory-of-docx>`.
+Hand-copying is how figures drift.
+
+**What the importer strips, keeps and resolves is in the header of
+`scripts/import-articles.ts`.** Two decisions live here because they are
+not derivable: every stated date was in the future at import, so an article
+carries the import date and its `datePublished` is preserved across
+re-imports; and the planning documents in the client's bundle are skipped
+and **must not be committed** (`*.docx` and root zips are gitignored).
 
 **No author field exists on the Article type**, and `article-schema.ts` emits
 no `author`. Nobody has been named anywhere on this site; adding the field is
-what invites a byline to be invented to fill it. If real attribution is
-wanted later that is a decision to take deliberately.
+what invites a byline to be invented to fill it. The source documents carry
+a bracketed byline placeholder and the importer drops it.
 
-**The body is structured blocks**, not an HTML string - paragraph, heading,
-list. A CMS swap stays a mapping exercise, and nothing is ever handed
-untrusted markup to render. There is deliberately no quote block: a pull
-quote from a named person is a testimonial with better typography.
+**The body is structured blocks**, not an HTML string - paragraph, heading
+(levels 2 and 3), list (ordered or not) and table (header row plus rows),
+with inline links as offset marks rather than tags. A CMS swap stays a
+mapping exercise, and nothing is ever handed untrusted markup to render.
+There is deliberately no quote block: a pull quote from a named person is a
+testimonial with better typography.
 
-`npm run check:seo` asserts that `/insights` emits no JSON-LD, that an
-unknown slug 404s, and that nothing under `/insights/` has reached the
-sitemap. The BlogPosting assertions that matter get added when an article
-exists to run them against.
+**One renderer.** `components/insights/ArticleBody.tsx` renders everything
+under an article's title - the key-takeaways card, the blocks, the FAQ
+block, the sources as visible links, the related reading - for both the
+full page and the modal, so the two cannot drift. Tables are real `<table>`
+markup in a keyboard-reachable horizontal scroll region; **no charts, and
+no table is ever turned into a graphic**: the figures are cited and read
+exactly as written.
+
+**Structured data.** One BlogPosting per article from `article-schema.ts`,
+and one FAQPage from `faq-schema.ts` when the article has FAQs, generated
+from the same array the page renders. An article without FAQs emits no
+FAQPage. `/insights` itself emits none.
+
+### The article modal
+
+Clicking a card on `/insights` opens the article in a dialog **and** changes
+the URL to `/insights/<slug>`. That is a Next.js intercepting route in a
+parallel slot, and the file layout is the whole mechanism:
+
+```
+app/insights/(index)/layout.tsx              renders {children} and {modal}
+app/insights/(index)/page.tsx                the index, /insights
+app/insights/(index)/@modal/default.tsx      null: the closed state
+app/insights/(index)/@modal/(.)[slug]/page.tsx   the intercepted article
+app/insights/[slug]/page.tsx                 the full page, unchanged
+```
+
+- **Only the index intercepts.** An interception applies to every soft
+  navigation made from inside the layout that owns the slot, so the slot
+  lives in a route group holding only the index page. The full page is
+  outside it: a related-reading link on a full article page, and a link to
+  an article from anywhere else on the site, is a normal navigation. Do not
+  move the layout up to `app/insights/`.
+- **A crawler, a refresh, a shared link and a direct visit get the full
+  page.** `(index)` and `@modal` are not URL segments, so a hard request
+  for `/insights/<slug>` renders `app/insights/[slug]/page.tsx` with its
+  JSON-LD, and `check:seo` keeps asserting exactly that by curl. The
+  intercepted route emits no structured data because nothing that indexes
+  can reach it.
+- **Back closes it.** Opening is a pushed history entry; the close button,
+  Escape and the backdrop all call `router.back()`, which is the same thing
+  the browser's back button does. The index stays mounted underneath the
+  whole time, so its scroll position is intact when the dialog goes.
+- **The scroll lock releases in the commit that removes the dialog.** The
+  body overflow is set and restored in a `useLayoutEffect`; that cleanup
+  runs synchronously during React's commit, before the App Router's own
+  layout effect resets or restores scroll. Every way out (back, close,
+  Escape, a link inside the dialog, a navigation elsewhere) unmounts the
+  component and passes through it. This is the lesson from the mobile
+  drawer, whose passive-effect lock outlived the navigation. **Do not move
+  the lock to `useEffect`, and do not add a second lock elsewhere.**
+- **Readability beats the glass.** The surface under the article is solid
+  `--color-surface`; `backdrop-filter` is on the chrome only (the
+  `::backdrop` and the sticky bar), with an `@supports` fallback to solid
+  where it is unavailable. The bar's worst-case background is measured in
+  the comment beside `.article-modal` in `globals.css` (ink-muted 6.4:1).
+
+**Never add a sample article.** The home page shipped three invented article
+cards once and they had to be torn out. Fixtures live in
+`src/lib/insights.fixture.ts`, imported only by `*.test.ts`, and carry the
+same `DO-NOT-SHIP-FIXTURE` sentinel as the job fixtures, so one grep covers
+both.
+
+`npm test` runs over the real articles: unique clean slugs, no placeholder
+or internal note, no capital-R brand, https sources, related slugs that
+exist, no skipped heading level, no future date. `npm run check:seo` asserts
+that `/insights` links to at least one article and emits no JSON-LD, that
+the sitemap lists exactly those articles, that an unknown slug 404s, and on
+a sample of five articles: 200, canonical, indexable, one `<h1>`, a
+BlogPosting that parses with every field and no author, and a FAQPage that
+parses where one is emitted.
 
 ### Expired job postings
 
 **A posting past `validThrough` must answer 410 Gone.** Not 404, and never a
-redirect: 410 is the signal Google treats as definitive removal, and anything
-softer leaves a dead job in the index for weeks.
-
-What exists today:
-
-- `isExpired(job, now)` in `src/lib/jobs.ts`, unit tested at the day
-  boundary.
-- `generateStaticParams` filters expired postings, so one never gets a page.
-- The detail page calls `notFound()` as a backstop for a posting that
-  expires between builds.
-- `getRecentlyExpiredSlugs()` returns the slugs the 410 layer needs, since
-  `getJobs()` no longer returns them.
-- The sitemap lists live postings only.
-
-**What is not wired, and why.** A page component cannot set a status code in
-Next, so a real 410 has to come from middleware or a host rule - both of
-which are server code, and this repo is deliberately backend-free (see the
-top of this file). That is a decision to take deliberately rather than by
-accident, so it is deferred until there are postings that can expire. With
-`getJobs()` returning nothing, nothing can. When jobs land, wire ONE of:
-
-1. `src/middleware.ts` matching `/jobs/:slug`, answering 410 for anything in
-   `getRecentlyExpiredSlugs()`; or
-2. generated `[[redirects]]` in `netlify.toml` with `status = 410`, built
-   from the same list.
-
-Whichever, the list comes from `getRecentlyExpiredSlugs()` and nowhere else.
+redirect. What exists today, and the two ways to wire the 410 when real
+postings land, are in the `wire-expired-postings` skill
+(`.claude/skills/wire-expired-postings/SKILL.md`); the list of slugs comes
+from `getRecentlyExpiredSlugs()` and nowhere else.
 
 ## The account screens
 
@@ -685,21 +709,16 @@ deploys can carry their own origin instead of all claiming production's.
 
 ## Commands
 
-```bash
-npm run dev       # dev server, http://localhost:3000
-npm run build     # production build
-npm run start     # serve the production build
-npm run lint      # eslint
-npm test          # unit tests (node --test, no framework)
-npm run check:seo # assert the SEO invariants against a running server
-```
+The scripts are in `package.json`. `npm test` runs Node's built-in test runner directly over TypeScript - no
+Jest, no Vitest, no transform step, no new dependency. It covers the job
+board and its JobPosting schema, the imported articles and their BlogPosting
+and FAQPage schemas, and the taxonomy. That is not under-testing by neglect:
+those are the code here whose failure is silent and expensive. Everything
+else is content and layout, where a mistake is visible on the page.
 
-`npm test` runs Node's built-in test runner directly over TypeScript - no
-Jest, no Vitest, no transform step, no new dependency. It covers
-`src/lib/jobs.ts` and `src/lib/job-posting-schema.ts` only. That is not
-under-testing by neglect: those two are the only code here whose failure is
-silent and expensive. Everything else is content and layout, where a mistake
-is visible on the page.
+`import:articles` also runs on Node directly, with no dependency: the .docx
+is a zip and `node:zlib` inflates it. It takes the directory the documents
+are unpacked in and an optional `--date YYYY-MM-DD` for the import date.
 
 Test files import each other with explicit `.ts` extensions, which is why
 `allowImportingTsExtensions` is set in `tsconfig.json`. Both tested modules
