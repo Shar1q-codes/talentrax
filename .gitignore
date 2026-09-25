@@ -42,3 +42,10 @@ next-env.d.ts
 
 # Keep the documented env template in version control.
 !.env.example
+
+# Source documents for the insights import. The client's bundle also holds
+# internal planning documents that must never be committed; the importer
+# reads the .docx files from wherever they are unpacked (see
+# scripts/import-articles.ts) and only the generated content is tracked.
+*.docx
+/*.zip

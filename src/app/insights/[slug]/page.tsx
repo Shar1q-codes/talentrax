@@ -1,30 +1,42 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { ArticleBody } from "@/components/insights/ArticleBody";
 import { TextLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { articleDetail, INSIGHTS_PATH } from "@/content/insights";
 import { SITE_URL, site } from "@/content/site";
 import { blogPostingJsonLd } from "@/lib/article-schema";
-import { getArticleBySlug, getArticles } from "@/lib/insights";
+import { faqPageJsonLdFromItems } from "@/lib/faq-schema";
+import {
+  getArticleBySlug,
+  getArticles,
+  getRelatedArticles,
+} from "@/lib/insights";
 import { formatPostedDate } from "@/lib/jobs-format";
 import { buildMetadata } from "@/lib/metadata";
 import { serializeJsonLd } from "@/lib/seo";
 
 /**
- * One article.
+ * One article, as a full page.
  *
- * THIS ROUTE PRODUCES ZERO PAGES TODAY. `generateStaticParams` maps over
- * `getArticles()`, which returns nothing, so the build emits no /insights/*
- * pages and no BlogPosting structured data exists anywhere in the output.
- * When articles are real, the same code emits one page each with no edit.
+ * THIS IS WHAT A CRAWLER, A SHARED LINK, A REFRESH AND A DIRECT VISIT GET.
+ * The same URL opened from a card on /insights is intercepted into a modal
+ * (see app/insights/(index)/@modal), but that only happens on a soft
+ * navigation from the index. This page is the canonical, indexable
+ * document, and it renders the whole article with its structured data.
+ *
+ * `generateStaticParams` maps over `getArticles()`, so there is one page per
+ * imported article and none for anything else. An unknown slug is a 404.
  *
  * NO BYLINE. The Article type has no author field and nothing here renders
  * one. Nobody has been named anywhere on this site.
  *
- * The body is structured blocks, not an HTML string, so nothing on this page
- * is ever handed untrusted markup to render.
+ * STRUCTURED DATA. One BlogPosting per article, and one FAQPage when the
+ * article has an FAQ section - generated from the same array the section
+ * renders, so the markup cannot say anything the page does not. An article
+ * without FAQs emits no FAQPage at all.
  */
 
 export async function generateStaticParams() {
@@ -57,8 +69,8 @@ export async function generateMetadata({
   }
 
   return buildMetadata({
-    title: article.title,
-    description: article.standfirst,
+    title: article.metaTitle,
+    description: article.metaDescription,
     path: `${INSIGHTS_PATH}/${article.slug}`,
   });
 }
@@ -69,9 +81,15 @@ export default async function Page({ params }: PageProps<"/insights/[slug]">) {
 
   if (!article) notFound();
 
-  const jsonLd = serializeJsonLd(
+  const related = await getRelatedArticles(article);
+
+  const blogPosting = serializeJsonLd(
     blogPostingJsonLd(article, { name: site.name, siteUrl: SITE_URL }),
   );
+  const faqPage =
+    article.faqs.length > 0
+      ? serializeJsonLd(faqPageJsonLdFromItems(article.faqs))
+      : null;
 
   const wasEdited = article.dateModified !== article.datePublished;
 
@@ -80,13 +98,19 @@ export default async function Page({ params }: PageProps<"/insights/[slug]">) {
       <script
         type="application/ld+json"
         // Payload is escaped in serializeJsonLd(); "<" cannot break out.
-        dangerouslySetInnerHTML={{ __html: jsonLd }}
+        dangerouslySetInnerHTML={{ __html: blogPosting }}
       />
+      {faqPage ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: faqPage }}
+        />
+      ) : null}
 
       <PageHeader
         eyebrow={articleDetail.eyebrow}
         heading={article.title}
-        intro={article.standfirst}
+        intro={article.summary}
       >
         <p className="mt-8 text-sm font-semibold tracking-widest text-ink-muted uppercase">
           {articleDetail.publishedLabel}{" "}
@@ -107,43 +131,7 @@ export default async function Page({ params }: PageProps<"/insights/[slug]">) {
 
       <Container>
         <div className="max-w-3xl py-14 sm:py-16 lg:py-20">
-          {article.body.map((block, index) => {
-            // Blocks have no ids of their own: they are positional content
-            // from a CMS, so the index is the only stable key available.
-            const key = `${block.kind}-${index}`;
-
-            if (block.kind === "heading") {
-              return (
-                <h2
-                  key={key}
-                  className="mt-12 text-2xl font-bold tracking-tight text-ink first:mt-0 sm:text-3xl"
-                >
-                  {block.text}
-                </h2>
-              );
-            }
-
-            if (block.kind === "list") {
-              return (
-                <ul
-                  key={key}
-                  className="mt-5 flex flex-col gap-2 border-l-2 border-border pl-5"
-                >
-                  {block.items.map((item) => (
-                    <li key={item} className="text-base text-ink-muted">
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              );
-            }
-
-            return (
-              <p key={key} className="mt-5 text-base text-ink-muted first:mt-0">
-                {block.text}
-              </p>
-            );
-          })}
+          <ArticleBody article={article} related={related} base={2} idPrefix="article" />
 
           <p className="mt-12 border-t border-border pt-8 text-base">
             <TextLink href={INSIGHTS_PATH}>{articleDetail.backLabel}</TextLink>

@@ -158,3 +158,34 @@ delete the matching `OMITTED` comment there, and strike the item here.
     terms in writing before a search opens. They read well because they are
     concrete, which also means the business has to actually do them. They need
     sign-off from someone who can commit the company to them.
+
+17. **The imported insights articles.** Thirty articles were imported from
+    the client's documents by `scripts/import-articles.ts` (see CLAUDE.md,
+    "The insights index"). Four things in them need a decision:
+    - **Dates.** Every document says "Last updated" with a month between
+      October 2026 and March 2027, all later than the import. A future
+      `datePublished` is wrong in BlogPosting markup, so each article carries
+      the import date instead. Several are written from that future vantage
+      point ("As of January 2027, employers using AI in hiring face...",
+      "Healthcare Hiring Trends for 2027"). Confirm whether they publish now
+      as written, or are held to the month each was written for.
+    - **Internal links.** Links between the articles, and to pages this
+      site has, are live in the text. The documents also link to
+      `/employers/how-we-work` (13 times) and
+      `/employers/healthcare/{nursing,allied-health,non-clinical}`, none of
+      which exist on this site; those hrefs were dropped and the link text
+      stays as plain prose. The closing "tell us about it" call-to-action
+      paragraphs were dropped entirely. Confirm where the missing targets
+      should point (`/employers#how-a-search-runs` is the nearest existing
+      page for "how we work"), or that the site's own CTA band is enough.
+    - **The byline.** Every document carries "By [Author name], [Title]".
+      It was dropped, not filled: nobody is named anywhere on this site. If
+      the client wants attribution that is a deliberate decision (see
+      CLAUDE.md, "The insights index").
+    - **Third-party figures.** The articles cite BLS, HRSA, NSI, AHA and
+      others, preserved exactly with their sources linked. Confirm the client
+      is content to publish cited statistics on a site whose own copy carries
+      none, and that someone will re-check the figures when the sources
+      publish their next editions.
+    *Omitted: nothing - every article is on the site as written, minus the
+    items above.*

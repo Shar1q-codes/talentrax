@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "check:seo": "bash scripts/check-seo.sh",
-    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test src/lib/jobs.test.ts src/lib/job-posting-schema.test.ts src/lib/insights.test.ts src/lib/article-schema.test.ts src/content/taxonomy.test.ts"
+    "import:articles": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/import-articles.ts",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test src/lib/jobs.test.ts src/lib/job-posting-schema.test.ts src/lib/insights.test.ts src/lib/article-schema.test.ts src/lib/faq-schema.test.ts src/content/taxonomy.test.ts"
   },
   "dependencies": {
     "next": "16.3.5",

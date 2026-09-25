@@ -7,7 +7,8 @@
  * keeps this module free of value imports so the tests can run it directly.
  *
  * NO AUTHOR. The Article type has no author field (see insights.ts) and this
- * generator does not invent one. `author` is optional in schema.org for
+ * generator does not invent one. The source documents carried a bracketed
+ * byline placeholder; the importer dropped it and nothing here puts it back. `author` is optional in schema.org for
  * BlogPosting; a fabricated byline in machine-readable form is worse than an
  * absent one.
  *
@@ -47,7 +48,7 @@ export function blogPostingJsonLd(
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: article.title,
-    description: article.standfirst,
+    description: article.metaDescription,
     datePublished: article.datePublished,
     dateModified: article.dateModified,
     mainEntityOfPage: {

@@ -1,17 +1,19 @@
 /**
  * /insights and /insights/[slug] copy.
  *
- * NOTHING IS PUBLISHED. There are no sample articles in this file and there
- * must never be. The home page once carried three invented article cards with
- * made-up titles and excerpts; they were fabricated content on the most
- * indexed page on the site. An invented article at its own URL, with
- * BlogPosting markup attached, is the same mistake with a search engine
- * repeating it. See src/lib/insights.ts.
+ * THE ARTICLES ARE NOT IN THIS FILE. They are imported from the client's
+ * documents into src/content/articles/ by scripts/import-articles.ts; this
+ * file holds only the page furniture around them. There are no sample
+ * articles here and there must never be. The home page once carried three
+ * invented article cards with made-up titles and excerpts; they were
+ * fabricated content on the most indexed page on the site. See
+ * src/lib/insights.ts.
  *
- * The empty state leads with what the reader can do - the pages that
- * describe how the work runs - and lets the absence of articles follow
- * quietly. It is not a "coming soon", not an apology, and it does not
- * comment on its own editorial standards.
+ * The empty state is kept for the day the source is empty again. It leads
+ * with what the reader can do - the pages that describe how the work runs -
+ * and lets the absence of articles follow quietly. It is not a "coming
+ * soon", not an apology, and it does not comment on its own editorial
+ * standards.
  *
  * NO AUTHOR COPY anywhere: no byline label, no "written by", no contributor
  * line. The Article type has no author field and this file gives nothing to
@@ -39,7 +41,7 @@ export const insightsHero = {
 };
 
 /**
- * Shown when getArticles() returns nothing, which is today.
+ * Shown when getArticles() returns nothing.
  *
  * It routes both audiences somewhere useful. It does not promise a date,
  * apologise, or imply something is broken.
@@ -90,7 +92,16 @@ export const articleDetail = {
   eyebrow: "Insights",
   publishedLabel: "Published",
   updatedLabel: "Updated",
+  /** The key-takeaways heading itself comes from the article. */
+  faqHeading: "Frequently asked questions",
+  sourcesHeading: "Sources",
+  relatedHeading: "Related reading",
   backLabel: "All insights",
+  /** The modal's close control, and the visible route out of it. */
+  closeLabel: "Close article",
+  openPageLabel: "Open as a page",
+  /** Accessible name of a table's horizontal scroll region. */
+  tableLabel: "Data table",
 };
 
 export const insightsCta: CtaBandContent = {

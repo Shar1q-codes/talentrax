@@ -21,14 +21,13 @@ export const metadata: Metadata = buildMetadata({
 /**
  * The insights index.
  *
- * NO JSON-LD ON THIS PAGE. Not an ItemList, not a Blog, nothing. With nothing
- * published there is nothing to describe, and an ItemList of nothing is a
- * structured-data claim that we have a publication when we do not. The
- * BlogPosting markup belongs on the article - see insights/[slug]/page.tsx -
- * and `npm run check:seo` asserts that this page emits none.
+ * NO JSON-LD ON THIS PAGE. Not an ItemList, not a Blog, nothing. The
+ * BlogPosting and FAQPage markup belongs on the article - see
+ * insights/[slug]/page.tsx - and `npm run check:seo` asserts that this page
+ * emits none.
  *
- * Everything reads from getArticles(). When it starts returning articles the
- * list appears with no change to this file.
+ * Everything reads from getArticles(). The list renders when it returns
+ * articles and the empty state when it does not; both branches are real.
  */
 export default async function Page() {
   const articles = await getArticles();

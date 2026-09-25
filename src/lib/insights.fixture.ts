@@ -32,26 +32,73 @@ export const fullArticle: Article = {
   id: `${FIXTURE_SENTINEL}-0001`,
   slug: `${FIXTURE_SENTINEL}-full-article`,
   title: `${FIXTURE_SENTINEL} Fixture article with every block kind`,
-  standfirst: "A fixture standfirst, which doubles as the meta description.",
+  metaTitle: `${FIXTURE_SENTINEL} Fixture meta title`,
+  metaDescription: "A fixture meta description, which is also the BlogPosting description.",
+  summary: "A fixture summary: the opening paragraph that answers the question.",
+  keyTakeaways: {
+    heading: "Key takeaways",
+    items: ["Fixture takeaway one.", "Fixture takeaway two."],
+  },
   datePublished: "2026-09-01",
   dateModified: "2026-09-14",
   body: [
     { kind: "paragraph", text: "First fixture paragraph." },
-    { kind: "heading", text: "A fixture subheading" },
-    { kind: "paragraph", text: "Second fixture paragraph." },
-    { kind: "list", items: ["Fixture item one.", "Fixture item two."] },
+    { kind: "heading", level: 2, text: "A fixture subheading" },
+    {
+      kind: "paragraph",
+      text: "Second fixture paragraph with a link to a fixture and one outside.",
+      links: [
+        { start: 34, end: 48, href: `/insights/${FIXTURE_SENTINEL}-unmodified` },
+        { start: 53, end: 64, href: "https://fixture.example.com/outside" },
+      ],
+    },
+    {
+      kind: "list",
+      ordered: false,
+      items: [
+        { text: "Fixture item one." },
+        { text: "Fixture item two, linked.", links: [{ start: 18, end: 24, href: "/contact" }] },
+      ],
+    },
+    { kind: "heading", level: 3, text: "A fixture sub-subheading" },
+    { kind: "list", ordered: true, items: [{ text: "Fixture step one." }, { text: "Fixture step two." }] },
+    {
+      kind: "table",
+      header: ["Fixture column", "Fixture value"],
+      rows: [
+        ["Fixture row one", "1"],
+        ["Fixture row two", "2"],
+      ],
+    },
   ],
+  faqs: [
+    {
+      question: "Is this a fixture question?",
+      answer: [{ text: "Yes." }, { text: "It has a second paragraph so the join is exercised." }],
+    },
+    { question: "Is this the second fixture question?", answer: [{ text: "Also yes." }] },
+  ],
+  sources: [
+    { name: "Fixture source", url: "https://fixture.example.com/source" },
+  ],
+  related: [`${FIXTURE_SENTINEL}-unmodified`],
 };
 
-/** Never edited, so dateModified equals datePublished. */
+/** Never edited, so dateModified equals datePublished. No FAQ, no related. */
 export const unmodifiedArticle: Article = {
   id: `${FIXTURE_SENTINEL}-0002`,
   slug: `${FIXTURE_SENTINEL}-unmodified`,
   title: `${FIXTURE_SENTINEL} Fixture article never edited`,
-  standfirst: "A fixture standfirst for an article that was never edited.",
+  metaTitle: `${FIXTURE_SENTINEL} Fixture unmodified meta title`,
+  metaDescription: "A fixture meta description for an article that was never edited.",
+  summary: "A fixture summary for an article that was never edited.",
+  keyTakeaways: { heading: "Key takeaways", items: ["Only one fixture takeaway."] },
   datePublished: "2026-09-10",
   dateModified: "2026-09-10",
   body: [{ kind: "paragraph", text: "Only one fixture paragraph here." }],
+  faqs: [],
+  sources: [{ name: "Fixture source", url: "https://fixture.example.com/source" }],
+  related: [],
 };
 
 export const fixturePublisher = {
