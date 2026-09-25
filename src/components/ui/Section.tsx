@@ -52,6 +52,7 @@ export function SectionHeader({
   headingId,
   tone = "default",
   align = "left",
+  flush = false,
 }: {
   eyebrow?: string;
   heading: string;
@@ -59,13 +60,15 @@ export function SectionHeader({
   headingId: string;
   tone?: Tone;
   align?: "left" | "center";
+  /** No bottom margin: the caller's own header row provides the spacing. */
+  flush?: boolean;
 }) {
   const isBrand = tone === "brand";
   const alignment =
     align === "center" ? "text-center mx-auto max-w-3xl" : "max-w-3xl";
 
   return (
-    <div className={`${alignment} mb-12 lg:mb-16`}>
+    <div className={`${alignment} ${flush ? "" : "mb-12 lg:mb-16"}`}>
       {eyebrow ? (
         <p
           className={`mb-3 text-sm font-semibold tracking-widest uppercase ${

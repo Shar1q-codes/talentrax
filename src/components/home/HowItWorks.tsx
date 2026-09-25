@@ -10,7 +10,8 @@ import { howItWorks } from "@/content/home";
  */
 export function HowItWorks() {
   return (
-    <Section id="how-it-works" tone="muted" labelledBy="how-it-works-heading">
+    // Default surface: the latest-articles rail above it is muted.
+    <Section id="how-it-works" labelledBy="how-it-works-heading">
       <SectionHeader
         headingId="how-it-works-heading"
         eyebrow={howItWorks.eyebrow}
@@ -22,7 +23,7 @@ export function HowItWorks() {
         {howItWorks.steps.map((step) => (
           <li key={step.id} className="flex flex-col">
             {/* text-brand, not a faint grey: the contrast bar applies to
-                decorative text too (10.2:1 on --color-surface-muted). */}
+                decorative text too (11.2:1 on --color-surface). */}
             <span
               aria-hidden="true"
               className="text-5xl font-bold tracking-tight text-brand"

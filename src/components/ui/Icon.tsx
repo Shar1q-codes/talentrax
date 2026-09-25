@@ -4,8 +4,10 @@ import type { IconName } from "@/content/types";
  * Inline SVG icon set. No icon library, no external requests.
  *
  * Content data carries an icon *name* (a plain string, CMS-safe); this file
- * owns the geometry. Every icon is decorative: it always sits beside a text
- * label, so it is aria-hidden and contributes nothing to the accessible name.
+ * owns the geometry. Every icon is decorative and aria-hidden: it sits
+ * beside a text label, or - pause, play and the two chevrons, the
+ * icon-only rail controls - in a button whose aria-label carries the name.
+ * It never contributes to the accessible name itself.
  *
  * Colour comes from `currentColor`, so icons inherit whatever token the
  * surrounding text uses and can never drift out of contrast on their own.
@@ -99,6 +101,15 @@ const paths: Record<IconName, React.ReactNode> = {
       <path d="M12 17h.01" />
     </>
   ),
+  pause: (
+    <>
+      <rect x="6" y="5" width="4" height="14" rx="1" />
+      <rect x="14" y="5" width="4" height="14" rx="1" />
+    </>
+  ),
+  play: <path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z" />,
+  "chevron-left": <path d="m15 18-6-6 6-6" />,
+  "chevron-right": <path d="m9 18 6-6-6-6" />,
 };
 
 export function Icon({

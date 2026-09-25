@@ -19,7 +19,7 @@
  */
 
 import { engagementModels } from "./taxonomy";
-import type { Cta, CtaBandContent, IconName } from "./types";
+import type { Cta, CtaBandContent, IconName, RailControls } from "./types";
 
 /* ---------------------------------------------------------------- 2. Hero */
 
@@ -243,7 +243,7 @@ export const split: SplitContent = {
   ],
 };
 
-/* -------------------------------------------------------- 6. How it works */
+/* -------------------------------------------------------- 7. How it works */
 
 export type Step = {
   id: string;
@@ -297,7 +297,50 @@ export const howItWorks: HowItWorksContent = {
   ],
 };
 
-/* ------------------------------------------------------ 7. Closing CTA band */
+/* ------------------------------------------------- 6. Latest articles rail */
+
+/**
+ * The rail's furniture only. The cards are real imported articles from
+ * getArticles(), never copy typed here: the home page once carried three
+ * invented article cards and they had to be torn out. If getArticles()
+ * returns nothing, the section does not render at all.
+ *
+ * Cards carry a title and the summary. No date (every article carries the
+ * same import date), no author, no reading time, no category.
+ */
+export type LatestArticlesContent = {
+  eyebrow: string;
+  heading: string;
+  intro: string;
+  /** Accessible name of the keyboard-focusable scroll region. */
+  railLabel: string;
+  /** How many of the newest articles the rail shows. The rest are on /insights. */
+  limit: number;
+  /**
+   * The icon-only previous, next and pause buttons. Each label is the
+   * button's accessible name, so it says what pressing it will do.
+   */
+  controls: RailControls;
+  allLink: Cta;
+};
+
+export const latestArticles: LatestArticlesContent = {
+  eyebrow: "Insights",
+  heading: "Latest articles",
+  intro:
+    "Guides to hiring in healthcare, each with its sources linked.",
+  railLabel: "Latest articles, scrolls sideways",
+  limit: 6,
+  controls: {
+    previousLabel: "Scroll to previous articles",
+    nextLabel: "Scroll to next articles",
+    pauseLabel: "Pause auto-scroll",
+    playLabel: "Play auto-scroll",
+  },
+  allLink: { label: "All articles", href: "/insights", variant: "secondary" },
+};
+
+/* ------------------------------------------------------ 8. Closing CTA band */
 
 export const closingCta: CtaBandContent = {
   heading: "Have a role to fill?",

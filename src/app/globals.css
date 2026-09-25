@@ -201,6 +201,19 @@ p {
    ACTIVE MATTERS MORE THAN HOVER: most visits are on a phone, where hover
    does not exist, and this is the single thing that makes a tap feel
    answered. Transform only, so nothing around it moves. */
+/* A scroll container with no visible scrollbar. Still scrollable by touch,
+   wheel, trackpad and keyboard. Used only by the infinite article rail:
+   a native scrollbar shows a finite range for content that has none, and
+   its thumb jumps on every recentre although the cards do not move. The
+   rail's previous/next buttons are the visible manual control instead. */
+.scrollbar-hidden {
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 .pressable {
   transition-property: transform, color, background-color, border-color;
   transition-duration: var(--duration-fast);
