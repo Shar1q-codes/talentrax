@@ -86,8 +86,6 @@ withdrawn models are absent. That assertion is why "RPO" and
 
 ## Stack
 
-Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind CSS v4 · React 19.
-
 - Tailwind v4 is **CSS-first**: there is no `tailwind.config.js`. Theme tokens
   live in the `@theme` block in `src/app/globals.css`.
 - Never hand-pin `next`, `react` or `react-dom` versions.
@@ -126,14 +124,7 @@ different specialties.
 
 ### 1. Content lives in data files, never inline in components
 
-All copy and navigation live in typed objects under `src/content/`:
-
-| File | Owns |
-| --- | --- |
-| `content/site.ts` | company name, tagline, contact details, social, `SITE_URL` |
-| `content/navigation.ts` | nav tree, footer columns, the coming-soon route registry |
-| `content/home.ts` | every landing page section's copy |
-
+All copy and navigation live in typed objects under `src/content/`.
 Components import a typed object and map over it. **A new nav link or a copy
 change is an edit to `src/content/`, not to a component.** This site moves to a
 CMS later; when it does, only the data source changes and no component is
@@ -302,31 +293,6 @@ with its own explanation, not a gap in a sentence.
 
 ## Routes
 
-Built (indexable, in the sitemap):
-
-```
-/                             /insights
-/employers
-/employers/services           /locations
-/employers/request-talent     /about
-/job-seekers                  /contact
-/job-seekers/upload-resume    /faq
-/jobs                         /resources
-/jobs/[slug]  (one per        /privacy-policy
-              posting: none)  /terms
-                              /accessibility
-                              /insights/[slug]  (one per imported
-                                                 article: 30)
-```
-
-Built, but deliberately noindex and **absent from the sitemap**:
-
-```
-/login
-/register
-/forgot-password
-```
-
 Nothing is coming soon any more: every route is built. `comingSoonRoutes` in
 `content/navigation.ts` is empty and the shared `ComingSoon` component has no
 callers. Both are kept as the mechanism for the next unbuilt section rather
@@ -406,16 +372,8 @@ board is empty - an ItemList of nothing is a claim we have listings - and
 slug returns 404, and that no posting URL has leaked into the sitemap while
 `getJobs()` is empty. That is all there is to check against zero postings.
 
-**Add when real postings exist**, against a live posting URL:
-
-- exactly one `<script type="application/ld+json">`, and it parses;
-- `@type` is `JobPosting`, with `title`, `description`, `datePosted`,
-  `validThrough`, `hiringOrganization` and `jobLocation` all present;
-- `baseSalary` is present with a min, a max and a `unitText` - the pay range
-  is the promise this site makes, and the type enforces it in code, so the
-  served HTML should be checked too;
-- `validThrough` parses and is in the future;
-- the posting appears in the sitemap, and an expired one answers 410.
+**The check:seo assertions to add when real postings exist** are listed in
+the `wire-expired-postings` skill.
 
 ### /locations — no market list, and no per-state pages
 
@@ -454,41 +412,12 @@ the next import overwrites them. A fix to an article is a fix to the source
 document followed by `npm run import:articles -- <directory-of-docx>`.
 Hand-copying is how figures drift.
 
-**What the importer does, and why:**
-
-- An article is a document with a "SEO and optimization notes" section.
-  The client's bundle also carries strategy and monthly audit documents;
-  they are skipped and reported, and **must not be committed**. `*.docx`
-  and any zip at the root are gitignored for that reason.
-- **Stripped:** the whole SEO notes section (after reading the SEO title,
-  meta description and URL out of it), the byline placeholder, and the
-  "Related reading" / "Learn more" / closing call-to-action sections.
-  Cross-links to other imported articles from those sections survive as
-  `related` slugs, verified to exist. The script refuses to write if any
-  `[A`-style placeholder, "not for publication" or capital-R `TalentRax`
-  survives.
-- **Inline links are marks on the prose.** A paragraph, list item or FAQ
-  answer is `{ text, links?: [{ start, end, href }] }`. The importer
-  resolves every document link before writing it: a link to an imported
-  article becomes `/insights/<slug>`, a link to a page this site has (a
-  `src/app/<path>/page.tsx` exists) becomes that path, an https link
-  elsewhere is kept, and anything else keeps its text and loses the link,
-  with the target reported. The documents link to `/employers/how-we-work`
-  and `/employers/healthcare/*`, which do not exist; those are the dropped
-  ones. Links between the 30 articles are a ranking signal for the whole
-  cluster, which is why they are carried rather than flattened. Cells and
-  takeaways are plain strings.
-- **Preserved exactly:** every figure and every attribution (see **Content
-  rules**). Sources come through as name plus https URL and render as
-  visible links. Key takeaways keep their own heading, because two articles
-  label the box with the period the figures cover.
-- **Dates.** The documents say "Last updated: <Month> <Year>", and at import
-  every one of those months was in the future. A future `datePublished` on
-  a BlogPosting is wrong, so a future month is never imported: the article
-  gets the import date and is listed in the report. A past month becomes the
-  first of that month. Once written, an article's `datePublished` is
-  preserved across re-imports and `dateModified` moves only when its content
-  changes.
+**What the importer strips, keeps and resolves is in the header of
+`scripts/import-articles.ts`.** Two decisions live here because they are
+not derivable: every stated date was in the future at import, so an article
+carries the import date and its `datePublished` is preserved across
+re-imports; and the planning documents in the client's bundle are skipped
+and **must not be committed** (`*.docx` and root zips are gitignored).
 
 **No author field exists on the Article type**, and `article-schema.ts` emits
 no `author`. Nobody has been named anywhere on this site; adding the field is
@@ -545,12 +474,6 @@ app/insights/[slug]/page.tsx                 the full page, unchanged
   Escape and the backdrop all call `router.back()`, which is the same thing
   the browser's back button does. The index stays mounted underneath the
   whole time, so its scroll position is intact when the dialog goes.
-- **It is a native `<dialog>` opened with `showModal()`**
-  (`components/insights/ArticleModal.tsx`): `role="dialog"`, `aria-modal`,
-  labelled by the article title, Tab trapped in the top layer, Escape via
-  `cancel`, and the rest of the page inert to pointer, keyboard and
-  assistive technology. Focus lands on the close control and returns to the
-  card that opened it, found by href, when the dialog unmounts.
 - **The scroll lock releases in the commit that removes the dialog.** The
   body overflow is set and restored in a `useLayoutEffect`; that cleanup
   runs synchronously during React's commit, before the App Router's own
@@ -564,11 +487,6 @@ app/insights/[slug]/page.tsx                 the full page, unchanged
   `::backdrop` and the sticky bar), with an `@supports` fallback to solid
   where it is unavailable. The bar's worst-case background is measured in
   the comment beside `.article-modal` in `globals.css` (ink-muted 6.4:1).
-- Below `sm` it is a full-screen sheet; above it a centred panel that
-  scrolls inside itself. Motion is transform and opacity on the tokens via
-  `@starting-style`, and the global reduced-motion rule removes it.
-- "Open as a page" in the bar is a plain `<a>` on purpose: a full load,
-  which lands on the full page instead of being intercepted again.
 
 **Never add a sample article.** The home page shipped three invented article
 cards once and they had to be torn out. Fixtures live in
@@ -588,33 +506,10 @@ parses where one is emitted.
 ### Expired job postings
 
 **A posting past `validThrough` must answer 410 Gone.** Not 404, and never a
-redirect: 410 is the signal Google treats as definitive removal, and anything
-softer leaves a dead job in the index for weeks.
-
-What exists today:
-
-- `isExpired(job, now)` in `src/lib/jobs.ts`, unit tested at the day
-  boundary.
-- `generateStaticParams` filters expired postings, so one never gets a page.
-- The detail page calls `notFound()` as a backstop for a posting that
-  expires between builds.
-- `getRecentlyExpiredSlugs()` returns the slugs the 410 layer needs, since
-  `getJobs()` no longer returns them.
-- The sitemap lists live postings only.
-
-**What is not wired, and why.** A page component cannot set a status code in
-Next, so a real 410 has to come from middleware or a host rule - both of
-which are server code, and this repo is deliberately backend-free (see the
-top of this file). That is a decision to take deliberately rather than by
-accident, so it is deferred until there are postings that can expire. With
-`getJobs()` returning nothing, nothing can. When jobs land, wire ONE of:
-
-1. `src/middleware.ts` matching `/jobs/:slug`, answering 410 for anything in
-   `getRecentlyExpiredSlugs()`; or
-2. generated `[[redirects]]` in `netlify.toml` with `status = 410`, built
-   from the same list.
-
-Whichever, the list comes from `getRecentlyExpiredSlugs()` and nowhere else.
+redirect. What exists today, and the two ways to wire the 410 when real
+postings land, are in the `wire-expired-postings` skill
+(`.claude/skills/wire-expired-postings/SKILL.md`); the list of slugs comes
+from `getRecentlyExpiredSlugs()` and nowhere else.
 
 ## The account screens
 
@@ -814,17 +709,7 @@ deploys can carry their own origin instead of all claiming production's.
 
 ## Commands
 
-```bash
-npm run dev       # dev server, http://localhost:3000
-npm run build     # production build
-npm run start     # serve the production build
-npm run lint      # eslint
-npm test          # unit tests (node --test, no framework)
-npm run check:seo # assert the SEO invariants against a running server
-npm run import:articles -- <dir>   # re-import the insights articles from .docx
-```
-
-`npm test` runs Node's built-in test runner directly over TypeScript - no
+The scripts are in `package.json`. `npm test` runs Node's built-in test runner directly over TypeScript - no
 Jest, no Vitest, no transform step, no new dependency. It covers the job
 board and its JobPosting schema, the imported articles and their BlogPosting
 and FAQPage schemas, and the taxonomy. That is not under-testing by neglect:
