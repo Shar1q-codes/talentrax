@@ -529,6 +529,45 @@ for path in "${ARTICLE_SAMPLE[@]}"; do
   done < <(ld_payloads "$html")
 done
 
+# --- 8c. the home page's latest-articles rail -------------------------------
+# All six cards are in the server HTML (nothing loads on scroll), they are the
+# first six the index lists - one explicit order, content/article-order.ts,
+# for both - every one resolves, and the section links on to the index.
+echo
+HOME_RAIL_SIZE=6
+home_articles=()
+while IFS= read -r path; do
+  [ -n "$path" ] && home_articles+=("$path")
+done < <(printf '%s' "$home_html" | grep -o "href=\"$ARTICLE_INDEX/[a-z0-9-]*\"" | sed 's/^href="//; s/"$//' | awk '!seen[$0]++')
+
+if [ "${#home_articles[@]}" = "$HOME_RAIL_SIZE" ]; then
+  pass "home page server HTML links to $HOME_RAIL_SIZE articles"
+else
+  fail "home page links to ${#home_articles[@]} article(s), expected $HOME_RAIL_SIZE"
+fi
+
+index_first=$(printf '%s' "$insights_html" | grep -o "href=\"$ARTICLE_INDEX/[a-z0-9-]*\"" | sed 's/^href="//; s/"$//' | awk '!seen[$0]++' | head -n "$HOME_RAIL_SIZE")
+if [ "$(printf '%s\n' "${home_articles[@]}")" = "$index_first" ]; then
+  pass "home rail shows the first $HOME_RAIL_SIZE articles of $ARTICLE_INDEX, in its order"
+else
+  fail "home rail does not match the first $HOME_RAIL_SIZE articles of $ARTICLE_INDEX"
+fi
+
+for path in "${home_articles[@]}"; do
+  code=$(status_of "$BASE_URL$path")
+  if [ "$code" = "200" ]; then
+    pass "home rail link $path returns 200"
+  else
+    fail "home rail link $path returns $code"
+  fi
+done
+
+if printf '%s' "$home_html" | grep -qF "href=\"$ARTICLE_INDEX\""; then
+  pass "home page links to $ARTICLE_INDEX for the rest"
+else
+  fail "home page does not link to $ARTICLE_INDEX"
+fi
+
 # --- 9. the name is spelled correctly everywhere ----------------------------
 # "TalentRax" with a capital R is wrong in mixed case. An all-caps TALENTRAX
 # wordmark is fine, so match the capital R specifically rather than the word.

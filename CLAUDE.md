@@ -170,6 +170,9 @@ or a curve**. If a third duration seems necessary, the interaction is wrong.
   skeleton loaders on statically rendered pages. **No animation library** -
   all of this is CSS, and 40KB of JavaScript for hover states is the opposite
   of premium.
+  **One exception, at the client's explicit request:** the home page's
+  latest-articles rail drifts continuously (see **The insights index**). It
+  is the only moving content on the site and the ban stands everywhere else.
 - The header has **one scroll threshold and one change**: the bottom border
   gains colour. It does not shrink, change height, or hide on scroll.
 
@@ -405,6 +408,65 @@ returns them newest first, `/insights/[slug]` generates one page each, and
 the sitemap lists them. The empty state still works: if the source is ever
 empty again the index renders it, and `check:seo` fails, on purpose, until
 someone decides that is intended.
+
+**Order is an explicit slug list, not the date.** Every article carries the
+same import date, so `sortArticles()` ranks by `src/content/article-order.ts`
+(the client's scheduled month per document, newest first). Do not sort by
+`datePublished` until the articles carry real, distinct dates. A hand-owned
+list rather than an `order` field, because the article files are regenerated
+on every import. `npm test` fails if the list and the imported articles
+differ, so a new import has to be placed before it builds.
+
+**The home page rail** (`components/home/LatestArticles.tsx`) shows the
+first six of that same order and links on to `/insights`. Cards are title
+and summary only, and link to the full page; only the index intercepts into
+the modal. It is a native overflow-x + scroll-snap region in
+`components/ui/ScrollRail.tsx`, whose one focus handler exists because
+browsers do not scroll a focused card that is already partly visible.
+`check:seo` asserts the six cards are in the server HTML, match the index's
+first six, and resolve.
+
+It drifts continuously and loops, at the client's request: 35px/s
+(`DRIFT_PX_PER_SECOND`), driven by requestAnimationFrame writing
+`scrollLeft` - native scrolling, never a transformed track. The cards render
+twice; the copy is aria-hidden, its links are tabIndex -1, and it is not
+displayed until the rail sets `data-looping`, so Tab reaches six links and
+reduced motion shows six cards.
+
+**The user's scroll position always wins, because the loop holds no
+position.** Each frame reads `scrollLeft`, adds drift x elapsed, wraps and
+writes. The only things carried between frames are the value it last wrote
+(to tell its own scroll events from the user's - a mismatch pauses it via
+the scroll listener, which is what catches a scrollbar drag) and a sub-pixel
+remainder the browser's rounding would otherwise eat. Do not reintroduce a
+position, origin or cached offset: a stale one is what every drag bug here
+has been.
+
+**It wraps inside a home band, not `[0, setWidth)`.** `scrollLeft` cannot go
+below 0, so a rail parked at 0 can never be dragged left past the start. The
+band `[lo, lo + setWidth)` has `lo` centred in the spare scroll range; the
+loop subtracts or adds one set width at either edge, and when a user scroll
+comes to rest outside the band it is shifted back the same way - onto
+identical content. Set width is measured every frame, unrounded
+(`getBoundingClientRect`, not `offsetLeft`), as copy minus first item, which
+counts the gap between the sets.
+**Snap is off whenever the rail can drift, paused included** - switching it
+on at a press is what made a scrollbar drag snap backwards on release.
+Snap is on only under reduced motion.
+
+What makes it acceptable is what stops it: a real pause button that never
+auto-resumes (WCAG 2.2.2) - icon-only, in the header row beside "All
+articles", named by aria-label, and never hover-only - a mouse actually moving over it, focus inside, a
+sideways wheel, a press or any scroll the loop did not write, a touch, the rail off-screen and the tab hidden.
+Under reduced motion it never starts and the button is hidden. Those
+conditions are listed in `ScrollRail.tsx`; removing any one is a
+regression, not a tweak. **Removing the pause button makes the section
+fail WCAG 2.2.2**; restyle it, do not remove it. A vertical wheel and a pointer the page scrolled
+underneath deliberately do not pause it - they did once, and the rail never
+moved for anyone who scrolled down with a mouse. No dots, counters or slide
+indicators. It sits between the split section and how it works, on the
+muted tone; how it works moved to the default surface so the alternation
+holds.
 
 **Every article is imported, never typed in.** The importer is the only way
 content enters `src/content/articles/`; the files say so in their header and

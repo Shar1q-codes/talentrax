@@ -14,6 +14,7 @@ import { describe, it } from "node:test";
 import { getArticleBySlug, getArticles, sortArticles } from "./insights.ts";
 import type { Article } from "./insights.ts";
 import { FIXTURE_SENTINEL, fullArticle } from "./insights.fixture.ts";
+import { articleOrder } from "../content/article-order.ts";
 
 const articles = await getArticles();
 
@@ -50,17 +51,8 @@ describe("getArticles", () => {
     }
   });
 
-  it("orders newest first, then by title", () => {
-    for (let i = 1; i < articles.length; i += 1) {
-      const previous = articles[i - 1];
-      const current = articles[i];
-      const byDate = current.datePublished.localeCompare(previous.datePublished);
-      assert.ok(
-        byDate < 0 || (byDate === 0 && previous.title.localeCompare(current.title) <= 0),
-        `${previous.slug} should sort before ${current.slug}`,
-      );
-    }
-  });
+  // Order is asserted under "articleOrder" below: by the explicit list,
+  // never by datePublished, which is one import date for every article.
 });
 
 describe("getArticleBySlug", () => {
@@ -196,18 +188,37 @@ describe("every imported article", () => {
 });
 
 describe("sortArticles", () => {
-  it("does not mutate its input and orders newest first", () => {
-    const older: Article = { ...fullArticle, slug: "a", datePublished: "2026-01-01" };
-    const newer: Article = { ...fullArticle, slug: "b", datePublished: "2026-02-01" };
-    const input = [older, newer];
-    const sorted = sortArticles(input);
-    assert.deepEqual(sorted.map((a) => a.slug), ["b", "a"]);
-    assert.deepEqual(input.map((a) => a.slug), ["a", "b"]);
+  it("does not mutate its input and follows the explicit order", () => {
+    const first: Article = { ...fullArticle, slug: "a", datePublished: "2026-01-01" };
+    const second: Article = { ...fullArticle, slug: "b", datePublished: "2026-02-01" };
+    const input = [second, first];
+    // The later date sorts second: the list decides, not datePublished.
+    const sorted = sortArticles(input, ["a", "b"]);
+    assert.deepEqual(sorted.map((a) => a.slug), ["a", "b"]);
+    assert.deepEqual(input.map((a) => a.slug), ["b", "a"]);
   });
 
-  it("breaks a date tie by title", () => {
+  it("puts unlisted slugs last, by title", () => {
+    const listed = { ...fullArticle, slug: "listed", title: "Zulu" };
     const b = { ...fullArticle, slug: "b", title: "Beta" };
     const a = { ...fullArticle, slug: "a", title: "Alpha" };
-    assert.deepEqual(sortArticles([b, a]).map((x) => x.slug), ["a", "b"]);
+    assert.deepEqual(
+      sortArticles([b, listed, a], ["listed"]).map((x) => x.slug),
+      ["listed", "a", "b"],
+    );
+  });
+});
+
+describe("articleOrder", () => {
+  it("names every imported article exactly once, and nothing else", () => {
+    assert.equal(new Set(articleOrder).size, articleOrder.length, "duplicate slug");
+    assert.deepEqual(
+      [...articleOrder].sort(),
+      articles.map((a) => a.slug).sort(),
+    );
+  });
+
+  it("is the order getArticles() returns", () => {
+    assert.deepEqual(articles.map((a) => a.slug), [...articleOrder]);
   });
 });

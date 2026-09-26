@@ -24,7 +24,11 @@ export type IconName =
   | "server"
   | "chart"
   | "check"
-  | "alert";
+  | "alert"
+  | "pause"
+  | "play"
+  | "chevron-left"
+  | "chevron-right";
 
 export type Cta = {
   label: string;
@@ -34,6 +38,23 @@ export type Cta = {
    * The two `*-inverse` variants are for use on dark brand bands only.
    */
   variant: "primary" | "secondary" | "inverse" | "outline-inverse";
+};
+
+/**
+ * The controls of an infinite scroll rail: the drift's pause button and
+ * the previous/next buttons. Every label is the button's accessible name -
+ * the buttons are icon-only. The drift speed is DRIFT_PX_PER_SECOND in
+ * components/ui/ScrollRail.tsx - behaviour, not copy.
+ */
+export type RailControls = {
+  /** Scrolls back by about one card. */
+  previousLabel: string;
+  /** Scrolls on by about one card. */
+  nextLabel: string;
+  /** The pause button's name while it is moving. */
+  pauseLabel: string;
+  /** Button text once the user has paused it. */
+  playLabel: string;
 };
 
 /** Eyebrow + heading + intro, the standard opening of a page section. */
