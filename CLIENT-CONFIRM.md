@@ -203,3 +203,25 @@ delete the matching `OMITTED` comment there, and strike the item here.
       under Professional, need a desk of their own, or stay untagged.
     *Omitted: nothing - every article is on the site as written, minus the
     items above.*
+
+## ATS database — needs client answer
+
+18. **Workflow vocabularies and audit retention.** The site defines the
+    desks, specialties, engagement models, work modes and states, and the
+    database is seeded from them. It does not define the steps of the
+    recruiting process, so `supabase/migrations/20261001000100_foundation.sql`
+    seeds working defaults the client has not seen:
+    - **Job statuses:** draft, published, paused, closed.
+    - **Lead statuses:** new, contacted, qualified, converted, disqualified.
+    - **Candidate statuses:** new, active, placed, inactive, do-not-contact.
+    - **Submission statuses:** draft, pending BDM review, approved, sent to
+      employer, interviewing, offered, placed, rejected, withdrawn.
+    These are editable rows, not code. The ones the schema's own rules name
+    (draft, published, closed, new, do-not-contact, and the four submission
+    statuses from "sent to employer" onward) are fixed. Confirm the rest,
+    or supply the client's own.
+    - **Audit retention.** `audit_settings.retention_days` is NULL: the audit
+      log is kept indefinitely and nothing purges it. How long must it be
+      kept, and is there a point after which it must be deleted? This is the
+      same question as item 1, asked of the audit trail.
+    *Omitted: any purge job, and any retention period.*

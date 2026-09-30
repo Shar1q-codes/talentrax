@@ -6,6 +6,12 @@ US staffing and recruiting (healthcare, IT, professional). Greenfield rebuild.
 Public marketing site only: **no backend, no CMS, no database, no auth, no API
 routes.** Do not add any.
 
+The one exception is `supabase/`: the ATS database schema, as SQL migrations
+and nothing else. Nothing in `src/` connects to it, and no client code, API
+route or environment variable for it exists yet. Adding any of those is the
+architectural decision this paragraph guards, not a follow-on detail. See
+**The ATS schema** below.
+
 ## Brand
 
 **The name is "Talentrax Global"** — one word, capital T, **lowercase r**.
@@ -759,6 +765,37 @@ section the section is gone too (rule 6). Every omission is marked with an
 That file also carries a release gate: **`/job-seekers/upload-resume` must
 not be publicly reachable until the privacy items are answered and the policy
 has been through the client lawyer review.**
+
+## The ATS schema
+
+`supabase/migrations/` is the source of truth for the ATS database; nothing
+is created in the dashboard. How to run it, the design decisions and what is
+deliberately missing are in `supabase/README.md`. The rules that bind every
+future migration:
+
+- **Applications and submissions are different tables.** An application is a
+  candidate's own act; a submission is Talentrax putting them forward.
+- **The consent and approval gate is a CHECK constraint** on `submissions`:
+  nothing reaches an employer without candidate consent and either a BDM
+  approval or a sanctioned direct submission. Do not move it into a policy
+  or the application.
+- **A job cannot exist without a pay range**, and `is_test` defaults true.
+- **RLS on every table, no DELETE policy anywhere, anon SELECT on nothing.**
+  Soft delete only. The audit log is append-only for every role.
+- **Every policy reads role through `private.*` helpers.** Entity
+  visibility is defined once, in a `private.can_*` function.
+- **Employers read three views, never base tables.** RLS filters rows, not
+  columns.
+
+`supabase/tests/database/` asserts all of it with pgTAP, including catalog
+checks that fail when a new table forgets RLS, the standard columns, the
+soft-delete policy or an index on a foreign key. Run them before committing
+a migration.
+
+The taxonomy tables are seeded from `src/content/taxonomy.ts`. Changing a
+desk, specialty or engagement model there needs a matching migration and
+an update to the values `00_schema.test.sql` pins, which are copied from that
+file. Nothing reads the TypeScript at test time.
 
 ## SEO baseline
 
