@@ -401,7 +401,7 @@ paragraph in `content/locations.ts` stays.
 
 ### The insights index
 
-Thirty articles, imported from the client's `.docx` files by
+Forty articles, imported from the client's `.docx` files by
 `scripts/import-articles.ts` into `src/content/articles/`, one typed file
 per article plus a generated index. `getArticles()` in `src/lib/insights.ts`
 returns them newest first, `/insights/[slug]` generates one page each, and

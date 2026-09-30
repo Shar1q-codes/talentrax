@@ -159,19 +159,24 @@ delete the matching `OMITTED` comment there, and strike the item here.
     concrete, which also means the business has to actually do them. They need
     sign-off from someone who can commit the company to them.
 
-17. **The imported insights articles.** Thirty articles were imported from
+17. **The imported insights articles.** Forty articles were imported from
     the client's documents by `scripts/import-articles.ts` (see CLAUDE.md,
-    "The insights index"). Four things in them need a decision:
+    "The insights index"): thirty healthcare and hiring articles, then ten
+    non-IT articles (manufacturing, supply chain, accounting, admin and HR).
+    Five things in them need a decision:
     - **Dates.** Every document says "Last updated" with a month between
       October 2026 and March 2027, all later than the import. A future
       `datePublished` is wrong in BlogPosting markup, so each article carries
-      the import date instead. Several are written from that future vantage
+      the import date instead: 2026-09-25 for the first thirty, 2026-09-30
+      for the ten non-IT articles, all stated as October 2026. Several are
+      written from that future vantage
       point ("As of January 2027, employers using AI in hiring face...",
-      "Healthcare Hiring Trends for 2027"). Confirm whether they publish now
+      "Healthcare Hiring Trends for 2027", and the pay transparency
+      article's "As of October 2026" state list). Confirm whether they publish now
       as written, or are held to the month each was written for.
     - **Internal links.** Links between the articles, and to pages this
       site has, are live in the text. The documents also link to
-      `/employers/how-we-work` (13 times) and
+      `/employers/how-we-work` (14 times) and
       `/employers/healthcare/{nursing,allied-health,non-clinical}`, none of
       which exist on this site; those hrefs were dropped and the link text
       stays as plain prose. The closing "tell us about it" call-to-action
@@ -186,6 +191,13 @@ delete the matching `OMITTED` comment there, and strike the item here.
       others, preserved exactly with their sources linked. Confirm the client
       is content to publish cited statistics on a site whose own copy carries
       none, and that someone will re-check the figures when the sources
-      publish their next editions.
+      publish their next editions. The pay transparency article summarises
+      state-by-state legal requirements with effective dates; it carries a
+      "not legal advice" line and cites law-firm sources, but it goes stale
+      whenever a state changes its law.
+    - **Desks.** The ten non-IT articles are not mapped to a desk in
+      `taxonomy.ts`. Manufacturing and supply chain do not sit cleanly under
+      Healthcare, Technology or Professional; confirm whether they belong
+      under Professional, need a desk of their own, or stay untagged.
     *Omitted: nothing - every article is on the site as written, minus the
     items above.*
