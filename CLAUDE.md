@@ -401,7 +401,7 @@ paragraph in `content/locations.ts` stays.
 
 ### The insights index
 
-Thirty articles, imported from the client's `.docx` files by
+Forty articles, imported from the client's `.docx` files by
 `scripts/import-articles.ts` into `src/content/articles/`, one typed file
 per article plus a generated index. `getArticles()` in `src/lib/insights.ts`
 returns them newest first, `/insights/[slug]` generates one page each, and
@@ -416,6 +416,20 @@ same import date, so `sortArticles()` ranks by `src/content/article-order.ts`
 list rather than an `order` field, because the article files are regenerated
 on every import. `npm test` fails if the list and the imported articles
 differ, so a new import has to be placed before it builds.
+
+**No date is displayed on any article** - not on the `/insights` cards, the
+full page or the modal. The dates in the data are import timestamps, not
+publication dates, and showing them made the order look broken: ten
+articles dated later sat below thirty dated earlier. `datePublished` and
+`dateModified` stay in the data and in the BlogPosting JSON-LD, which needs
+them; readers do not. **Dates return to the UI when the client supplies a
+real publication schedule** - CLIENT-CONFIRM.md item 17.
+
+The importer compares an existing article file with its regenerated text
+after normalising line endings on both sides, and moves `dateModified` only
+when that differs. With `core.autocrlf=true` a raw comparison saw every
+checked-out CRLF file as changed and bumped every date. Its report lists the
+articles whose content changed; a re-import of unchanged sources lists none.
 
 **The home page rail** (`components/home/LatestArticles.tsx`) shows the
 first six of that same order and links on to `/insights`. Cards are title
@@ -471,8 +485,26 @@ holds.
 **Every article is imported, never typed in.** The importer is the only way
 content enters `src/content/articles/`; the files say so in their header and
 the next import overwrites them. A fix to an article is a fix to the source
-document followed by `npm run import:articles -- <directory-of-docx>`.
-Hand-copying is how figures drift.
+document followed by a re-import. Hand-copying is how figures drift.
+
+**Run it over every source folder at once.** The forty articles come from
+two bundles - the thirty healthcare and hiring articles and the ten non-IT
+articles - and a run sees only the folders it is given:
+
+```bash
+npm run import:articles -- <healthcare-folder> <non-it-folder>
+```
+
+**Never run it over a single folder expecting a clean result.** It deletes
+nothing by default: an article whose document is not in the input is
+reported as "not in input, kept" and stays in the index and as a link
+target, so a one-folder run is harmless but incomplete. Deleting takes
+`--prune`, which lists the slugs, asks for confirmation and refuses in a
+non-interactive run. It also refuses outright when it would remove more
+than a quarter of the existing articles, because that is what a
+one-folder `--prune` looks like: thirty live URLs deleted behind a
+correct-looking run. Do not raise that threshold to get past it; pass both
+folders.
 
 **What the importer strips, keeps and resolves is in the header of
 `scripts/import-articles.ts`.** Two decisions live here because they are
@@ -779,8 +811,10 @@ those are the code here whose failure is silent and expensive. Everything
 else is content and layout, where a mistake is visible on the page.
 
 `import:articles` also runs on Node directly, with no dependency: the .docx
-is a zip and `node:zlib` inflates it. It takes the directory the documents
-are unpacked in and an optional `--date YYYY-MM-DD` for the import date.
+is a zip and `node:zlib` inflates it. It takes one or more directories the
+documents are unpacked in (all of them - see **The insights index**), an
+optional `--date YYYY-MM-DD` for the import date, and `--prune` to delete
+articles missing from the input.
 
 Test files import each other with explicit `.ts` extensions, which is why
 `allowImportingTsExtensions` is set in `tsconfig.json`. Both tested modules

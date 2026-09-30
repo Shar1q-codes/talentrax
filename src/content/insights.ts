@@ -81,8 +81,6 @@ export const articleList = {
   /** Live region on the index once there are articles. */
   countLabelOne: "1 article",
   countLabelMany: "articles",
-  /** Prefix on each card's date line. */
-  publishedLabel: "Published",
   readLabel: "Read this",
 };
 
@@ -90,8 +88,6 @@ export const articleList = {
 
 export const articleDetail = {
   eyebrow: "Insights",
-  publishedLabel: "Published",
-  updatedLabel: "Updated",
   /** The key-takeaways heading itself comes from the article. */
   faqHeading: "Frequently asked questions",
   sourcesHeading: "Sources",

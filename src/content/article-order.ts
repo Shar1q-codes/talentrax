@@ -5,8 +5,9 @@
  *
  * WHY A LIST AND NOT THE DATE. Every article carries the import date as its
  * datePublished (the source months were all in the future at import - see
- * scripts/import-articles.ts), so sorting by date is a thirty-way tie and
- * whatever breaks it is arbitrary. Do not go back to sorting by date until
+ * scripts/import-articles.ts), so sorting by date is a tie within each
+ * import batch, and across batches it reflects when a file was imported, not
+ * when the client scheduled it. Do not go back to sorting by date until
  * the articles carry real, distinct publication dates.
  *
  * WHY A LIST AND NOT AN `order` FIELD ON THE ARTICLE. The article files are
@@ -60,4 +61,14 @@ export const articleOrder: readonly string[] = [
   "direct-hire-placement-fees",
   "direct-hire-recruitment-process",
   "what-is-direct-hire-recruitment",
+  "entry-level-hiring-2027",
+  "ai-impact-admin-finance-hr-roles",
+  "job-hugging-recruiting-passive-candidates",
+  "manufacturing-hiring-skills-gap",
+  "non-it-hiring-trends-2027",
+  "pay-transparency-laws-2026",
+  "return-to-office-hiring",
+  "skills-based-hiring",
+  "supply-chain-logistics-hiring",
+  "hiring-accountants-cpa-pathway",
 ];
