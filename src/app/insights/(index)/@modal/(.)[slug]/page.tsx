@@ -3,13 +3,12 @@ import { notFound } from "next/navigation";
 
 import { ArticleBody } from "@/components/insights/ArticleBody";
 import { ArticleModal } from "@/components/insights/ArticleModal";
-import { articleDetail, INSIGHTS_PATH } from "@/content/insights";
+import { INSIGHTS_PATH } from "@/content/insights";
 import {
   getArticleBySlug,
   getArticles,
   getRelatedArticles,
 } from "@/lib/insights";
-import { formatPostedDate } from "@/lib/jobs-format";
 import { buildMetadata } from "@/lib/metadata";
 
 /**
@@ -61,7 +60,6 @@ export default async function InterceptedArticle({
   if (!article) notFound();
 
   const related = await getRelatedArticles(article);
-  const wasEdited = article.dateModified !== article.datePublished;
 
   return (
     <ArticleModal slug={article.slug} titleId={TITLE_ID}>
@@ -73,21 +71,6 @@ export default async function InterceptedArticle({
           {article.title}
         </h2>
         <p className="mt-4 text-lg text-ink-muted">{article.summary}</p>
-        <p className="mt-6 text-sm font-semibold tracking-widest text-ink-muted uppercase">
-          {articleDetail.publishedLabel}{" "}
-          <time dateTime={article.datePublished}>
-            {formatPostedDate(article.datePublished)}
-          </time>
-          {wasEdited ? (
-            <>
-              {" - "}
-              {articleDetail.updatedLabel}{" "}
-              <time dateTime={article.dateModified}>
-                {formatPostedDate(article.dateModified)}
-              </time>
-            </>
-          ) : null}
-        </p>
       </header>
 
       <div className="mt-10">

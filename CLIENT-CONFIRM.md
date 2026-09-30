@@ -173,7 +173,9 @@ delete the matching `OMITTED` comment there, and strike the item here.
       point ("As of January 2027, employers using AI in hiring face...",
       "Healthcare Hiring Trends for 2027", and the pay transparency
       article's "As of October 2026" state list). Confirm whether they publish now
-      as written, or are held to the month each was written for.
+      as written, or are held to the month each was written for. Until
+      there is a real publication schedule no date is shown on any article
+      page; the dates stay in the structured data only.
     - **Internal links.** Links between the articles, and to pages this
       site has, are live in the text. The documents also link to
       `/employers/how-we-work` (14 times) and

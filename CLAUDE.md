@@ -417,6 +417,20 @@ list rather than an `order` field, because the article files are regenerated
 on every import. `npm test` fails if the list and the imported articles
 differ, so a new import has to be placed before it builds.
 
+**No date is displayed on any article** - not on the `/insights` cards, the
+full page or the modal. The dates in the data are import timestamps, not
+publication dates, and showing them made the order look broken: ten
+articles dated later sat below thirty dated earlier. `datePublished` and
+`dateModified` stay in the data and in the BlogPosting JSON-LD, which needs
+them; readers do not. **Dates return to the UI when the client supplies a
+real publication schedule** - CLIENT-CONFIRM.md item 17.
+
+The importer compares an existing article file with its regenerated text
+after normalising line endings on both sides, and moves `dateModified` only
+when that differs. With `core.autocrlf=true` a raw comparison saw every
+checked-out CRLF file as changed and bumped every date. Its report lists the
+articles whose content changed; a re-import of unchanged sources lists none.
+
 **The home page rail** (`components/home/LatestArticles.tsx`) shows the
 first six of that same order and links on to `/insights`. Cards are title
 and summary only, and link to the full page; only the index intercepts into

@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { articleList } from "@/content/insights";
 import type { Article } from "@/lib/insights";
-import { formatPostedDate } from "@/lib/jobs-format";
 
 /**
  * The article index, once there is something to index.
@@ -13,10 +12,12 @@ import { formatPostedDate } from "@/lib/jobs-format";
  * nothing are worse than no filters, and there is no taxonomy to filter by
  * until articles exist to suggest one.
  *
- * A card carries a title, a date and the summary. No author - the Article
- * type has no such field (see lib/insights.ts) - and no reading time or view
- * count, both of which are numbers the content rules forbid and both of which
- * were torn out of the home page teaser once already.
+ * A card carries a title and the summary. No date - the dates in the data
+ * are import timestamps, not publication dates (see CLAUDE.md, "The
+ * insights index"). No author - the Article type has no such field (see
+ * lib/insights.ts) - and no reading time or view count, both of which are
+ * numbers the content rules forbid and both of which were torn out of the
+ * home page teaser once already.
  *
  * Server component: nothing here is interactive.
  */
@@ -32,14 +33,7 @@ export function ArticleList({ articles }: { articles: Article[] }) {
       <ul className="mt-6 flex flex-col gap-6">
         {articles.map((article) => (
           <Card as="li" key={article.id} className="flex flex-col">
-            <p className="text-sm font-semibold tracking-widest text-ink-muted uppercase">
-              {articleList.publishedLabel}{" "}
-              <time dateTime={article.datePublished}>
-                {formatPostedDate(article.datePublished)}
-              </time>
-            </p>
-
-            <h3 className="mt-3 text-xl font-bold text-ink">
+            <h3 className="text-xl font-bold text-ink">
               <Link
                 href={`/insights/${article.slug}`}
                 // From the index this navigation is intercepted into the

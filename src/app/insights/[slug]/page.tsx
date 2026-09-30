@@ -14,7 +14,6 @@ import {
   getArticles,
   getRelatedArticles,
 } from "@/lib/insights";
-import { formatPostedDate } from "@/lib/jobs-format";
 import { buildMetadata } from "@/lib/metadata";
 import { serializeJsonLd } from "@/lib/seo";
 
@@ -91,8 +90,6 @@ export default async function Page({ params }: PageProps<"/insights/[slug]">) {
       ? serializeJsonLd(faqPageJsonLdFromItems(article.faqs))
       : null;
 
-  const wasEdited = article.dateModified !== article.datePublished;
-
   return (
     <>
       <script
@@ -111,23 +108,7 @@ export default async function Page({ params }: PageProps<"/insights/[slug]">) {
         eyebrow={articleDetail.eyebrow}
         heading={article.title}
         intro={article.summary}
-      >
-        <p className="mt-8 text-sm font-semibold tracking-widest text-ink-muted uppercase">
-          {articleDetail.publishedLabel}{" "}
-          <time dateTime={article.datePublished}>
-            {formatPostedDate(article.datePublished)}
-          </time>
-          {wasEdited ? (
-            <>
-              {" - "}
-              {articleDetail.updatedLabel}{" "}
-              <time dateTime={article.dateModified}>
-                {formatPostedDate(article.dateModified)}
-              </time>
-            </>
-          ) : null}
-        </p>
-      </PageHeader>
+      />
 
       <Container>
         <div className="max-w-3xl py-14 sm:py-16 lg:py-20">

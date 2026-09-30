@@ -846,6 +846,8 @@ const futureDated: { slug: string; stated: string }[] = [];
 
 mkdirSync(OUTPUT_DIR, { recursive: true });
 const written = new Set<string>();
+const changed: string[] = [];
+const normaliseEol = (s: string) => s.replace(/\r\n/g, "\n");
 
 for (const item of parsed.sort((a, b) => a.article.slug.localeCompare(b.article.slug))) {
   const { slug } = item.article;
@@ -870,15 +872,24 @@ for (const item of parsed.sort((a, b) => a.article.slug.localeCompare(b.article.
     dateModified: existing?.dateModified ?? sourceDate,
   };
   let text = articleFile(article, item.file);
-  if (existing && readFileSync(path, "utf8") !== text) {
+  // Compared with line endings normalised on both sides: with
+  // core.autocrlf=true the checked-out file is CRLF and the generated text
+  // is LF, and a raw comparison bumped every article's dateModified.
+  const onDisk = existing ? normaliseEol(readFileSync(path, "utf8")) : null;
+  if (onDisk !== null && onDisk !== normaliseEol(text)) {
     article = { ...article, dateModified: importDate };
     text = articleFile(article, item.file);
+    changed.push(slug);
   }
-  writeFileSync(path, text);
+  if (onDisk !== normaliseEol(text)) writeFileSync(path, text);
   written.add(`${slug}.ts`);
 }
 
-writeFileSync(join(OUTPUT_DIR, "index.ts"), indexFile([...slugs.keys()].sort()));
+const indexPath = join(OUTPUT_DIR, "index.ts");
+const indexText = indexFile([...slugs.keys()].sort());
+if (!existsSync(indexPath) || normaliseEol(readFileSync(indexPath, "utf8")) !== indexText) {
+  writeFileSync(indexPath, indexText);
+}
 written.add("index.ts");
 
 /* remove generated files whose article is no longer in the source */
@@ -910,7 +921,10 @@ for (const item of parsed) console.log(`    ${item.article.slug.padEnd(42)} <- $
 console.log(`\nStated dates later than the import date (${importDate}); imported with the import date instead (${futureDated.length}):`);
 for (const entry of futureDated) console.log(`    ${entry.slug.padEnd(42)} "Last updated: ${entry.stated}"`);
 
-const restoredTotal = restored.article + restored.page + restored.external;
+console.log(`\nExisting articles whose content changed; dateModified moved to ${importDate} (${changed.length}):`);
+for (const slug of changed) console.log(`    ${slug}`);
+
+const restoredTotal =restored.article + restored.page + restored.external;
 console.log(`\nInline links restored as marks (${restoredTotal}):`);
 console.log(`    ${String(restored.article).padStart(3)}  to another imported article`);
 console.log(`    ${String(restored.page).padStart(3)}  to a page this site has`);
