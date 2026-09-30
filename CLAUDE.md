@@ -485,8 +485,26 @@ holds.
 **Every article is imported, never typed in.** The importer is the only way
 content enters `src/content/articles/`; the files say so in their header and
 the next import overwrites them. A fix to an article is a fix to the source
-document followed by `npm run import:articles -- <directory-of-docx>`.
-Hand-copying is how figures drift.
+document followed by a re-import. Hand-copying is how figures drift.
+
+**Run it over every source folder at once.** The forty articles come from
+two bundles - the thirty healthcare and hiring articles and the ten non-IT
+articles - and a run sees only the folders it is given:
+
+```bash
+npm run import:articles -- <healthcare-folder> <non-it-folder>
+```
+
+**Never run it over a single folder expecting a clean result.** It deletes
+nothing by default: an article whose document is not in the input is
+reported as "not in input, kept" and stays in the index and as a link
+target, so a one-folder run is harmless but incomplete. Deleting takes
+`--prune`, which lists the slugs, asks for confirmation and refuses in a
+non-interactive run. It also refuses outright when it would remove more
+than a quarter of the existing articles, because that is what a
+one-folder `--prune` looks like: thirty live URLs deleted behind a
+correct-looking run. Do not raise that threshold to get past it; pass both
+folders.
 
 **What the importer strips, keeps and resolves is in the header of
 `scripts/import-articles.ts`.** Two decisions live here because they are
@@ -793,8 +811,10 @@ those are the code here whose failure is silent and expensive. Everything
 else is content and layout, where a mistake is visible on the page.
 
 `import:articles` also runs on Node directly, with no dependency: the .docx
-is a zip and `node:zlib` inflates it. It takes the directory the documents
-are unpacked in and an optional `--date YYYY-MM-DD` for the import date.
+is a zip and `node:zlib` inflates it. It takes one or more directories the
+documents are unpacked in (all of them - see **The insights index**), an
+optional `--date YYYY-MM-DD` for the import date, and `--prune` to delete
+articles missing from the input.
 
 Test files import each other with explicit `.ts` extensions, which is why
 `allowImportingTsExtensions` is set in `tsconfig.json`. Both tested modules
