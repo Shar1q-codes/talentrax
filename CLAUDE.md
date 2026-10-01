@@ -6,11 +6,13 @@ US staffing and recruiting (healthcare, IT, professional). Greenfield rebuild.
 Public marketing site only: **no backend, no CMS, no database, no auth, no API
 routes.** Do not add any.
 
-The one exception is `supabase/`: the ATS database schema, as SQL migrations
-and nothing else. Nothing in `src/` connects to it, and no client code, API
-route or environment variable for it exists yet. Adding any of those is the
-architectural decision this paragraph guards, not a follow-on detail. See
-**The ATS schema** below.
+The one exception is `supabase/`: the ATS database schema, as SQL migrations.
+`src/lib/supabase/` holds its env guard and one client constructor, and
+`src/lib/database.types.ts` its generated types, so the plumbing is in place
+and type-checked. **Nothing on the site calls the client:** no page, form,
+API route or server action reads or writes the database. Making one do so is
+the architectural decision this paragraph guards, not a follow-on detail.
+See **The ATS schema** below.
 
 ## Brand
 
@@ -792,6 +794,13 @@ checks that fail when a new table forgets RLS, the standard columns, the
 soft-delete policy or an index on a foreign key. Run them before committing
 a migration.
 
+**Local first.** `supabase/LOCAL.md` is the workflow: `db:start`,
+`db:reset`, `db:test`, `db:types`, `db:stop`, the seeded logins, and the
+documented (not executed) path to hosted. After every migration, run
+`npm run db:types` and commit `src/lib/database.types.ts` with it; a stale
+types file compiles against columns that no longer exist. `seed.sql` never
+reaches a hosted project.
+
 The taxonomy tables are seeded from `src/content/taxonomy.ts`. Changing a
 desk, specialty or engagement model there needs a matching migration and
 an update to the values `00_schema.test.sql` pins, which are copied from that
@@ -802,7 +811,7 @@ file. Nothing reads the TypeScript at test time.
 - Per-route unique title, description and canonical, all via
   `buildMetadata()` in `src/lib/metadata.ts`.
 - `metadataBase` comes from `NEXT_PUBLIC_SITE_URL` with a localhost fallback
-  (see `.env.example`).
+  (see `.env.local.example`).
 - Organization + WebSite JSON-LD on the **home page only**, server-rendered.
 - The 404 page does **not** set `robots`. Next.js injects
   `<meta name="robots" content="noindex">` on any page returning a 404, so
@@ -812,8 +821,29 @@ file. Nothing reads the TypeScript at test time.
 
 ## Environment variables
 
-One variable: `NEXT_PUBLIC_SITE_URL`. Absolute origin, no trailing slash.
-`src/content/site.ts` reads it and falls back to `http://localhost:3000`.
+Three variables, all build-time inlined. Templates: `.env.local.example`
+(the local stack's public demo keys, committed on purpose) and
+`.env.production.example` (names only, empty values).
+
+| Variable | Missing at build |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | falls back to `http://localhost:3000` - see below |
+| `NEXT_PUBLIC_SUPABASE_URL` | `next dev`, `next build` and `next start` refuse to start, naming it |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same |
+
+The Supabase pair has **no fallback**, deliberately: a client pointed at
+nothing fails far from the cause. `next.config.ts` calls
+`assertSupabaseEnv()` from `src/lib/supabase/env.ts`, which also refuses a
+production build (`NODE_ENV=production`) whose Supabase URL contains
+`localhost` or `127.0.0.1`. That includes a local `next build`: building
+for production needs a hosted project's values, so run `check:seo` against
+`next dev` locally. Do not add an escape hatch.
+
+**The Netlify site needs both Supabase variables set before the next deploy
+from a branch carrying this guard**, or the build fails. That is intended.
+
+`NEXT_PUBLIC_SITE_URL` is a softer case: it has a localhost fallback
+(`src/content/site.ts`), which makes it more dangerous, not less.
 
 **It must be set in every build environment — local, CI and Netlify.**
 
@@ -831,11 +861,11 @@ canonicals is the failure this is guarding against.
 
 | Where | How |
 | --- | --- |
-| Local | `.env.local` (gitignored; copy from `.env.example`) |
+| Local | `.env.local` (gitignored; copy from `.env.local.example`) |
 | CI | export before `next build` |
 | Netlify | Site configuration → Environment variables, per context |
 
-`netlify.toml` deliberately does not set it, so deploy previews and branch
+`netlify.toml` deliberately does not set any of them, so deploy previews and branch
 deploys can carry their own origin instead of all claiming production's.
 
 ## Commands
@@ -846,6 +876,10 @@ board and its JobPosting schema, the imported articles and their BlogPosting
 and FAQPage schemas, and the taxonomy. That is not under-testing by neglect:
 those are the code here whose failure is silent and expensive. Everything
 else is content and layout, where a mistake is visible on the page.
+
+The `db:*` scripts wrap the Supabase CLI (a devDependency, so its version is
+pinned); `supabase/LOCAL.md` documents them. There is **no CI** in this
+repo, so nothing runs `db:test` for you.
 
 `import:articles` also runs on Node directly, with no dependency: the .docx
 is a zip and `node:zlib` inflates it. It takes one or more directories the

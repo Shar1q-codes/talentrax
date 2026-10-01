@@ -40,8 +40,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Keep the documented env template in version control.
-!.env.example
+# Keep the env templates in version control. .env.local.example holds only
+# the local stack's public demo keys; .env.production.example holds names
+# with empty values. Every other .env file, .env.local included, stays out.
+!.env.local.example
+!.env.production.example
 
 # Source documents for the insights import. The client's bundle also holds
 # internal planning documents that must never be committed; the importer

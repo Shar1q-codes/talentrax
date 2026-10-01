@@ -4,8 +4,9 @@ The ATS schema for Supabase/Postgres, as SQL migrations. **The migrations are
 the source of truth.** Nothing is created by clicking in the dashboard; a
 change made there and not here does not exist.
 
-Schema only. There is no client code, API route or UI in this repo that
-talks to it.
+Schema only, plus the plumbing to reach it: `src/lib/supabase/` (env guard
+and one client constructor) and the generated `src/lib/database.types.ts`.
+No page, form or API route calls the client yet.
 
 ## Layout
 
@@ -19,10 +20,12 @@ talks to it.
 | `rollback/*.down.sql` | Reverse of each migration, for local development only |
 | `tests/database/*.test.sql` | pgTAP: catalog-wide structural checks, then behaviour per role |
 | `seed.sql` | One user per role for local testing, all fake |
+| `LOCAL.md` | The local workflow, seeded logins, and the path to hosted |
 
 ## Running it
 
-With the Supabase CLI (Docker required):
+The full local workflow, the seeded logins and the path to hosted are in
+**`LOCAL.md`**. The short version (Docker required):
 
 ```bash
 npx supabase start          # first time: pulls the local stack

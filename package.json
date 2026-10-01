@@ -8,10 +8,16 @@
     "start": "next start",
     "lint": "eslint",
     "check:seo": "bash scripts/check-seo.sh",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
+    "db:types": "supabase gen types typescript --local --schema public > src/lib/database.types.ts",
     "import:articles": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/import-articles.ts",
     "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test src/lib/jobs.test.ts src/lib/job-posting-schema.test.ts src/lib/insights.test.ts src/lib/article-schema.test.ts src/lib/faq-schema.test.ts src/content/taxonomy.test.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -24,6 +30,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "supabase": "^2.119.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
