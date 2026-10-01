@@ -96,7 +96,15 @@ withdrawn models are absent. That assertion is why "RPO" and
 
 - Tailwind v4 is **CSS-first**: there is no `tailwind.config.js`. Theme tokens
   live in the `@theme` block in `src/app/globals.css`.
-- Never hand-pin `next`, `react` or `react-dom` versions.
+- Never hand-pin `next`, `react` or `react-dom` to a version of your own
+  choosing. **Security updates are the exception**: when `npm audit`
+  reports an advisory against the installed version, move to the patched
+  release and record why here. Applied so far: `next` and
+  `eslint-config-next` 16.3.5 -> 16.3.8, for GHSA-vcvr-r3jv-pc5j (critical,
+  remote code execution in `next/og` `ImageResponse`, affecting
+  16.2.0-16.3.5). This site does not import `next/og`, but the package
+  ships it and the advisory is critical, so it was not left to argue
+  about.
 - No UI component library. Components are built in `src/components/`.
 
 ## Build status
@@ -821,26 +829,33 @@ file. Nothing reads the TypeScript at test time.
 
 ## Environment variables
 
-Three variables, all build-time inlined. Templates: `.env.local.example`
-(the local stack's public demo keys, committed on purpose) and
-`.env.production.example` (names only, empty values).
+Four variables. Templates: `.env.local.example` (the local stack's public
+demo keys, committed on purpose) and `.env.production.example` (names only,
+empty values). `supabase/LOCAL.md` documents them.
 
-| Variable | Missing at build |
+| Variable | If missing |
 | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | falls back to `http://localhost:3000` - see below |
-| `NEXT_PUBLIC_SUPABASE_URL` | `next dev`, `next build` and `next start` refuse to start, naming it |
+| `NEXT_PUBLIC_SUPABASE_URL` | the Supabase client throws when constructed, naming it |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same |
+| `APP_ENV` | `local` |
 
-The Supabase pair has **no fallback**, deliberately: a client pointed at
-nothing fails far from the cause. `next.config.ts` calls
-`assertSupabaseEnv()` from `src/lib/supabase/env.ts`, which also refuses a
-production build (`NODE_ENV=production`) whose Supabase URL contains
-`localhost` or `127.0.0.1`. That includes a local `next build`: building
-for production needs a hosted project's values, so run `check:seo` against
-`next dev` locally. Do not add an escape hatch.
+**The Supabase pair has no fallback and is checked at the point of use**,
+in `readSupabaseEnv()`, which `createSupabaseClient()` calls. Nothing
+constructs a client yet, so every build, Netlify's included, succeeds with
+no Supabase variables at all. Do not move that check back into
+`next.config.ts` or module scope: it failed every build that never needed
+the value, Netlify's and the local one `check:seo` runs against.
 
-**The Netlify site needs both Supabase variables set before the next deploy
-from a branch carrying this guard**, or the build fails. That is intended.
+**`APP_ENV` (`local` | `staging` | `production`) is what "deployed"
+means.** It is set in the deploy environment only, never in
+`.env.local.example`. With `staging` or `production`, a Supabase URL
+containing `localhost` or `127.0.0.1` refuses to boot: `next.config.ts`
+calls `assertDeployTarget()`, so `dev`, `build` and `start` all stop. An
+unrecognised value refuses too. **Never key this on `NODE_ENV`**: `next
+build` sets it to `production` on every laptop, which is how the first
+version of this guard broke local production builds. Do not add an escape
+hatch.
 
 `NEXT_PUBLIC_SITE_URL` is a softer case: it has a localhost fallback
 (`src/content/site.ts`), which makes it more dangerous, not less.

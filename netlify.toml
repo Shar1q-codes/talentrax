@@ -12,10 +12,11 @@
   # Current Node LTS. Kept to the major so patch releases flow through.
   NODE_VERSION = "24"
 
-  # NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_SUPABASE_URL and
-  # NEXT_PUBLIC_SUPABASE_ANON_KEY are deliberately NOT set here. The build
-  # refuses to start without the two Supabase ones (src/lib/supabase/env.ts);
-  # .env.production.example lists all three.
+  # APP_ENV, NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_SUPABASE_URL and
+  # NEXT_PUBLIC_SUPABASE_ANON_KEY are deliberately NOT set here; set them per
+  # context so staging and production differ. With APP_ENV set, a local
+  # Supabase URL refuses to build (src/lib/supabase/env.ts).
+  # .env.production.example lists all four.
   #
   # NEXT_PUBLIC_SITE_URL is build-time inlined (see .env.local.example), so it must exist in the build
   # environment or the localhost fallback is compiled into every canonical URL

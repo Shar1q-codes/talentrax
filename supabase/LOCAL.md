@@ -19,10 +19,40 @@ goes anywhere hosted. Nothing is created by clicking in a dashboard (see
   cp .env.local.example .env.local
   ```
 
-  The app refuses to start without `NEXT_PUBLIC_SUPABASE_URL` and
-  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and the error names whichever is missing.
   The values in the example are the local stack's **public demo keys**:
   identical on every machine, never valid against a hosted project.
+
+## The environment variables
+
+| Variable | Set where | If missing |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | `.env.local`; the deploy environment | The Supabase client throws **when it is constructed**, naming the variable and where to set it |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same | same |
+| `APP_ENV` | **The deploy environment only.** Never `.env.local` | Treated as `local` |
+
+**Nothing constructs a Supabase client yet**, so `next dev`, `next build`
+and `check:seo` all work with no Supabase variables at all. The
+missing-variable error appears the first time code that actually needs the
+database runs without them, and not on a build that never needed them.
+
+**`APP_ENV`** is `local`, `staging` or `production`, and says which
+environment this is. With `staging` or `production`, a
+`NEXT_PUBLIC_SUPABASE_URL` containing `localhost` or `127.0.0.1` refuses to
+boot: `next dev`, `next build` and `next start` all stop with an error
+naming both values. Any other value of `APP_ENV` (a typo such as `prod`)
+also refuses, rather than quietly meaning local.
+
+It is `APP_ENV` and not `NODE_ENV` because `next build` sets `NODE_ENV` to
+`production` on every machine. A local production build, which is what
+`check:seo` runs against, is a production *build* that is not *deployed*,
+and it has to keep working with the local stack's URL.
+
+Do not put `APP_ENV` in `.env.local` to "test the guard". Set it on the
+command line for one run instead:
+
+```bash
+APP_ENV=production npx next build   # must refuse, with .env.local pointing at 127.0.0.1
+```
 
 ## The commands
 
@@ -214,7 +244,9 @@ writing down as they are set:
   staging has looser access, test accounts and none of the privacy
   commitments the production policy makes. Test with invented records only.
 
-Each environment sets its own `NEXT_PUBLIC_SUPABASE_URL` and anon key in
-its build environment; `.env.production.example` lists the names. A
-production build pointed at localhost refuses to start
-(`src/lib/supabase/env.ts`).
+Each hosted environment sets `APP_ENV` (`staging` or `production`) and its
+own `NEXT_PUBLIC_SUPABASE_URL` and anon key in its build environment;
+`.env.production.example` lists the names. A deploy whose `APP_ENV` is set
+and whose Supabase URL is local refuses to start
+(`src/lib/supabase/env.ts`). `APP_ENV` is also what a staging build will
+read to emit noindex, once that is built.

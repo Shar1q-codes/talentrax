@@ -2,13 +2,7 @@ import path from "node:path";
 
 import type { NextConfig } from "next";
 
-import { assertSupabaseEnv } from "./src/lib/supabase/env";
-
-// Startup assertion. Next evaluates this file on `next dev`, `next build` and
-// `next start`, after loading the .env files, so a missing Supabase variable,
-// or a production build pointed at a local stack, stops all three before
-// anything is served or deployed.
-assertSupabaseEnv();
+import { assertDeployTarget } from "./src/lib/supabase/env";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
@@ -20,4 +14,13 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Next calls this on `next dev`, `next build` and `next start`, after loading
+// the .env files. The one check here is the deploy target: a staging or
+// production APP_ENV with a local Supabase URL refuses to boot. Missing
+// Supabase variables are NOT checked here; the client checks them when it is
+// constructed (src/lib/supabase/env.ts), so a build that never touches
+// Supabase needs none of them.
+export default function config(): NextConfig {
+  assertDeployTarget();
+  return nextConfig;
+}
