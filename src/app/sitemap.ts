@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 
 import { SITE_URL } from "@/content/site";
-import { getArticles } from "@/lib/insights";
-import { getJobs, isExpired } from "@/lib/jobs";
+import { getArticles } from "@/features/articles";
+import { getJobs, isExpired } from "@/features/jobs";
 
 /**
  * Sitemap.

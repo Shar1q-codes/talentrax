@@ -105,7 +105,87 @@ withdrawn models are absent. That assertion is why "RPO" and
   16.2.0-16.3.5). This site does not import `next/og`, but the package
   ships it and the advisory is critical, so it was not left to argue
   about.
-- No UI component library. Components are built in `src/components/`.
+- No UI component library. Components are built in this repo; see
+  **Repository layout** for where each kind goes.
+
+## Repository layout
+
+```
+src/
+  app/
+    (marketing)/      every public route; route groups are not URL segments
+    (portal)/         candidate and employer areas - layout only, no pages yet
+    (internal)/       the ATS for staff roles - layout only, no pages yet
+    api/              route handlers - none yet
+    layout.tsx, not-found.tsx, sitemap.ts, robots.ts, globals.css
+  features/<name>/    one folder per domain concept
+    components/       UI only this feature uses
+    queries.ts        ALL of the feature's data access, the form seams included
+    index.ts          the public surface
+  components/
+    ui/               primitives with no domain knowledge
+    layout/           header, footer, drawer, nav, skip link
+    marketing/        the sections the (marketing) pages compose
+  content/            marketing copy, and the imported articles
+  lib/                cross-cutting only: Supabase client and env, metadata,
+                      site-wide JSON-LD
+```
+
+Features today: `articles`, `jobs`, `employers` (the request form),
+`job-seekers` (the upload form), `contact`, `auth`. Empty, with a README
+line: `candidates`, `requisitions`, `submissions`, `interviews`, `offers`,
+`placements`, `leads`, `activities`. A feature may also own a `schema.ts`
+(zod) and a `types.ts` (derived types); none does yet, because nothing is
+validated with zod and no type is derived from the database yet. The
+hand-written types live beside the functions that use them in `queries.ts`.
+
+**The chrome stays in the root layout.** `(marketing)/layout.tsx` renders
+nothing of its own, because `app/not-found.tsx` renders in the root layout
+and would lose the header and footer otherwise. Splitting the root layout is
+the job of whichever change first gives `(portal)` or `(internal)` a page.
+
+`src/content/articles/` does not move: the importer writes there. Its link
+check resolves internal links against `src/app/(marketing)/`, so a public
+route created outside that group would make the importer drop links to it.
+
+### Feature boundaries
+
+1. **A feature's internals are private.** Code outside
+   `src/features/<name>/` imports from `@/features/<name>` and nothing
+   deeper - never `@/features/<name>/components/...` or its `queries`.
+   Inside a feature, files import each other relatively. The one exception:
+   a `*.test.ts` may import another feature's `*.fixture.ts` directly,
+   because fixtures are never exported from an `index.ts`, which is what
+   keeps them out of the build.
+2. **All database access lives in a feature's `queries.ts`.** No Supabase
+   call in a component, page, layout or route handler, ever. This is what
+   makes the RLS surface auditable: one file per feature lists every query
+   that feature can make. Only `queries.ts` and `src/lib/supabase/` may
+   import the client or the SDK.
+3. **`components/ui` is for primitives with no domain knowledge.** If it
+   knows what a submission is, it belongs to a feature. A primitive earns a
+   place there by being used by three or more features.
+4. **`lib/` is not a dumping ground.** It holds what belongs to no feature.
+   Anything domain-specific that lands there is misfiled.
+
+Rules 1 and 2 are enforced by `no-restricted-imports` in
+`eslint.config.mjs`, so `npm run lint` fails on a violation.
+
+**Every feature folder carries a `package.json` of `{ "sideEffects": false }`,
+and a new feature needs one too.** A barrel that re-exports a `"use client"`
+component puts that component's chunk on every page that imports anything
+from the barrel. Without the flag, the full article pages loaded the modal's
+JavaScript, and `/login` loaded all three account forms. The flag lets the
+bundler drop the re-exports a page does not use. In return, a module in a
+feature must not rely on top-level side effects: anything it does on import
+may be dropped.
+
+**Aliases, never deep relative paths.** `@/features/*`, `@/components/*`,
+`@/lib/*` and `@/content/*` are in `tsconfig.json`. A relative import may not
+leave the top-level folder it starts in (`src/app`, `src/features`,
+`src/components`, `src/content`, `src/lib`). `npm test` runs on plain Node,
+which does not read tsconfig, so `scripts/alias-hooks.mjs` teaches it the
+same `@/` mapping.
 
 ## Build status
 
@@ -123,9 +203,9 @@ its payload and returns success:
 
 | Form | Seam |
 | --- | --- |
-| Request Talent | `submitRequisition()` in `src/lib/request-talent.ts` |
-| Upload Resume | `submitApplication()` in `src/lib/job-seekers.ts` |
-| Contact | `submitContact()` in `src/lib/contact.ts` |
+| Request Talent | `submitRequisition()` in `src/features/employers/queries.ts` |
+| Upload Resume | `submitApplication()` in `src/features/job-seekers/queries.ts` |
+| Contact | `submitContact()` in `src/features/contact/queries.ts` |
 
 Wiring a real endpoint is a change to that one file. The resume upload is
 stubbed on purpose: the `File` rides in the payload, and the TODO spells out
@@ -341,13 +421,13 @@ earn. Left as-is rather than restructured.
 Plus a custom `app/not-found.tsx`.
 
 Adding a coming-soon route: add an entry to `comingSoonRoutes` in
-`content/navigation.ts`, then create `app/<path>/page.tsx` from any existing
+`content/navigation.ts`, then create `app/(marketing)/<path>/page.tsx` from any existing
 coming-soon page (they are all the same four-line stub).
 
 ## The job board
 
 **It ships with zero jobs, and that is a real state, not a broken one.**
-`getJobs()` in `src/lib/jobs.ts` returns `[]`; `/jobs` renders an honest
+`getJobs()` in `src/features/jobs/queries.ts` returns `[]`; `/jobs` renders an honest
 empty state that routes people to the resume form and the requisition form.
 The full list and filter UI is built and sits behind that check, so postings
 appear with no code change. Filters render only when there is at least one
@@ -357,7 +437,7 @@ job.
 layout, not "just for now". A fabricated JobPosting carrying structured data
 can get the whole domain removed from Google for Jobs, and a candidate who
 applies to an invented role has been lied to. Fixtures live in
-`src/lib/jobs.fixture.ts`, which only `*.test.ts` imports, so nothing
+`src/features/jobs/jobs.fixture.ts`, which only `*.test.ts` imports, so nothing
 reaches the build. Every fixture id and slug contains `DO-NOT-SHIP-FIXTURE`
 so one grep proves it:
 
@@ -380,7 +460,7 @@ do not reintroduce that claim anywhere), so a posting that named the client
 in its markup would disclose in structured data what no page says. If an
 upstream system supplies a client name, the mapping layer drops it.
 
-**Structured data.** `src/lib/job-posting-schema.ts` builds the schema.org
+**Structured data.** `src/features/jobs/job-posting-schema.ts` builds the schema.org
 JobPosting, and it is the one thing here with real unit tests (`npm test`),
 because JSON-LD fails silently: a malformed payload does not throw, the
 posting simply never appears. `/jobs` itself emits **no** JSON-LD while the
@@ -419,7 +499,7 @@ paragraph in `content/locations.ts` stays.
 
 Forty articles, imported from the client's `.docx` files by
 `scripts/import-articles.ts` into `src/content/articles/`, one typed file
-per article plus a generated index. `getArticles()` in `src/lib/insights.ts`
+per article plus a generated index. `getArticles()` in `src/features/articles/queries.ts`
 returns them newest first, `/insights/[slug]` generates one page each, and
 the sitemap lists them. The empty state still works: if the source is ever
 empty again the index renders it, and `check:seo` fails, on purpose, until
@@ -447,7 +527,7 @@ when that differs. With `core.autocrlf=true` a raw comparison saw every
 checked-out CRLF file as changed and bumped every date. Its report lists the
 articles whose content changed; a re-import of unchanged sources lists none.
 
-**The home page rail** (`components/home/LatestArticles.tsx`) shows the
+**The home page rail** (`components/marketing/home/LatestArticles.tsx`) shows the
 first six of that same order and links on to `/insights`. Cards are title
 and summary only, and link to the full page; only the index intercepts into
 the modal. It is a native overflow-x + scroll-snap region in
@@ -541,7 +621,7 @@ mapping exercise, and nothing is ever handed untrusted markup to render.
 There is deliberately no quote block: a pull quote from a named person is a
 testimonial with better typography.
 
-**One renderer.** `components/insights/ArticleBody.tsx` renders everything
+**One renderer.** `features/articles/components/ArticleBody.tsx` renders everything
 under an article's title - the key-takeaways card, the blocks, the FAQ
 block, the sources as visible links, the related reading - for both the
 full page and the modal, so the two cannot drift. Tables are real `<table>`
@@ -561,11 +641,11 @@ the URL to `/insights/<slug>`. That is a Next.js intercepting route in a
 parallel slot, and the file layout is the whole mechanism:
 
 ```
-app/insights/(index)/layout.tsx              renders {children} and {modal}
-app/insights/(index)/page.tsx                the index, /insights
-app/insights/(index)/@modal/default.tsx      null: the closed state
-app/insights/(index)/@modal/(.)[slug]/page.tsx   the intercepted article
-app/insights/[slug]/page.tsx                 the full page, unchanged
+app/(marketing)/insights/(index)/layout.tsx              renders {children} and {modal}
+app/(marketing)/insights/(index)/page.tsx                the index, /insights
+app/(marketing)/insights/(index)/@modal/default.tsx      null: the closed state
+app/(marketing)/insights/(index)/@modal/(.)[slug]/page.tsx   the intercepted article
+app/(marketing)/insights/[slug]/page.tsx                 the full page, unchanged
 ```
 
 - **Only the index intercepts.** An interception applies to every soft
@@ -573,10 +653,10 @@ app/insights/[slug]/page.tsx                 the full page, unchanged
   lives in a route group holding only the index page. The full page is
   outside it: a related-reading link on a full article page, and a link to
   an article from anywhere else on the site, is a normal navigation. Do not
-  move the layout up to `app/insights/`.
+  move the layout up to `app/(marketing)/insights/`.
 - **A crawler, a refresh, a shared link and a direct visit get the full
   page.** `(index)` and `@modal` are not URL segments, so a hard request
-  for `/insights/<slug>` renders `app/insights/[slug]/page.tsx` with its
+  for `/insights/<slug>` renders `app/(marketing)/insights/[slug]/page.tsx` with its
   JSON-LD, and `check:seo` keeps asserting exactly that by curl. The
   intercepted route emits no structured data because nothing that indexes
   can reach it.
@@ -600,7 +680,7 @@ app/insights/[slug]/page.tsx                 the full page, unchanged
 
 **Never add a sample article.** The home page shipped three invented article
 cards once and they had to be torn out. Fixtures live in
-`src/lib/insights.fixture.ts`, imported only by `*.test.ts`, and carry the
+`src/features/articles/articles.fixture.ts`, imported only by `*.test.ts`, and carry the
 same `DO-NOT-SHIP-FIXTURE` sentinel as the job fixtures, so one grep covers
 both.
 
@@ -675,7 +755,7 @@ These are not placeholders to be relaxed when the backend lands.
    a placeholder for one - it is a thing an attacker types into a console,
    and it invites UI that trusts it.
 
-3. **Nothing in `src/lib/auth.ts` is logged.** The other three form seams
+3. **Nothing in `src/features/auth/queries.ts` is logged.** The other three form seams
    console.log their payload; these must not. A password in a console log is
    a password in a log, "the payload minus the password" still pairs an email
    with an authentication attempt, and a length or a hash is still
@@ -903,8 +983,10 @@ optional `--date YYYY-MM-DD` for the import date, and `--prune` to delete
 articles missing from the input.
 
 Test files import each other with explicit `.ts` extensions, which is why
-`allowImportingTsExtensions` is set in `tsconfig.json`. Both tested modules
-avoid value imports so the runner needs no path-alias resolver.
+`allowImportingTsExtensions` is set in `tsconfig.json`; Node requires the
+extension. The runner resolves `@/` through `scripts/alias-hooks.mjs`
+(`--import`, registered with `node:module`'s `registerHooks`), so a tested
+module may import across folders by alias like any other code.
 
 `check:seo` takes an optional base URL and expected origin. The two differ when
 you serve a production build locally — the build is stamped with the real

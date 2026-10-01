@@ -51,7 +51,7 @@ export type FaqLike = {
 
 /**
  * One FAQPage from a flat list of questions. This is what an article's FAQ
- * section uses (see app/insights/[slug]/page.tsx): the same rule applies
+ * section uses (see app/(marketing)/insights/[slug]/page.tsx): the same rule applies
  * there, the markup is generated from the array the page renders, so it
  * cannot say anything the page does not.
  *

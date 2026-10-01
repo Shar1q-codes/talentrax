@@ -6,7 +6,7 @@
  * source folder at once. Removing one also takes --prune.
  */
 
-import type { Article } from "../../lib/insights";
+import type { Article } from "@/features/articles";
 
 import { article as article_aiHiringLaws } from "./ai-hiring-laws.ts";
 import { article as article_aiImpactAdminFinanceHrRoles } from "./ai-impact-admin-finance-hr-roles.ts";

@@ -392,8 +392,8 @@ p {
 /* ==========================================================================
    THE ARTICLE MODAL
    A native <dialog>, opened with showModal() by
-   components/insights/ArticleModal.tsx and mounted by the intercepted route
-   under app/insights/(index)/@modal. The frame lives here because it needs
+   features/articles/components/ArticleModal.tsx and mounted by the intercepted route
+   under app/(marketing)/insights/(index)/@modal. The frame lives here because it needs
    ::backdrop, @starting-style and @supports, none of which read well as
    utilities.
 

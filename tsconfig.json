@@ -20,6 +20,10 @@
       }
     ],
     "paths": {
+      "@/features/*": ["./src/features/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/content/*": ["./src/content/*"],
       "@/*": ["./src/*"]
     }
   },

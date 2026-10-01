@@ -5,7 +5,7 @@
  * source document and re-run `npm run import:articles -- <dir>`.
  */
 
-import type { Article } from "../../lib/insights";
+import type { Article } from "@/features/articles";
 
 export const article: Article = {
   "id": "healthcare-candidate-drop-off",

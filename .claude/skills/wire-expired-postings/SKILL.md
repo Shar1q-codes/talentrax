@@ -17,7 +17,7 @@ softer leaves a dead job in the index for weeks.
 
 What exists today:
 
-- `isExpired(job, now)` in `src/lib/jobs.ts`, unit tested at the day
+- `isExpired(job, now)` in `src/features/jobs/queries.ts`, unit tested at the day
   boundary.
 - `generateStaticParams` filters expired postings, so one never gets a page.
 - The detail page calls `notFound()` as a backstop for a posting that

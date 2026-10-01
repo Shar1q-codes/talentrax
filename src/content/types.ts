@@ -65,7 +65,7 @@ export type SectionIntro = {
 };
 
 /**
- * A numbered process, rendered by components/shared/ProcessTimeline.tsx.
+ * A numbered process, rendered by components/marketing/shared/ProcessTimeline.tsx.
  *
  * Both the Employers and the Job Seekers pages run one. They describe
  * different processes but share the shape, which is what makes the two

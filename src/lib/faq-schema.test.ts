@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { faqPageJsonLd, faqPageJsonLdFromItems } from "./faq-schema.ts";
-import { fullArticle } from "./insights.fixture.ts";
+import { fullArticle } from "@/features/articles/articles.fixture.ts";
 
 describe("faqPageJsonLdFromItems", () => {
   const payload = faqPageJsonLdFromItems(fullArticle.faqs);

@@ -4,7 +4,7 @@
  * THE BOARD IS EMPTY. There are no sample postings in this file and there
  * must never be: a fabricated JobPosting with structured data attached can
  * get the whole domain removed from Google for Jobs, and a candidate who
- * applies to an invented role has been lied to. See src/lib/jobs.ts.
+ * applies to an invented role has been lied to. See src/features/jobs/queries.ts.
  *
  * The empty state below leads with how the business works - most roles are
  * filled from file before a posting is written, so be on file - and lets the

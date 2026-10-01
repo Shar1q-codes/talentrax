@@ -7,7 +7,7 @@
  * articles here and there must never be. The home page once carried three
  * invented article cards with made-up titles and excerpts; they were
  * fabricated content on the most indexed page on the site. See
- * src/lib/insights.ts.
+ * src/features/articles/queries.ts.
  *
  * The empty state is kept for the day the source is empty again. It leads
  * with what the reader can do - the pages that describe how the work runs -

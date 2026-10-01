@@ -1,6 +1,6 @@
 /**
  * The order articles are listed in, newest first. The single source for it:
- * getArticles() in src/lib/insights.ts sorts by this list, so the /insights
+ * getArticles() in src/features/articles/queries.ts sorts by this list, so the /insights
  * index and the home page's latest-articles rail always agree.
  *
  * WHY A LIST AND NOT THE DATE. Every article carries the import date as its
