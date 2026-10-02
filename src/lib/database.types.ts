@@ -1569,8 +1569,11 @@ isOneToOne: false
 "reset_sign_in_attempts":
 { Args: { "email": string }; Returns: number
                            },
-"sign_in_attempt":
-{ Args: { "email": string }; Returns: boolean
+"sign_in_begin":
+{ Args: { "email": string }; Returns: Json
+                           },
+"sign_in_end":
+{ Args: { "email": string,"failed": boolean,"token": string }; Returns: undefined
                            },
 "sign_in_succeeded":
 { Args: Record<PropertyKey, never>; Returns: undefined

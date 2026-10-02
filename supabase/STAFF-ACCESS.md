@@ -162,17 +162,73 @@ step 4 shows one factor that is theirs.
 
 ## Clearing a sign-in count
 
-Five password or code attempts for one address in fifteen minutes, and that
-address is refused until the window passes (migration 14). It clears itself
-when the person gets through both steps. To clear it sooner, after the same
-identity check as a reset, the operator runs in the SQL editor:
+Every failed password or code adds to its address's count, and each attempt
+then waits longer before it is tried: nothing for the first three failures
+in an hour, then 1, 2, 4 and 8 seconds, never more than 10 (migration 16).
+Only one attempt per address runs at a time. Nothing is ever locked: the
+right password and code always get in, after their wait. The count clears
+itself when the person gets through both steps. To clear it sooner, after
+the same identity check as a reset, the operator runs in the SQL editor:
 
 ```sql
 select public.reset_sign_in_attempts('the.person@their-domain');
 ```
 
-It returns how many attempts it cleared. Nobody signed in to the app can
-call it, administrators included.
+It returns how many failures it cleared, and frees the address if an
+attempt is stuck. Nobody signed in to the app can call it, administrators
+included.
+
+---
+
+## Two paths to the password, and Supabase's own rate limits
+
+**Read this before changing Supabase Auth's rate limits on a hosted
+project.** Checked 2026-10-02 against
+[Supabase's rate-limit documentation](https://supabase.com/docs/guides/auth/rate-limits)
+and [its Auth hooks](https://supabase.com/docs/guides/auth/auth-hooks).
+
+**There are two ways to try a staff password, and our control sees one.**
+
+| Path | What limits guessing |
+| --- | --- |
+| Our sign-in page (`/staff/sign-in`) | Migration 16, per address: the growing delay and one attempt at a time. Then Supabase Auth's per-IP limit, which sees **our server's** address for every attempt |
+| Supabase Auth's own API, called directly. The anon key is public by design, so anyone can call `/auth/v1/token` and the MFA verify endpoint from their own machine | **Only Supabase Auth's per-IP limits**, by the caller's real address. Migration 16 never sees these attempts |
+
+A password found either way still reads nothing without the code: a staff
+role counts only after the second factor (migration 14).
+
+**So Supabase's per-IP limit is not useless, and is not raised.** On the
+direct path it is the only limit there is. Its defaults are 30 sign-ins per
+5 minutes and 15 MFA verifications per minute, per address.
+
+**The cost of keeping it, recorded rather than hidden.** Through our page,
+that limit counts every staff member and every attacker as one address,
+ours. Migration 16 holds back attempts for an address already in progress,
+but attempts spread across many addresses all reach Auth. So someone
+sending about 30 sign-in attempts in five minutes through our page can make
+Auth refuse every staff sign-in until the window refills: up to five minutes
+after they stop. Staff see the usual "could not sign you in" message.
+
+**What would remove that cost.** Neither is in place, and either is a
+decision:
+
+1. **Forward the visitor's address to Auth.** Hosted Auth accepts the real
+   client address in an `Sb-Forwarded-For` header, but only on requests made
+   with a **secret API key** (`sb_secret_...`), and only once forwarding is
+   enabled for the project. This project uses the legacy `anon` and
+   `service_role` keys, which do not qualify. The local stack offers no
+   setting for it, so it cannot be tested here. It needs the project moved
+   to the new API keys and the sign-in code changed to send the secret key
+   on Auth calls only. Then Auth's limit counts per visitor on both paths.
+2. **Move our per-address control inside Auth**, with the Password
+   Verification Attempt and MFA Verification Attempt hooks. They see every
+   attempt on both paths. They are on Supabase's Teams and Enterprise plans
+   only.
+
+**The setting, until then:** Authentication > Rate Limits stays at the
+defaults for sign-ins and for verification. Do not raise either to "fix"
+staff sign-in failures without reading this section: raising them widens the
+direct path, which nothing else guards.
 
 ---
 

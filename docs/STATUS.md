@@ -160,7 +160,7 @@ Describes `621a38a`.
 | **The staff inbox** (list, detail, status and test actions, resume download) | Build step 8. Until it exists nobody reads what the forms store, which is why `inboxStaffed` is false |
 | **Resume upload endpoints and form** | Build step 7, next. Behind staff sign-in in production, which now exists |
 | Production release of the two wired forms | `PRODUCTION_RELEASE`: the storage location (needs the hosted project) and `inboxStaffed` (needs step 8 and a named staff account) |
-| Staff promotion snippet (`supabase/snippets/promote_staff.sql`) | Not written. The original plan put it with staff sign-in; LOCAL.md still describes promotion as "a super_admin-run SQL statement" with no statement committed |
+| ~~Staff promotion snippet~~ | **Built since this snapshot**, in `27d4691`: `supabase/snippets/promote_staff.sql`, safe to run twice. LOCAL.md and STAFF-ACCESS.md point to it |
 | Assigning intake rows to staff | Not started. Without it only administrators see form rows (RLS) |
 | CAPTCHA | Not started. The honeypot and minimum-time traps run in the browser only |
 | Auth for candidate `/login`, `/register`, `/forgot-password` | Blocked on client items 14, 15 |

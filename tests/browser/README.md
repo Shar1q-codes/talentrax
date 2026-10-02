@@ -47,12 +47,12 @@ the wired forms against the local stack (`playwright.db.config.ts`).
 | Sign out; sign in again goes to the code step | | yes |
 | A password-only token reads nothing from the API | | yes |
 | Wrong password, unknown address, non-staff account: one message, at least 1.5 s | | yes |
-| Past five attempts the right password is refused | | yes, after first proving the account starts unlocked |
+| Failures earn a growing delay; the right password still gets in after it; a second attempt while one is in progress is refused | | yes, after first proving the address starts with no delay |
 
 **Idempotent.** The staff spec's `afterAll` clears the sign-in count of
 every address it used (`reset_sign_in_attempts`, service role only), and
 nothing clears it at the start, so the lockout test's opening sign-in proves
-the previous run left nothing locked. Run the suite twice in a row to see
+the previous run left no delay behind. Run the suite twice in a row to see
 it.
 
 The tests play the phone's part with `totp.ts` (RFC 6238, checked against

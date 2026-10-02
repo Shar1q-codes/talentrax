@@ -6,8 +6,9 @@
  *
  * Every failure message is generic, for the same reasons as the account
  * screens (CLAUDE.md, "Security rules"): a wrong password, an address with
- * no account, an account that is not staff, and an address past its attempt
- * limit all read the same, and take the same minimum time.
+ * no account, an account that is not staff, and an address with another
+ * attempt already in progress all read the same, and take the same minimum
+ * time.
  */
 
 import type { FieldConfig } from "./request-talent";

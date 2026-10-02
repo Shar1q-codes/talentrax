@@ -97,10 +97,32 @@ export function staffPathFor(access: StaffAccess): string {
   }
 }
 
-/** Counts one attempt for the address; false means refuse it (migration 14). */
-async function attemptAllowed(supabase: Client, email: string): Promise<boolean> {
-  const { data, error } = await supabase.rpc("sign_in_attempt", { email });
-  return !error && data === true;
+/**
+ * One password or code attempt, in the address's turn (migration 16).
+ *
+ * The database gives this attempt the address's lease and a delay that
+ * grows with its recent failures, up to ten seconds. The attempt waits that
+ * long, is tried, and reports back: a failure is counted, and the lease is
+ * released either way. A correct password or code succeeds after its delay
+ * however many failures came before.
+ *
+ * No turn - another attempt for this address is in progress - means this
+ * one is refused untried, and reads exactly like a failure to the person.
+ * That is what bounds guessing per address when attempts arrive in parallel.
+ */
+async function inTurn(supabase: Client, email: string, attempt: () => Promise<boolean>): Promise<boolean> {
+  const { data, error } = await supabase.rpc("sign_in_begin", { email });
+  const turn = data as { token?: unknown; delay_ms?: unknown } | null;
+  if (error || !turn || typeof turn.token !== "string" || typeof turn.delay_ms !== "number") return false;
+
+  if (turn.delay_ms > 0) await new Promise((resolve) => setTimeout(resolve, turn.delay_ms as number));
+  let succeeded = false;
+  try {
+    succeeded = await attempt();
+    return succeeded;
+  } finally {
+    await supabase.rpc("sign_in_end", { email, token: turn.token, failed: !succeeded });
+  }
 }
 
 export type PasswordStep = "verify" | "set_up" | "failed";
@@ -113,10 +135,11 @@ export type PasswordStep = "verify" | "set_up" | "failed";
 export async function signInStaffWithPassword(email: string, password: string): Promise<PasswordStep> {
   if (!isSupabaseConfigured()) return "failed";
   const supabase = await createServerSupabaseClient();
-  if (!(await attemptAllowed(supabase, email))) return "failed";
-
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return "failed";
+  const passed = await inTurn(supabase, email, async () => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return !error;
+  });
+  if (!passed) return "failed";
 
   const access = await accessFor(supabase);
   if (access.state === "needs_verification") return "verify";
@@ -131,10 +154,11 @@ export async function verifyStaffCode(code: string): Promise<boolean> {
   const supabase = await createServerSupabaseClient();
   const access = await accessFor(supabase);
   if (access.state !== "needs_verification") return false;
-  if (!(await attemptAllowed(supabase, access.email))) return false;
-
-  const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: access.factorId, code });
-  if (error) return false;
+  const passed = await inTurn(supabase, access.email, async () => {
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: access.factorId, code });
+    return !error;
+  });
+  if (!passed) return false;
   await supabase.rpc("sign_in_succeeded");
   return true;
 }
@@ -172,11 +196,12 @@ export async function confirmStaffEnrolment(factorId: string, code: string): Pro
   const supabase = await createServerSupabaseClient();
   const access = await accessFor(supabase);
   if (access.state !== "needs_enrolment") return false;
-  if (!(await attemptAllowed(supabase, access.email))) return false;
-
   // Auth refuses a factor that is not this user's.
-  const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code });
-  if (error) return false;
+  const passed = await inTurn(supabase, access.email, async () => {
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code });
+    return !error;
+  });
+  if (!passed) return false;
   await supabase.rpc("sign_in_succeeded");
   return true;
 }

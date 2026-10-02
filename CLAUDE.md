@@ -1021,16 +1021,27 @@ screens above are untouched and still sign nobody in.
 - **The session cookie is scoped to `/staff`**, HttpOnly, Secure,
   SameSite=Lax (`SESSION_COOKIE` in `lib/supabase/server.ts`). It is the one
   cookie the site sets, and `/privacy-policy` says so.
-- **Attempts are limited per address, in the database**: five password or
-  code attempts in fifteen minutes (`private.sign_in_settings`), counted on
-  an HMAC of the address, any string alike. Supabase Auth's own per-IP limit
-  cannot do this, because it sees our server's address for every staff
-  member. Passing the second factor clears the count. Anyone can spend an
-  address's attempts and lock it for the window; that is the accepted cost
-  of any per-account limit.
-- **Every refusal reads the same and takes the same time**: a wrong
-  password, an unknown address, a non-staff account (signed straight out
-  again) and a locked address all answer after at least 1.5 seconds with
+- **Failed attempts slow an address down; nothing locks it** (migration 16).
+  Failures are counted per address over the last hour, on an HMAC of the
+  address, any string alike. Each attempt waits before it is tried: nothing
+  for the first three failures, then 1, 2, 4, 8 seconds, ceiling 10
+  (`private.sign_in_settings`). The right password and code always get in,
+  after their wait. **One attempt per address at a time**: a delay alone
+  would not slow a guesser sending attempts in parallel, so an attempt that
+  finds the address busy is refused at once, untried. That bounds guessing
+  to one attempt per delay per address; the accepted cost is that an
+  address under an active flood refuses its owner too, while the flood
+  lasts. Passing the second factor clears the count.
+- **This governs our page only.** The anon key is public, so a password can
+  be tried straight against Supabase Auth's API, where only Auth's own
+  per-IP limits apply. Those limits therefore stay at their defaults, at
+  the cost of a shared bucket for every sign-in through our server.
+  `supabase/STAFF-ACCESS.md`, "Two paths to the password", has the
+  findings and the two ways out (forwarding the visitor's address with the
+  new secret API keys; Auth's attempt hooks on Teams and Enterprise).
+- **Every refusal reads the same**: a wrong password, an unknown address, a
+  non-staff account (signed straight out again) and an address with an
+  attempt already in progress all answer after at least 1.5 seconds with
   `staffSignIn.failed`.
 - **Staff accounts are made by the operator**: created in the dashboard,
   then promoted by `supabase/snippets/promote_staff.sql` (safe to run

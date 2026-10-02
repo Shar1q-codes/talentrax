@@ -9,13 +9,13 @@ import { freshWindow, totp } from "./totp";
  *
  * Seeded accounts (supabase/LOCAL.md), password `local-password-only`:
  *   platform.admin   the full path: set up, sign out, sign in again
- *   research.analyst the attempt limit, and nothing else
+ *   research.analyst the sign-in delay, and nothing else
  *
  * IDEMPOTENT: afterAll clears the sign-in count of every address the suite
  * used, through reset_sign_in_attempts (migration 15, service role only),
- * so no account is left locked. Nothing clears it at the start: the lockout
- * test opens by signing research.analyst in with the right password, which
- * proves the previous run's teardown worked.
+ * so no address is left slowed down. Nothing clears it at the start: the
+ * delay test opens by signing research.analyst in with the right password
+ * at no delay, which proves the previous run's teardown worked.
  *   job.seeker       an account that is not staff
  *
  * Before the full path, platform.admin's factors are removed through the
@@ -25,7 +25,7 @@ import { freshWindow, totp } from "./totp";
 
 const PASSWORD = "local-password-only";
 const ADMIN = { id: "00000000-0000-4000-8000-000000000002", email: "platform.admin@example.test" };
-const LOCKED = "research.analyst@example.test";
+const DELAYED = "research.analyst@example.test";
 const NOT_STAFF = "job.seeker@example.test";
 const UNKNOWN = `nobody-db-test@example.test`;
 
@@ -60,6 +60,12 @@ async function enterCode(page: Page, code: string, submitLabel: string) {
   await page.getByRole("button", { name: submitLabel }).click();
 }
 
+/** Part-way through sign-in: sign out and back to the first step. */
+async function startOver(page: Page) {
+  await page.getByRole("button", { name: staffSetUp.startOver }).click();
+  await expect(page).toHaveURL(/\/staff\/sign-in$/);
+}
+
 /**
  * A password attempt expected to fail: it waits for the attempt to finish
  * (the button goes busy and back), because the message from a previous
@@ -85,7 +91,7 @@ test.describe("@db staff sign-in", () => {
   });
 
   test.afterAll(async ({ request }) => {
-    for (const email of [ADMIN.email, LOCKED, NOT_STAFF, UNKNOWN]) await clearSignInCount(request, email);
+    for (const email of [ADMIN.email, DELAYED, NOT_STAFF, UNKNOWN]) await clearSignInCount(request, email);
   });
 
   test("the staff area sends a visitor with no session to sign-in", async ({ page }) => {
@@ -184,17 +190,46 @@ test.describe("@db staff sign-in", () => {
     await expect(page).toHaveURL(/\/staff\/sign-in$/);
   });
 
-  test("past five attempts, even the right password is refused", async ({ page }) => {
-    // Not locked to begin with: the last run's teardown cleared it.
+  test("failures slow an address down, never lock it, and only one attempt runs at a time", async ({ page, context }) => {
+    // No delay and no attempt in progress to begin with: the last run's
+    // teardown cleared this address.
     await page.goto("/staff/sign-in");
-    await enterPassword(page, LOCKED);
+    await enterPassword(page, DELAYED);
     await expect(page).toHaveURL(/\/staff\/sign-in\/set-up$/);
-    await page.getByRole("button", { name: staffSetUp.startOver }).click();
-    await expect(page).toHaveURL(/\/staff\/sign-in$/);
+    await startOver(page);
 
-    for (let n = 0; n < 5; n++) {
-      await expectRefused(page, LOCKED, `wrong-${n}`);
-    }
-    await expectRefused(page, LOCKED);
+    // Four failures: the first three free, the fourth after one second.
+    for (let n = 0; n < 4; n++) await expectRefused(page, DELAYED, `wrong-${n}`);
+
+    // The right password still gets in, after the two seconds four failures
+    // earn. A password step takes at least 1.5 seconds anyway, so the bound
+    // is the delay, not the floor.
+    let started = Date.now();
+    await enterPassword(page, DELAYED);
+    await expect(page).toHaveURL(/\/staff\/sign-in\/set-up$/, { timeout: 15_000 });
+    expect(Date.now() - started).toBeGreaterThanOrEqual(2_000);
+    await startOver(page);
+
+    // A fifth failure: the next attempt waits four seconds. While it waits,
+    // a second attempt for the same address, even with the right password,
+    // is refused at once, untried.
+    await expectRefused(page, DELAYED, "wrong-4");
+    const other = await context.newPage();
+    await other.goto("/staff/sign-in");
+    await enterPassword(page, DELAYED, "wrong-5");
+    await page.waitForTimeout(500);
+    started = Date.now();
+    await expectRefused(other, DELAYED);
+    expect(Date.now() - started).toBeLessThan(4_000);
+    await expect(page.locator('main form button[type="submit"]')).toHaveText(staffSignIn.submit.label, { timeout: 15_000 });
+    await expect(page.getByRole("status")).toHaveText(staffSignIn.failed);
+
+    // Six failures now: eight seconds, and the right password still works.
+    started = Date.now();
+    await enterPassword(other, DELAYED);
+    await expect(other).toHaveURL(/\/staff\/sign-in\/set-up$/, { timeout: 20_000 });
+    expect(Date.now() - started).toBeGreaterThanOrEqual(8_000);
+    await startOver(other);
+    await other.close();
   });
 });

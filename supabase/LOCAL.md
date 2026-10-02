@@ -279,10 +279,18 @@ writing down as they are set:
 - **TOTP multi-factor on** (Authentication > Multi-Factor): enrolment and
   verification both. Staff sign-in requires it; without it no staff member
   can get past setup.
-- **Sign-in rate limits** (Authentication > Rate Limits): staff sign in
-  through our server, so Supabase sees one address for all of them. The
-  per-address limits there must allow every staff member's sign-ins
-  together; the per-account limit is ours (migration 14).
+- **Auth rate limits** (Authentication > Rate Limits): **leave the sign-in
+  and verification limits at their defaults** (30 sign-ins per 5 minutes, 15
+  MFA verifications per minute, per address). Read `STAFF-ACCESS.md`, "Two
+  paths to the password", before changing them. In short: the anon key is
+  public, so a password can be tried straight against Auth's API, past our
+  sign-in page and its per-address delay (migration 16), and on that path
+  these limits are the only guard. The cost: Auth sees our server's address
+  for every attempt made through our page, so a flood there can block staff
+  sign-in for up to five minutes. Forwarding the visitor's address
+  (`Sb-Forwarded-For`) would remove that, but hosted Auth accepts it only
+  with the new secret API keys, which this project does not use yet, and
+  only once enabled for the project.
 - **Storage limits**: bucket file-size limit and allowed MIME types, and the
   `storage.objects` policies the README lists as missing, before any upload
   is wired.
