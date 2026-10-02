@@ -170,10 +170,19 @@ line: `candidates`, `requisitions`, `submissions`, `interviews`, `offers`,
 validated with zod and no type is derived from the database yet. The
 hand-written types live beside the functions that use them in `queries.ts`.
 
-**The chrome stays in the root layout.** `(marketing)/layout.tsx` renders
-nothing of its own, because `app/not-found.tsx` renders in the root layout
-and would lose the header and footer otherwise. Splitting the root layout is
-the job of whichever change first gives `(portal)` or `(internal)` a page.
+**The root layout has no chrome.** The public site's skip link, header,
+`<main>` and footer are `components/layout/SiteChrome.tsx`, drawn by
+`(marketing)/layout.tsx`, so `(internal)` and `(portal)` do not inherit the
+marketing navigation. Two 404 pages, one body (`NotFoundContent`):
+
+| File | Renders for | Chrome |
+| --- | --- | --- |
+| `app/not-found.tsx` | an unmatched URL, anywhere | draws `SiteChrome` itself: it renders in the root layout, above every group |
+| `app/(marketing)/not-found.tsx` | `notFound()` thrown by a public route (an unknown job or article) | none of its own: it renders inside the `(marketing)` layout |
+
+Put chrome in the second one and the page has two headers, two `<main>`s
+and two footers - it did, for one build. `tests/browser/site.spec.ts`
+counts them on both kinds of 404.
 
 `src/content/articles/` does not move: the importer writes there. Its link
 check resolves internal links against `src/app/(marketing)/`, so a public

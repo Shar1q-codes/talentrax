@@ -30,6 +30,21 @@ test.describe("every route at 320px", () => {
   }
 });
 
+// The chrome lives in the (marketing) layout and in app/not-found.tsx. An
+// unmatched URL and a notFound() thrown inside a public route take different
+// paths through them; each must end with exactly one of everything. The
+// second one drew two of each once.
+for (const route of ["/no-such-page", "/jobs/no-such-job", "/insights/no-such-article"]) {
+  test(`${route}: a 404 with one header, one <main>, one footer, one <h1>`, async ({ page }) => {
+    const response = await page.goto(route, { waitUntil: "networkidle" });
+    expect(response?.status()).toBe(404);
+    await expect(page.locator("header")).toHaveCount(1);
+    await expect(page.locator("main")).toHaveCount(1);
+    await expect(page.locator("footer")).toHaveCount(1);
+    await expect(page.locator("h1")).toHaveCount(1);
+  });
+}
+
 test("a route change from the bottom of a page starts the next page at the top", async ({ page }) => {
   await page.goto("/employers", { waitUntil: "networkidle" });
   await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));

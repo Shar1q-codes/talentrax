@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 
-import { Footer } from "@/components/layout/Footer";
-import { Header } from "@/components/layout/Header";
-import { SkipLink } from "@/components/layout/SkipLink";
 import { site } from "@/content/site";
 import { metadataBase } from "@/lib/metadata";
 
@@ -59,19 +56,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={geistSans.variable}
       data-scroll-behavior="smooth"
     >
-      <body className="flex min-h-svh flex-col antialiased">
-        <SkipLink />
-        <Header />
-        {/*
-          The single <main> landmark for every route. tabIndex={-1} makes it a
-          valid target for the skip link so focus actually lands here rather
-          than only scrolling the viewport.
-        */}
-        <main id="main-content" tabIndex={-1} className="flex-1">
-          {children}
-        </main>
-        <Footer />
-      </body>
+      {/*
+        No chrome here. The public site's header, footer, skip link and
+        <main> are components/layout/SiteChrome.tsx, rendered by the
+        (marketing) layout and by not-found.tsx; (internal) and (portal)
+        bring their own. A route group that rendered inside this chrome
+        would inherit the marketing navigation whether it wanted it or not.
+      */}
+      <body className="flex min-h-svh flex-col antialiased">{children}</body>
     </html>
   );
 }
