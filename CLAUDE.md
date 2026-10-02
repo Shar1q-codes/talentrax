@@ -254,7 +254,7 @@ and `/contact` - are the only client components on the site.
 | Form | Seam | State |
 | --- | --- | --- |
 | Contact | `submitContact()` in `src/features/contact/queries.ts` | **Wired**: inserts into `contact_messages` |
-| Request Talent | `submitRequisition()` in `src/features/employers/queries.ts` | Not wired: logs and returns `unavailable` |
+| Request Talent | `submitRequisition()` in `src/features/employers/queries.ts` | **Wired**: inserts a new `website_form` row into `leads` |
 | Upload Resume | `submitApplication()` in `src/features/job-seekers/queries.ts` | Not wired: logs and returns `unavailable` |
 
 **An unwired form** submits through its seam, which logs the payload and
@@ -1097,7 +1097,7 @@ future migration:
 - **The public forms are rate limited in the database, and a retry is never
   counted.** When a form is wired to the database, it sends a
   `submission_key`: generated once per submission, resent on every retry.
-  Contact does; the two unwired seams do not yet. A per-email limit holds,
+  Contact and Request Talent do; the resume seam does not yet. A per-email limit holds,
   it never refuses: a refusal would disclose that someone used the form. Thresholds live in `intake_limits`,
   never in code.
 

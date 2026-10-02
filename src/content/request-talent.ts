@@ -10,6 +10,7 @@
  * the form can never drift out of step with the pages that describe them.
  */
 
+import { retryIn } from "./form-outcomes";
 import { engagementModels, specialtyAreas } from "./taxonomy";
 
 export type FieldConfig = {
@@ -267,13 +268,25 @@ export const usStates: SelectOption[] = [
 
 export const requestTalent = {
   /**
-   * Shown above the form, and after a submit, while the form is not
-   * connected to anything - the pattern the account screens use
-   * (content/auth.ts, notOpenYet). Both go in the commit that wires it.
+   * Shown above the form, and after a submit, whenever the forms gate says
+   * the form is closed (src/lib/supabase/forms-gate.ts): a build with no
+   * database, or production before its release conditions hold. The
+   * pattern the account screens use (content/auth.ts, notOpenYet).
    */
   notOpen: {
     notice: "This form is not open yet, so a brief sent here does not reach us.",
     afterSubmit: "This form is not open yet. Nothing was sent.",
+  },
+  /**
+   * What a submit that did not get through says. Neither names a cause it
+   * cannot know, and neither says which limit refused it.
+   */
+  outcome: {
+    rateLimited: (retryAfterSeconds: number | null) =>
+      "Too many briefs have been sent through this form recently, so yours was not sent. What you typed is still here. " +
+      retryIn(retryAfterSeconds),
+    failed:
+      "Your brief could not be sent, so it has not reached us. What you typed is still here. Check your connection and send it again.",
   },
   eyebrow: "Employers",
   heading: "Request talent",
@@ -323,8 +336,6 @@ export const requestTalent = {
   success: {
     title: "Requisition received",
     body: "Thanks - your brief is with us. A recruiter from the matching desk will come back to you at the email address you gave.",
-    /** Honest about the current build state rather than inventing an SLA. */
-    note: "This site has no backend yet, so nothing was transmitted. The payload was written to the browser console instead.",
     resetLabel: "Send another requisition",
     backLabel: "Back to Employers",
   },

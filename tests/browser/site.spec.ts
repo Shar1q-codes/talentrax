@@ -1,6 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { contactFields, contactForm } from "@/content/contact";
+import {
+  contactFields as briefContactFields,
+  requestTalent,
+  roleFields,
+} from "@/content/request-talent";
 
 /**
  * Site-wide checks from the first browser pass that held, kept so they
@@ -102,6 +107,30 @@ test("/contact with no database: says it is not open, and a valid submit sends n
   await expect(outcome).toHaveText(contactForm.notOpen.afterSubmit);
   await expect(outcome).toBeFocused();
   await expect(page.locator(`#${contactFields.message.id}`)).toHaveValue("Nothing should send this.");
+  expect(offSite).toEqual([]);
+});
+
+test("/employers/request-talent with no database: says it is not open, and a valid submit sends nothing", async ({ page, baseURL }) => {
+  const offSite = requestsOffSite(page, baseURL!);
+  await page.goto("/employers/request-talent", { waitUntil: "networkidle" });
+  await expect(page.getByText(requestTalent.notOpen.notice)).toBeVisible();
+
+  await page.locator(`#${briefContactFields.fullName.id}`).fill("Closed Form Person");
+  await page.locator(`#${briefContactFields.workEmail.id}`).fill("closed-form@example.com");
+  await page.locator(`#${briefContactFields.phone.id}`).fill("(202) 555-0143");
+  await page.locator(`#${briefContactFields.companyName.id}`).fill("Closed Co");
+  await page.locator(`#${roleFields.roleTitle.id}`).fill("Closed role");
+  await page.locator(`#${roleFields.service.id}`).selectOption("direct-hire");
+  await page.locator(`#${roleFields.specialty.id}`).selectOption("technology:data");
+  await page.locator(`#${roleFields.city.id}`).fill("Austin");
+  await page.locator(`#${roleFields.state.id}`).selectOption("TX");
+  await page.locator(`#${roleFields.workMode.id}-remote`).check();
+  await page.getByRole("button", { name: requestTalent.submit.label }).click();
+
+  const outcome = page.getByRole("status");
+  await expect(outcome).toHaveText(requestTalent.notOpen.afterSubmit);
+  await expect(outcome).toBeFocused();
+  await expect(page.locator(`#${roleFields.roleTitle.id}`)).toHaveValue("Closed role");
   expect(offSite).toEqual([]);
 });
 

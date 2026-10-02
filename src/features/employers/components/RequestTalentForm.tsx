@@ -45,10 +45,16 @@ import {
  *
  * Spam handling is a honeypot plus a minimum time on page. Both only ever
  * fire on an OTHERWISE VALID submission, so a fast human filling the form
- * correctly is never silently dropped - see handleSubmit.
+ * correctly is never silently dropped - see handleSubmit. A submit they
+ * catch is told it was not sent and may be sent again - true for a person,
+ * and no signal to a script.
  *
- * There is no backend: submitRequisition() in features/employers/queries.ts is the
- * single seam where the API gets wired in later.
+ * `open` comes from the page, which asks the forms gate at build time
+ * (src/lib/supabase/forms-gate.ts). Closed, a valid submit says the form is
+ * not open and sends nothing. Open, it goes to submitRequisition() in
+ * ../queries.ts, the one place this form touches the database.
+ *
+ * Every outcome other than success keeps what was typed and takes focus.
  */
 
 type FieldKey =
@@ -56,6 +62,23 @@ type FieldKey =
   | keyof typeof roleFields;
 
 type Values = Record<FieldKey, string>;
+
+/** Why a submit did not get through, when it did not. */
+type Outcome =
+  | { kind: "unavailable" }
+  | { kind: "failed" }
+  | { kind: "rate_limited"; retryAfterSeconds: number | null };
+
+function outcomeText(outcome: Outcome): string {
+  switch (outcome.kind) {
+    case "unavailable":
+      return requestTalent.notOpen.afterSubmit;
+    case "rate_limited":
+      return requestTalent.outcome.rateLimited(outcome.retryAfterSeconds);
+    case "failed":
+      return requestTalent.outcome.failed;
+  }
+}
 
 type FieldError = {
   key: FieldKey;
@@ -205,12 +228,12 @@ function validate(values: Values): FieldError[] {
   return errors;
 }
 
-function toPayload(values: Values): RequisitionPayload {
+function toPayload(values: Values, submissionKey: string): RequisitionPayload {
   const min = values.salaryMin.trim();
   const max = values.salaryMax.trim();
 
   return {
-    submittedAt: new Date().toISOString(),
+    submissionKey,
     contact: {
       fullName: values.fullName.trim(),
       workEmail: values.workEmail.trim(),
@@ -236,11 +259,14 @@ function toPayload(values: Values): RequisitionPayload {
   };
 }
 
-export function RequestTalentForm() {
+export function RequestTalentForm({ open }: { open: boolean }) {
   const [values, setValues] = useState<Values>(initialValues);
   const [errors, setErrors] = useState<FieldError[]>([]);
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "unavailable">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [honeypot, setHoneypot] = useState("");
+  /** Bumped on every outcome, so focus moves even when it repeats. */
+  const [outcomeCount, setOutcomeCount] = useState(0);
 
   /**
    * Incremented on every failed submit so the focus effect re-runs even when
@@ -252,6 +278,12 @@ export function RequestTalentForm() {
   const successRef = useRef<HTMLDivElement>(null);
   const outcomeRef = useRef<HTMLParagraphElement>(null);
   const openedAt = useRef<number | null>(null);
+  /**
+   * One per submission, resent on every retry of it, so the database stores
+   * a retried brief once (migration 9). Cleared by any edit: changed content
+   * is a new submission, and must not be dropped as a retry of the old one.
+   */
+  const submissionKey = useRef<string | null>(null);
 
   /**
    * Set after mount rather than at module scope: every page here is
@@ -274,11 +306,21 @@ export function RequestTalentForm() {
 
   useEffect(() => {
     if (status === "sent") successRef.current?.focus();
-    if (status === "unavailable") outcomeRef.current?.focus();
   }, [status]);
 
-  const setValue = (key: FieldKey) => (value: string) =>
+  useEffect(() => {
+    if (outcomeCount > 0) outcomeRef.current?.focus();
+  }, [outcomeCount]);
+
+  const setValue = (key: FieldKey) => (value: string) => {
+    submissionKey.current = null;
     setValues((current) => ({ ...current, [key]: value }));
+  };
+
+  function showOutcome(next: Outcome) {
+    setOutcome(next);
+    setOutcomeCount((count) => count + 1);
+  }
 
   const errorFor = (key: FieldKey) =>
     errors.find((error) => error.key === key)?.message;
@@ -288,14 +330,21 @@ export function RequestTalentForm() {
 
     const found = validate(values);
     if (found.length > 0) {
+      setOutcome(null);
       setErrors(found);
       setFailedAttempts((count) => count + 1);
       return;
     }
     setErrors([]);
 
-    // Spam checks run only on an otherwise valid submission, and both fail
-    // closed into the outcome a person gets: a bot gets no signal that it was caught.
+    if (!open) {
+      showOutcome({ kind: "unavailable" });
+      return;
+    }
+
+    // Spam checks run only on an otherwise valid submission. A catch is
+    // answered as a failed send: true for a person, who can send it again,
+    // and no signal to a script that it was caught.
     const secondsOnPage = openedAt.current
       ? (Date.now() - openedAt.current) / 1000
       : 0;
@@ -304,15 +353,25 @@ export function RequestTalentForm() {
       secondsOnPage < requestTalent.spam.minSubmitSeconds;
 
     if (looksAutomated) {
-      setStatus("unavailable");
+      showOutcome({ kind: "failed" });
       return;
     }
 
+    submissionKey.current ??= crypto.randomUUID();
     setStatus("sending");
-    const result = await submitRequisition(toPayload(values));
-    // Until the API exists the seam answers `unavailable`, and the form says
-    // so. A real failure, when there is one, arrives on the same path.
-    setStatus(result.ok ? "sent" : "unavailable");
+    setOutcome(null);
+    const result = await submitRequisition(toPayload(values, submissionKey.current));
+    if (result.ok) {
+      submissionKey.current = null;
+      setStatus("sent");
+      return;
+    }
+    setStatus("idle");
+    showOutcome(
+      result.reason === "rate_limited"
+        ? { kind: "rate_limited", retryAfterSeconds: result.retryAfterSeconds }
+        : { kind: "failed" },
+    );
   }
 
   function handleReset() {
@@ -321,6 +380,8 @@ export function RequestTalentForm() {
     setHoneypot("");
     setFailedAttempts(0);
     setStatus("idle");
+    setOutcome(null);
+    submissionKey.current = null;
     openedAt.current = Date.now();
     // Ids are owned by the content layer, so this cannot drift out of step.
     document.getElementById(contactFields.fullName.id)?.focus();
@@ -340,9 +401,6 @@ export function RequestTalentForm() {
         <p className="mt-4 text-base text-ink-muted">
           {requestTalent.success.body}
         </p>
-        <p className="mt-4 text-sm text-ink-muted">
-          {requestTalent.success.note}
-        </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Button onClick={handleReset}>{requestTalent.success.resetLabel}</Button>
           <ButtonLink href="/employers" variant="secondary">
@@ -355,15 +413,15 @@ export function RequestTalentForm() {
 
   return (
     <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-10">
-      {/* Not connected yet: say so, and keep what they typed. */}
-      {status === "unavailable" ? (
+      {/* Not sent, for whichever reason: say so, and keep what they typed. */}
+      {outcome ? (
         <p
           ref={outcomeRef}
           tabIndex={-1}
           role="status"
           className="rounded-lg border border-brand bg-brand-soft p-5 text-base text-ink"
         >
-          {requestTalent.notOpen.afterSubmit}
+          {outcomeText(outcome)}
         </p>
       ) : null}
       {errors.length > 0 ? (

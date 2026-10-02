@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { employersMeta } from "@/content/employers";
 import { requestTalent } from "@/content/request-talent";
 import { buildMetadata } from "@/lib/metadata";
+import { publicFormsOpen } from "@/lib/supabase/forms-gate";
 
 export const metadata: Metadata = buildMetadata({
   title: employersMeta.requestTalent.title,
@@ -19,8 +20,13 @@ export const metadata: Metadata = buildMetadata({
  * The requisition form page. The page itself is a server component: only the
  * form below is a client component, so everything above it - including the
  * h1, the intro and the metadata - is in the server-rendered HTML.
+ *
+ * Whether the form is open is decided once, at build time, by the forms gate
+ * (src/lib/supabase/forms-gate.ts). The notice and the form's own behaviour
+ * both follow that one answer.
  */
 export default function Page() {
+  const open = publicFormsOpen();
   return (
     <>
       <PageHeader
@@ -28,8 +34,7 @@ export default function Page() {
         heading={requestTalent.heading}
         intro={requestTalent.intro}
       >
-        {/* Removed when the form is wired. See content/request-talent.ts. */}
-        <NotOpenNotice>{requestTalent.notOpen.notice}</NotOpenNotice>
+        {open ? null : <NotOpenNotice>{requestTalent.notOpen.notice}</NotOpenNotice>}
         <ul className="mt-8 flex flex-col gap-2">
           {requestTalent.beforeYouStart.map((item) => (
             <li
@@ -45,7 +50,7 @@ export default function Page() {
 
       <Container>
         <div className="max-w-3xl py-14 sm:py-16 lg:py-20">
-          <RequestTalentForm />
+          <RequestTalentForm open={open} />
         </div>
       </Container>
     </>

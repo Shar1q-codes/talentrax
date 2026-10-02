@@ -103,7 +103,7 @@ export const formStorage = {
    */
   location: null as string | null,
   /** The wired forms, as the disclosure names them. Grows as each is wired. */
-  forms: ["the contact form"],
+  forms: ["the contact form", "the Request Talent form"],
 };
 
 function formStorageDisclosure(): LegalBlock[] {
