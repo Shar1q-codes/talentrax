@@ -1077,6 +1077,13 @@ documented (not executed) path to hosted. After every migration, run
 types file compiles against columns that no longer exist. `seed.sql` never
 reaches a hosted project.
 
+**A lost staff second factor is reset by the runbook in
+`supabase/STAFF-ACCESS.md`, and only by it**: a person with project access
+runs the SQL, a `super_admin` approves, neither is the person asking, and
+identity is proven by a call back to a number on file plus a live video or
+in-person check. Staff MFA (build step 7) implements that path. It must not
+add a factor reset to the app, for any role.
+
 The taxonomy tables are seeded from `src/content/taxonomy.ts`. Changing a
 desk, specialty or engagement model there needs a matching migration and
 an update to the values `00_schema.test.sql` pins, which are copied from that

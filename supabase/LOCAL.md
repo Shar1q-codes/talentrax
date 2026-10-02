@@ -238,6 +238,12 @@ Hosted projects start with no users. The first admin is created
 deliberately, through the dashboard, with a real address and a real
 password, and promoted by a super_admin-run SQL statement.
 
+**Read `STAFF-ACCESS.md` before creating the first staff account.** It is
+the runbook for a staff member who loses their second factor: who may
+reset it, what proves the person asking is who they say, and the SQL the
+operator runs. It also requires two `super_admin` accounts and two people
+with project access before go-live, so nobody ever has to reset their own.
+
 ### What a migration cannot configure
 
 `config.toml` configures only the local stack. These live in the hosted

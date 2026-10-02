@@ -329,3 +329,15 @@ delete the matching `OMITTED` comment there, and strike the item here.
     second factor, enrolled at first sign-in. The client should know this
     is the default, and say if any staff member cannot use an
     authenticator app.
+
+    **The recovery path is decided** (`supabase/STAFF-ACCESS.md`): a lost
+    factor is reset only by someone with access to the hosted project,
+    approved by a `super_admin`, neither of them the person asking, after
+    a call back to a number on file and a live video or in-person check.
+    Nobody resets their own, and the app has no reset button. Three
+    things only the client can supply:
+    - **two people for each role** before go-live: two `super_admin`
+      accounts, and two people with access to the hosted project;
+    - **where staff phone numbers on file are kept**, outside the ATS,
+      for the call back;
+    - **where the record of each reset is kept.**

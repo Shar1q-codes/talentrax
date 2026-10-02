@@ -330,6 +330,35 @@ It refers to `app/page.tsx`, which does not exist.
 - The storage design assumes `storage.objects` reflects the bytes in the
   storage backend: unverified.
 
+### 7.9 An in-route 404 has an empty server body (known, not being fixed)
+
+Added 2026-10-02, after `ff56050`; measured on that build with `next start`.
+
+A `notFound()` thrown inside a public route - an unknown job or article -
+answers with an HTML body that has nothing in it. The header, `<main>`, the
+`<h1>` and the 404 copy all arrive in the RSC payload and are drawn only
+once the browser runs it. An unmatched URL renders in full on the server.
+
+| URL | Status | robots noindex | Server HTML: header, `<main>`, `<h1>` | Server HTML: visible text |
+| --- | --- | --- | --- | --- |
+| `/jobs/no-such-job` | 404 | yes | 0, 0, 0 | none |
+| `/insights/no-such-article` | 404 | yes | 0, 0, 0 | none |
+| `/no-such-page` | 404 | yes | 1, 1, 1 | the full 404 page |
+
+- **The status code is correct**, and so is the noindex tag. A crawler is
+  told the URL does not exist, which is the only thing a 404 has to say.
+- After hydration the page is complete: the browser suite counts one
+  header, one `<main>`, one footer and one `<h1>` on both kinds of 404
+  (`tests/browser/site.spec.ts`).
+- What is lost: a visitor with JavaScript off, or a client that reads only
+  the server HTML, sees a blank page instead of the 404 copy and the way
+  back to the site.
+- **Deliberately not being fixed.** The status code, which is what a 404
+  has to get right, is right.
+- Found while building the layout split (`ff56050`) and reported then as
+  existing behaviour rather than something the split introduced **[conv]**.
+  Not re-checked on a build from before the split.
+
 ---
 
 ## 8. Verification status
