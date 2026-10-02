@@ -1,20 +1,24 @@
 # Project status
 
-Snapshot of `feat/ats-foundation` at `fba7834`, taken 2026-10-02.
+**Sections 2, 3 and 4 describe `621a38a`** (build step 6, staff sign-in),
+regenerated 2026-10-02. Every other section names the commit it describes;
+anything older than the branch's head is stale by that much.
 
 Derived from the repository: git, the file tree, the tests, CLAUDE.md,
-CLIENT-CONFIRM.md and `supabase/*.md`. Checks in section 8 were re-run on
-this commit when this file was written.
+CLIENT-CONFIRM.md and `supabase/*.md`.
 
 **[conv]** marks a fact that is known only from the working session that
 produced this file and is **not recorded anywhere else in the repo**.
 
-**Partly regenerated after `5796955`** (forms fixed and resume form
-unlinked in `4b7baee`; CLAUDE.md's rail section corrected in `5796955`).
-Only these entries were regenerated: the form and resume-link rows in
-sections 2 and 4, and sections 7.1 to 7.3. **Everything else - section 1
-included, which predates the push of `feat/ats-foundation` - still describes
-`fba7834`.**
+| Sections | Describe |
+| --- | --- |
+| 2, 3, 4 | `621a38a` |
+| 1 (branch state) | `fba7834`, before `feat/ats-foundation` was pushed. It has been pushed since |
+| 5, 6 | `fba7834` |
+| 7.1 to 7.3 | `5796955`. 7.2 is superseded: Contact and Request Talent are wired (section 2) |
+| 7.4 to 7.8 | `fba7834` |
+| 7.9 | `ff56050` |
+| 8 | `fba7834`. Section 3 gives the checks for `621a38a` |
 
 ---
 
@@ -55,118 +59,130 @@ not created in this work.
 
 ## 2. What is built — frontend
 
-27 route patterns in the production build (`.next/app-path-routes-manifest.json`).
-The public URLs:
+Describes `621a38a`. 31 route patterns in the production build
+(`.next/app-path-routes-manifest.json`), counting `robots.txt`,
+`sitemap.xml`, `favicon.ico` and the two error routes. The public URLs:
 
 | URL | Status | Note |
 | --- | --- | --- |
-| `/` | Finished | Hero, services, desks, split section, latest-articles rail (see 7.1), how it works, CTA |
+| `/` | Finished | Hero, services, desks, split section, latest-articles rail, how it works, CTA |
 | `/employers` | Finished | |
 | `/employers/services` | Finished, with omissions | 5 commercial points are `detail: null` and render nothing (client item 9) |
-| `/employers/request-talent` | **Partial** | Form UI complete. Not open yet: a notice above the form, and a submit answers "This form is not open yet. Nothing was sent." (see 7.2) |
+| `/employers/request-talent` | **Wired** | Inserts a `website_form` lead from the browser. Open or closed by the forms gate (below) |
 | `/job-seekers` | Finished | |
-| `/job-seekers/upload-resume` | **Partial, unlisted** | As above. Reachable by URL only: linked from no page, noindex, not in the sitemap (release gate; see 7.3) |
-| `/jobs` | Finished | `getJobs()` returns `[]`; the empty state routes employers to the requisition form and offers job seekers no route (see 7.3) |
+| `/job-seekers/upload-resume` | **Not wired, unlisted** | Logs and answers "not open yet". Reachable by URL only (release gate). Build step 7 |
+| `/jobs` | Finished | `getJobs()` returns `[]`; the empty state |
 | `/jobs/[slug]` | Stub by design | Builds zero pages; every slug 404s. 410 for expired postings not wired |
-| `/insights` | Finished | Index of 40 articles; a card click opens the modal (intercepting route) |
-| `/insights/[slug]` | Finished | 40 pages, plus 40 modal variants under `(.)[slug]`. BlogPosting and FAQPage JSON-LD |
-| `/about` | Finished | |
-| `/contact` | **Partial** | As above, not open yet. No contact details: all `isPlaceholder` (client item 8). The "You are looking for work" card is removed |
-| `/faq` | Finished | |
-| `/locations` | Finished | No market list, by design |
-| `/resources` | Finished | |
-| `/accessibility` | Finished | States the site is not audited or AT-tested |
-| `/privacy-policy` | Finished, with omissions | 9 `OMITTED` markers (sentences and sections) pending client items 1–7 |
+| `/insights` | Finished | 40 articles; a card opens the modal |
+| `/insights/[slug]` | Finished | 40 pages, plus 40 modal variants. BlogPosting and FAQPage JSON-LD |
+| `/about`, `/faq`, `/locations`, `/resources`, `/accessibility` | Finished | |
+| `/contact` | **Wired** | Inserts into `contact_messages` from the browser. Open or closed by the forms gate. No contact details shown (client item 8) |
+| `/privacy-policy` | Finished, with omissions | Says where form submissions are stored when the forms are open; lists the contact form's fields; one cookie, for staff only. `OMITTED` markers remain for client items 1 to 7 |
 | `/terms` | Finished, with omissions | Governing law omitted (client item 7) |
-| `/login`, `/register`, `/forgot-password` | Stub by design | noindex, not in sitemap; "not open yet" notice; seams return `unavailable` |
+| `/login`, `/register`, `/forgot-password` | Stub by design | Candidate accounts: noindex, unlisted, "not open yet", sign nobody in |
+| `/staff/sign-in`, `/staff/sign-in/set-up`, `/staff/sign-in/verify` | **Built** | Staff sign-in with TOTP required. Noindex, unlisted, linked from nothing |
+| `/staff` | **Built, nearly empty** | Signed-in staff only. Says the inbox comes next (build step 8) |
 | any unknown URL | Finished | Custom 404 |
 
-Also: `/robots.txt`, `/sitemap.xml`, `/favicon.ico`.
+**The forms gate** (`publicFormsOpen()`, decided at build time) opens the
+two wired forms with a local stack or on staging, and keeps them closed
+with no database, with a hosted URL and no `APP_ENV`, and in production
+until `PRODUCTION_RELEASE` holds. **Neither production condition holds
+today**: `formStorage.location` is null and `inboxStaffed` is false. So a
+production deploy of this commit takes no submissions.
 
-Not yet routes: `(portal)` and `(internal)` contain a layout each and no
-pages; `app/api/` contains only a README.
+**Every wired form, every path** (CLAUDE.md, "Build status"): stored;
+validation error; 429 with the wait in minutes; failure; a first spam-trap
+trip refused in the browser and a repeat stored and held; closed.
 
-**Articles: 40** (40 files, 40 in `index.ts`, 40 in `article-order.ts`).
+`(portal)` has a layout and no pages. `app/api/` holds only a README.
 
 ---
 
 ## 3. What is built — backend
 
-Migrations in `supabase/migrations/`, each with a matching
+Describes `621a38a`. Migrations in `supabase/migrations/`, each with a
 `supabase/rollback/*.down.sql`:
 
 | # | File | Establishes |
 | --- | --- | --- |
-| 1 | `20261001000100_foundation.sql` | Roles, profiles, the `private.*` RLS helpers, append-only audit log, row stamping, soft-delete stamping, the taxonomy |
-| 2 | `20261001000200_crm_core.sql` | Employers, contacts, leads, requisitions, assignments, jobs (pay range required), contact-form intake |
-| 3 | `20261001000300_candidates_pipeline.sql` | Resume intake, candidates, documents (original vs scrubbed), embeddings, applications, submissions (consent CHECK gate), events, interviews, offers, placements |
-| 4 | `20261001000400_activities_comms_content.sql` | Activities, communication consents, email templates, message log (consent enforced), content |
-| 5 | `20261001000500_row_level_security.sql` | Visibility helpers, privileges, every policy, `public_jobs` and the three employer views |
-| 6 | `20261001000600_candidate_erasure.sql` | Deletion requests, retention rules, legal holds, erasure worker, storage outbox, PII-free audit log, pg_cron schedule |
-| 7 | `20261001000700_storage_worker.sql` | Outbox leases, tokens, outcomes, backoff, health check; pg_net invocation of the worker |
-| 8 | `20261001000800_storage_buckets.sql` | Three private buckets, `storage.objects` policies, server-assigned intake paths, orphan sweep |
-| 9 | `20261001000900_intake_rate_limits.sql` | Per-IP, per-email and global limits on the three public forms; retry de-duplication; HMAC ledger |
+| 1 | `..._foundation.sql` | Roles, profiles, the `private.*` RLS helpers, append-only audit log, row and soft-delete stamping, the taxonomy |
+| 2 | `..._crm_core.sql` | Employers, contacts, leads, requisitions, assignments, jobs (pay range required), contact-form intake |
+| 3 | `..._candidates_pipeline.sql` | Resume intake, candidates, documents, embeddings, applications, submissions (consent CHECK gate), events, interviews, offers, placements |
+| 4 | `..._activities_comms_content.sql` | Activities, consents, templates, message log, content |
+| 5 | `..._row_level_security.sql` | Visibility helpers, privileges, every policy, `public_jobs` and the three employer views |
+| 6 | `..._candidate_erasure.sql` | Deletion requests, retention rules, legal holds, the erasure worker, the storage outbox, PII-free audit log |
+| 7 | `..._storage_worker.sql` | Outbox leases, outcomes, backoff, health check, the worker's schedule |
+| 8 | `..._storage_buckets.sql` | Three private buckets, their policies, server-assigned intake paths, the orphan sweep |
+| 9 | `..._intake_rate_limits.sql` | Per-address, per-email and global limits on the three forms; retry de-duplication; HMAC ledger |
+| 10 | `..._retention_floor_by_record.sql` | The retention floor per rule, from the kinds of record each covers |
+| 11 | `..._intake_review.sql` | `is_test` on the intake tables; whether a resume arrived; inbox indexes |
+| 12 | `..._intake_retry_after_in_body.sql` | A 429 repeats its wait in the body, where a cross-origin page can read it |
+| 13 | `..._intake_trap_repeat_held.sql` | `trap_tripped`: a repeated spam-trap trip is stored and held, never refused |
+| 14 | `..._staff_second_factor_and_sign_in_limit.sql` | A staff role counts only at `aal2`; per-address sign-in attempt limit |
 
-Edge Function: `supabase/functions/storage-erasure-worker/`
-(`index.ts`, `drain.ts`, `drain.test.ts`).
+Edge Function: `supabase/functions/storage-erasure-worker/`.
 
-**Schema tests: 304 pgTAP assertions in 6 files** (`supabase/tests/database/`):
+**Schema tests: 380 pgTAP assertions in 9 files**, all passing on this
+commit:
 
 | File | Plan | Covers |
 | --- | --- | --- |
-| `00_schema.test.sql` | 22 | Catalog: RLS everywhere, standard columns, soft delete, RESTRICT FKs and their indexes, grants, column classification, taxonomy |
-| `10_access.test.sql` | 95 | Per-role behaviour across every table and view |
-| `20_erasure.test.sql` | 78 | Deletion requests: permissions, deferral, execution across every table, cancel, legal hold, failure rollback, audit log PII-free |
-| `30_storage_worker.test.sql` | 31 | Queue: leases, the three outcomes, stale tokens, backoff, attention flag, missing bucket |
-| `40_storage_policies.test.sql` | 48 | Bucket config; read and upload matrix by role; path guessing; no overwrite or delete; restriction; orphan sweep |
-| `50_intake_limits.test.sql` | 30 | 429 and `Retry-After`; retries; IPv6 /64; per-email hold; global ceiling; ledger |
+| `00_schema.test.sql` | 23 | Catalog: RLS everywhere, standard columns, soft delete, FKs and their indexes, grants, column classification, taxonomy |
+| `10_access.test.sql` | 95 | Per-role behaviour across every table and view (at `aal2`) |
+| `20_erasure.test.sql` | 78 | Deletion requests, end to end |
+| `25_retention_floor.test.sql` | 27 | The retention floor per rule |
+| `30_storage_worker.test.sql` | 31 | The storage outbox and its worker protocol |
+| `40_storage_policies.test.sql` | 48 | Buckets, upload and read matrix, the orphan sweep |
+| `50_intake_limits.test.sql` | 35 | 429 and its wait, retries, per-email hold, global ceiling, trap repeats held |
+| `60_intake_review.test.sql` | 21 | `is_test`, and the resume-arrival columns |
+| `70_staff_sign_in.test.sql` | 22 | Staff at `aal1` hold no role and read nothing; the sign-in limit |
 
-**In the database with no UI at all** (nothing in `src/` constructs the
-Supabase client or reads `public_jobs`):
+**Other checks on this commit:** `npm test` 523; the browser suite with no
+database 55; the `@db` browser suite 18 (Contact and Request Talent: every
+path; staff sign-in end to end); `check:seo` passing; `tsc` and `eslint`
+clean.
 
-- The whole ATS: employers, contacts, leads, requisitions, jobs,
-  candidates, documents, applications, submissions and their timeline,
-  interviews, offers, placements, activities, consents, message log,
-  templates, content.
-- The employer views: `employer_requisitions`, `employer_submissions`,
-  `employer_submission_documents`.
-- Deletion requests: `request_my_deletion()`, `record_`, `accept_`,
-  `refuse_`, `cancel_deletion_request()`, legal holds, `retention_rules`.
-- The storage buckets and their upload paths.
-- `intake_limits`, and the held-for-review mark (`held_at`) on intake rows.
-- `storage_erasure_backlog()`.
+**Written to by the site:** `contact_messages` and `leads`, from the two
+wired forms. **Read by the site:** a staff member's own profile row, at
+sign-in. Nothing else in `src/` reads or writes the database: the inbox
+does not exist yet, so what the forms store is visible only in the
+Supabase dashboard.
 
 ---
 
 ## 4. What is not built
 
+Describes `621a38a`.
+
 | Item | Why |
 | --- | --- |
-| Storage worker deployment: Vault secrets `storage_worker_url`, `storage_worker_key`, and deploying the function | Not started. Needs a hosted project, and there is none |
-| Signed-upload endpoint for the resume form (mints a URL, sets `resume_storage_path`) | Not started |
-| CAPTCHA or honeypot on the public forms | Not started (supabase/README.md) |
-| Database wiring of the three forms (`submitRequisition`, `submitApplication`, `submitContact`) | Not started. Each logs and returns `unavailable`; the form says it is not open yet |
-| `submission_key` sent by the forms | Not started. Retries are de-duplicated on content only until it is |
-| Auth backend for `/login`, `/register`, `/forgot-password` | Blocked on client items 14, 15 |
-| Any `(portal)` or `(internal)` page | Not started. Root-layout split deferred to the first such page (CLAUDE.md) |
-| Any route handler in `app/api/` | Not started |
+| **The staff inbox** (list, detail, status and test actions, resume download) | Build step 8. Until it exists nobody reads what the forms store, which is why `inboxStaffed` is false |
+| **Resume upload endpoints and form** | Build step 7, next. Behind staff sign-in in production, which now exists |
+| Production release of the two wired forms | `PRODUCTION_RELEASE`: the storage location (needs the hosted project) and `inboxStaffed` (needs step 8 and a named staff account) |
+| Staff promotion snippet (`supabase/snippets/promote_staff.sql`) | Not written. The original plan put it with staff sign-in; LOCAL.md still describes promotion as "a super_admin-run SQL statement" with no statement committed |
+| Assigning intake rows to staff | Not started. Without it only administrators see form rows (RLS) |
+| CAPTCHA | Not started. The honeypot and minimum-time traps run in the browser only |
+| Auth for candidate `/login`, `/register`, `/forgot-password` | Blocked on client items 14, 15 |
+| Any `(portal)` page; any route handler in `app/api/` | Not started |
 | Jobs from the database (`getJobs()` reading `public_jobs`) | Not started |
-| 410 for expired postings, and its check:seo assertions | Deferred until real postings exist (`wire-expired-postings` skill) |
-| Hosted Supabase project, staging project, `supabase link` / `db push` | Deferred: documented, not executed (supabase/LOCAL.md) |
-| Staging noindex mechanism | Not started ("not built yet", supabase/LOCAL.md) |
-| Hosted Auth settings: email confirmation, SMTP, site URL, redirect URLs | Deferred to hosted setup. Local `enable_confirmations = false` |
-| Netlify environment: `APP_ENV`, the Supabase URL and key, per context | Not set from this repo. Deliberately not in `netlify.toml` |
-| Delivery of storage-erasure alerts to a person | Deploy-time decision (supabase/ERASURE.md) |
-| Backup-restore runbook that re-runs executed erasures | Not started (supabase/ERASURE.md, "Backups") |
+| 410 for expired postings | Deferred until real postings exist (`wire-expired-postings` skill) |
+| Hosted Supabase project, staging, `db push` | Documented in LOCAL.md, not done. The hosted settings now include TOTP on and the sign-in rate limits |
+| Storage worker deployment (Vault secrets, function deploy) | Needs a hosted project |
+| Netlify environment: `APP_ENV`, the Supabase URL and keys, per context | Not set from this repo, deliberately |
+| Staging noindex mechanism | Not started |
+| Delivery of storage-erasure alerts to a person | Deploy-time decision (ERASURE.md) |
+| Backup-restore runbook that re-runs executed erasures | Not started |
 | Audit-log purge job | Blocked on client item 18 |
-| OFCCP retention rule | Seeded inactive; blocked on client item 19 |
-| Payroll, I-9 and wage records if Talentrax employs contractors | Blocked on client item 21 |
-| EEO and demographic collection | Deferred ("separate and later", `src/content/upload-resume.ts`) |
-| Employer-facing views for interviews and offers | Not started (supabase/README.md) |
-| CI | None exists: no `.github/`. Nothing runs tests automatically |
-| `schema.ts` (zod) and `types.ts` in features | Not started; nothing uses zod |
-| Real publication dates on articles | Blocked on client item 17 |
-| Deno type-check of `index.ts` | Never run: Deno is not installed; the file is excluded from `tsc` |
+| OFCCP retention rule | Seeded inactive; client item 19 |
+| Payroll, I-9 and wage records | Client item 21 |
+| EEO and demographic collection | Deferred |
+| Employer-facing views for interviews and offers | Not started |
+| CI | None. Nothing runs any test automatically |
+| `schema.ts` (zod) and `types.ts` in features | Not started |
+| Real publication dates on articles | Client item 17 |
+| Deno type-check of the Edge Function | Deno is not installed |
+| Two staff people per role, numbers on file, a reset record | Client item 27, for the MFA recovery runbook |
 
 ---
 
