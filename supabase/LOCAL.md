@@ -246,7 +246,11 @@ requisition and candidates into tables that are meant to hold real ones.
 
 Hosted projects start with no users. The first admin is created
 deliberately, through the dashboard, with a real address and a real
-password, and promoted by a super_admin-run SQL statement.
+password, and promoted by **`snippets/promote_staff.sql`**, which the
+project operator runs in the SQL editor. Every later staff account is made
+the same way: there is no self-service path to a staff role. The file says
+what to edit, refuses anything that is not a plain promotion to staff, and
+is safe to run twice.
 
 **Read `STAFF-ACCESS.md` before creating the first staff account.** It is
 the runbook for a staff member who loses their second factor: who may

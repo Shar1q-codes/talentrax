@@ -33,6 +33,7 @@ No page, form or API route calls the client yet.
 | `LOCAL.md` | The local workflow, seeded logins, and the path to hosted |
 | `ERASURE.md` | What a deletion request does to each table, the retention law behind it, and why |
 | `STORAGE.md` | Who can read, upload, overwrite and delete in each bucket, and the orphan sweep |
+| `snippets/promote_staff.sql` | Promotes an account to a staff role, the first one included; run by the project operator; safe to run twice |
 | `STAFF-ACCESS.md` | Resetting a staff member's second factor: who may, what proves identity, and the SQL |
 
 ## Running it

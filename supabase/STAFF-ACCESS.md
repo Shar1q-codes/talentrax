@@ -20,6 +20,14 @@ by hand (see **Verified locally**).
 
 ---
 
+## Creating a staff account
+
+Not a reset, but the same people: the operator creates the account in the
+dashboard and runs `snippets/promote_staff.sql` to give it its role. The
+person then signs in at `/staff/sign-in` and sets up their authenticator.
+
+---
+
 ## Who can reset a factor
 
 Two people, and neither of them is the person whose factor it is.

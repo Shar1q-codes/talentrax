@@ -1032,6 +1032,10 @@ screens above are untouched and still sign nobody in.
   password, an unknown address, a non-staff account (signed straight out
   again) and a locked address all answer after at least 1.5 seconds with
   `staffSignIn.failed`.
+- **Staff accounts are made by the operator**: created in the dashboard,
+  then promoted by `supabase/snippets/promote_staff.sql` (safe to run
+  twice; refuses anything but a plain promotion to staff). No self-service
+  path to a staff role exists or is to be built.
 - **No reset in the app**, for passwords or factors, for any role. A lost
   factor goes by `supabase/STAFF-ACCESS.md`.
 - **Nothing is logged**, as on the account screens.
