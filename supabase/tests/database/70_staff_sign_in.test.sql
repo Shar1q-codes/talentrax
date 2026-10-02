@@ -6,7 +6,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(22);
+select plan(26);
 
 create schema tests;
 grant usage on schema tests to anon, authenticated, service_role;
@@ -105,6 +105,20 @@ select is((select count(*) from private.sign_in_attempts where email_key = priva
   'at aal2 it clears that address');
 select is((select count(*) from private.sign_in_attempts where email_key = private.sign_in_key('nobody-here@example.test')), 5::bigint,
   'and only that address');
+
+-- Clearing a count on purpose (migration 15): the trusted backend only.
+select tests.act_as(null, null, 'anon');
+select throws_ok($$ select public.reset_sign_in_attempts('nobody-here@example.test') $$, '42501', null,
+  'anon cannot clear a count');
+select tests.reset();
+select tests.act_as('00000000-0000-4000-8000-000000000001', 'super.admin@example.test', 'aal2');
+select throws_ok($$ select public.reset_sign_in_attempts('nobody-here@example.test') $$, '42501', null,
+  'nor can a signed-in super_admin: an operator does it in the SQL editor');
+select tests.reset();
+select is(public.reset_sign_in_attempts('  NOBODY-here@example.test'), 5,
+  'the trusted backend clears it, however the address is written, and says how many');
+select is((select count(*) from private.sign_in_attempts where email_key = private.sign_in_key('nobody-here@example.test')), 0::bigint,
+  'and the address may sign in again');
 
 select * from finish();
 rollback;

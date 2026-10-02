@@ -160,6 +160,22 @@ step 4 shows one factor that is theirs.
 
 ---
 
+## Clearing a sign-in count
+
+Five password or code attempts for one address in fifteen minutes, and that
+address is refused until the window passes (migration 14). It clears itself
+when the person gets through both steps. To clear it sooner, after the same
+identity check as a reset, the operator runs in the SQL editor:
+
+```sql
+select public.reset_sign_in_attempts('the.person@their-domain');
+```
+
+It returns how many attempts it cleared. Nobody signed in to the app can
+call it, administrators included.
+
+---
+
 ## Passwords
 
 There is no staff password reset in the app either.

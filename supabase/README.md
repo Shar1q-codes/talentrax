@@ -26,6 +26,7 @@ No page, form or API route calls the client yet.
 | `migrations/20261001001200_intake_retry_after_in_body.sql` | A refused form submission repeats its Retry-After in the body, where a cross-origin page can read it |
 | `migrations/20261001001300_intake_trap_repeat_held.sql` | A repeated spam-trap trip is stored and held for review, never refused again |
 | `migrations/20261001001400_staff_second_factor_and_sign_in_limit.sql` | A staff role counts only at aal2 (the second factor passed), and staff sign-in attempts are limited per address |
+| `migrations/20261001001500_reset_sign_in_attempts.sql` | Clearing an address's sign-in count on purpose: service role and the SQL editor only |
 | `functions/storage-erasure-worker/` | The Edge Function that deletes queued objects through the Storage API |
 | `rollback/*.down.sql` | Reverse of each migration, for local development only |
 | `tests/database/*.test.sql` | pgTAP: catalog-wide structural checks, then behaviour per role |

@@ -1566,6 +1566,9 @@ isOneToOne: false
 "request_my_deletion":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"reset_sign_in_attempts":
+{ Args: { "email": string }; Returns: number
+                           },
 "sign_in_attempt":
 { Args: { "email": string }; Returns: boolean
                            },

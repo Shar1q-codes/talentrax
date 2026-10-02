@@ -9,7 +9,13 @@ import { freshWindow, totp } from "./totp";
  *
  * Seeded accounts (supabase/LOCAL.md), password `local-password-only`:
  *   platform.admin   the full path: set up, sign out, sign in again
- *   research.analyst the attempt limit (it is left locked for 15 minutes)
+ *   research.analyst the attempt limit, and nothing else
+ *
+ * IDEMPOTENT: afterAll clears the sign-in count of every address the suite
+ * used, through reset_sign_in_attempts (migration 15, service role only),
+ * so no account is left locked. Nothing clears it at the start: the lockout
+ * test opens by signing research.analyst in with the right password, which
+ * proves the previous run's teardown worked.
  *   job.seeker       an account that is not staff
  *
  * Before the full path, platform.admin's factors are removed through the
@@ -21,6 +27,16 @@ const PASSWORD = "local-password-only";
 const ADMIN = { id: "00000000-0000-4000-8000-000000000002", email: "platform.admin@example.test" };
 const LOCKED = "research.analyst@example.test";
 const NOT_STAFF = "job.seeker@example.test";
+const UNKNOWN = `nobody-db-test@example.test`;
+
+async function clearSignInCount(request: APIRequestContext, email: string) {
+  const { url, serviceRoleKey } = stack();
+  const cleared = await request.post(`${url}/rest/v1/rpc/reset_sign_in_attempts`, {
+    headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, "Content-Type": "application/json" },
+    data: { email },
+  });
+  expect(cleared.status()).toBe(200);
+}
 
 async function removeFactors(request: APIRequestContext, userId: string) {
   const { url, serviceRoleKey } = stack();
@@ -66,6 +82,10 @@ test.describe("@db staff sign-in", () => {
 
   test.beforeAll(async ({ request }) => {
     await expectStackRunning(request);
+  });
+
+  test.afterAll(async ({ request }) => {
+    for (const email of [ADMIN.email, LOCKED, NOT_STAFF, UNKNOWN]) await clearSignInCount(request, email);
   });
 
   test("the staff area sends a visitor with no session to sign-in", async ({ page }) => {
@@ -152,7 +172,7 @@ test.describe("@db staff sign-in", () => {
     await page.goto("/staff/sign-in");
     for (const [email, password] of [
       [ADMIN.email, "not-the-password"],
-      [`nobody-${Date.now()}@example.test`, PASSWORD],
+      [UNKNOWN, PASSWORD],
       [NOT_STAFF, PASSWORD],
     ]) {
       const started = Date.now();
@@ -165,7 +185,13 @@ test.describe("@db staff sign-in", () => {
   });
 
   test("past five attempts, even the right password is refused", async ({ page }) => {
+    // Not locked to begin with: the last run's teardown cleared it.
     await page.goto("/staff/sign-in");
+    await enterPassword(page, LOCKED);
+    await expect(page).toHaveURL(/\/staff\/sign-in\/set-up$/);
+    await page.getByRole("button", { name: staffSetUp.startOver }).click();
+    await expect(page).toHaveURL(/\/staff\/sign-in$/);
+
     for (let n = 0; n < 5; n++) {
       await expectRefused(page, LOCKED, `wrong-${n}`);
     }
