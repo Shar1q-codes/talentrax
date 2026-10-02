@@ -33,7 +33,7 @@ goes anywhere hosted. Nothing is created by clicking in a dashboard (see
 | `NEXT_PUBLIC_SUPABASE_URL` | `.env.local`; the deploy environment | The Supabase client throws **when it is constructed**, naming the variable and where to set it |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | same | same |
 | `SUPABASE_SECRET_KEY` | `.env.local`; the deploy **runtime** environment, as a secret | The secret-key client throws when it is constructed, naming it; only the resume-upload endpoints construct one. Staff sign-in calls to Auth go out with the publishable key instead, and no visitor address is forwarded |
-| `APP_ENV` | **The deploy environment only.** Never `.env.local` | Treated as `local` |
+| `APP_ENV` | **The deploy environment only.** Never `.env.local` | Treated as `local` on a laptop. **On Netlify (`NETLIFY=true`), dev, build and start refuse to run**, naming the variable and its values: unset there is a misconfiguration, not a default |
 
 **Every client checks its variables when it is constructed**, never at
 import or build time, so `next build` and `check:seo` work with no Supabase

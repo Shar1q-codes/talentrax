@@ -15,9 +15,11 @@
   # APP_ENV, NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_SUPABASE_URL,
   # NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY and SUPABASE_SECRET_KEY are
   # deliberately NOT set here; set them per context so staging and production
-  # differ. The secret key is a secret, scoped to Functions. With
-  # APP_ENV set, a local Supabase URL refuses to build
-  # (src/lib/supabase/env.ts). .env.production.example lists all five.
+  # differ. The secret key is a secret, scoped to Functions. APP_ENV must be
+  # set in every context: a Netlify build without it refuses to run
+  # (NETLIFY=true is how it knows), and with it set, a local Supabase URL
+  # refuses to build (src/lib/supabase/env.ts). .env.production.example
+  # lists all five.
   #
   # NEXT_PUBLIC_SITE_URL is build-time inlined (see .env.local.example), so it must exist in the build
   # environment or the localhost fallback is compiled into every canonical URL

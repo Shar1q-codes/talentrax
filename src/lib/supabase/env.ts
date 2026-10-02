@@ -120,9 +120,40 @@ function refuseLocalUrlWhenDeployed(url: string | undefined): void {
   );
 }
 
+// A deploy host that says so in its own environment. Unset APP_ENV means
+// local on a laptop; on a deploy host it means someone forgot to set it, and
+// a deploy that silently runs as "local" would serve the resume route that
+// production keeps a 404 (forms-gate.ts). So there it is a misconfiguration,
+// refused like an unrecognised value, not a default.
+//
+//   Netlify  NETLIFY=true, which Netlify sets in every build and function on
+//            its platform. `netlify dev` on a laptop sets NETLIFY_DEV too,
+//            and stays local.
+//
+// No other host is recognised. One that sets neither APP_ENV nor a marker
+// here is treated as local: the forms still close against a hosted
+// Supabase URL (decideFormsOpen), but the gated route would render, closed.
+// Adding a host is a line here and a test.
+export function deployHostOf(env: Record<string, string | undefined>): string | null {
+  if (env.NETLIFY === "true" && !env.NETLIFY_DEV) return "Netlify";
+  return null;
+}
+
+export function refuseUnsetAppEnvOnDeployHost(env: Record<string, string | undefined>): void {
+  const host = deployHostOf(env);
+  if (!host || env.APP_ENV) return;
+  throw new Error(
+    `Refusing to start: this is running on ${host}, and APP_ENV is not set. ` +
+      `Set APP_ENV to one of: ${APP_ENVS.join(", ")} in the ${host} environment for this deploy context ` +
+      "(Site configuration > Environment variables). Unset means local, which a deploy never is. " +
+      "See supabase/LOCAL.md.",
+  );
+}
+
 // Boot-time check. Called by next.config.ts on `next dev`, `next build` and
 // `next start`. Does not require the Supabase variables to exist.
 export function assertDeployTarget(): void {
+  refuseUnsetAppEnvOnDeployHost(process.env);
   refuseLocalUrlWhenDeployed(process.env.NEXT_PUBLIC_SUPABASE_URL);
 }
 

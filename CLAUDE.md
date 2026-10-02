@@ -1317,7 +1317,15 @@ means.** It is set in the deploy environment only, never in
 `.env.local.example`. With `staging` or `production`, a Supabase URL
 containing `localhost` or `127.0.0.1` refuses to boot: `next.config.ts`
 calls `assertDeployTarget()`, so `dev`, `build` and `start` all stop. An
-unrecognised value refuses too. **Never key this on `NODE_ENV`**: `next
+unrecognised value refuses too, and **so does an unset one on a deploy
+host**: when Netlify's own `NETLIFY=true` is present (and `NETLIFY_DEV`,
+which `netlify dev` sets on a laptop, is not), a missing `APP_ENV` is a
+misconfiguration, not "local", and dev, build and start all stop with an
+error naming the variable and its three values. That is what keeps a
+deploy that nobody configured from serving the resume route production
+keeps a 404. No other host is recognised (`deployHostOf()` in
+`src/lib/supabase/env.ts`, unit tested); one that sets neither runs as
+local. **Never key this on `NODE_ENV`**: `next
 build` sets it to `production` on every laptop, which is how the first
 version of this guard broke local production builds. Do not add an escape
 hatch.

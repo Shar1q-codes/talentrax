@@ -10,7 +10,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { decideFormsOpen, decideResumeAccess } from "./env.ts";
+import { decideFormsOpen, decideResumeAccess, deployHostOf, refuseUnsetAppEnvOnDeployHost } from "./env.ts";
 
 const LOCAL = "http://127.0.0.1:54321";
 const HOSTED = "https://abcdefghijklmnop.supabase.co";
@@ -100,5 +100,30 @@ describe("decideResumeAccess", () => {
       assert.equal(access.openToPublic, false);
       assert.equal(access.openToStaff, false);
     }
+  });
+});
+
+describe("refuseUnsetAppEnvOnDeployHost", () => {
+  it("refuses a Netlify build with no APP_ENV, naming the variable and its values", () => {
+    assert.throws(
+      () => refuseUnsetAppEnvOnDeployHost({ NETLIFY: "true" }),
+      (error: Error) =>
+        error.message.includes("APP_ENV is not set") &&
+        error.message.includes("local, staging, production") &&
+        error.message.includes("Netlify"),
+    );
+    assert.throws(() => refuseUnsetAppEnvOnDeployHost({ NETLIFY: "true", APP_ENV: "" }));
+  });
+
+  it("lets a Netlify build with APP_ENV set through", () => {
+    for (const APP_ENV of ["production", "staging", "local"]) {
+      assert.doesNotThrow(() => refuseUnsetAppEnvOnDeployHost({ NETLIFY: "true", APP_ENV }));
+    }
+  });
+
+  it("leaves a laptop alone: no marker, or netlify dev", () => {
+    assert.doesNotThrow(() => refuseUnsetAppEnvOnDeployHost({}));
+    assert.doesNotThrow(() => refuseUnsetAppEnvOnDeployHost({ NETLIFY: "true", NETLIFY_DEV: "true" }));
+    assert.equal(deployHostOf({ NETLIFY: "false" }), null);
   });
 });
