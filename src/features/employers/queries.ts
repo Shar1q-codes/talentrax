@@ -31,6 +31,11 @@ import { toIntakeResult, type IntakeResult } from "@/lib/supabase/intake-result"
 export type RequisitionPayload = {
   /** A UUID, generated once per submission and resent on its retries. */
   submissionKey: string;
+  /**
+   * A spam trap tripped more than once in this attempt. The row is stored
+   * and held for staff review, never refused (migration 13).
+   */
+  trapTripped: boolean;
   contact: {
     fullName: string;
     workEmail: string;
@@ -74,6 +79,7 @@ export async function submitRequisition(payload: RequisitionPayload): Promise<Su
     const { error, status } = await supabase.from("leads").insert({
       source: "website_form",
       submission_key: payload.submissionKey,
+      trap_tripped: payload.trapTripped,
       contact_name: contact.fullName,
       contact_email: contact.workEmail,
       contact_phone: contact.phone,

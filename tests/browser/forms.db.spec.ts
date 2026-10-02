@@ -36,6 +36,7 @@ async function waitOutSpamDelay(page: Page) {
 }
 
 type ContactRow = {
+  trap_tripped: boolean;
   email: string;
   enquiry_type: string;
   subject: string;
@@ -167,6 +168,29 @@ test.describe("@db contact form", () => {
     await send(page);
     await expect(page.getByRole("status").filter({ hasText: contactForm.success.title })).toBeFocused();
     expect(await rowsFor(request, run.marker)).toHaveLength(1);
+  });
+
+  test("a spam trap refuses once, then stores the repeat held for review", async ({ page, request }) => {
+    const run = testRun();
+    await visitFrom(page, freshVisitorIp());
+    const sent = recordStackRequests(page);
+    await page.goto("/contact", { waitUntil: "networkidle" });
+    await fillContact(page, run);
+    // What a password manager that fills every field does.
+    await page.locator(`#${contactForm.spam.honeypotId}`).fill("filled by something", { force: true });
+    await waitOutSpamDelay(page);
+
+    await send(page);
+    await expect(page.getByRole("status")).toHaveText(contactForm.outcome.failed);
+    expect(sent.filter((r) => !r.startsWith("OPTIONS"))).toEqual([]);
+    expect(await rowsFor(request, run.marker)).toHaveLength(0);
+
+    await send(page);
+    await expect(page.getByRole("status").filter({ hasText: contactForm.success.title })).toBeFocused();
+    const stored = await rowsFor(request, run.marker);
+    expect(stored).toHaveLength(1);
+    expect(stored[0]).toMatchObject({ trap_tripped: true });
+    expect(stored[0].held_at).not.toBeNull();
   });
 
   test("the privacy policy says where form submissions are stored", async ({ page }) => {
@@ -325,5 +349,27 @@ test.describe("@db request talent form", () => {
     await send(page);
     await expect(page.getByRole("status").filter({ hasText: requestTalent.success.title })).toBeFocused();
     expect(await rowsFor(request, run.marker)).toHaveLength(1);
+  });
+  test("a spam trap refuses once, then stores the repeat held for review", async ({ page, request }) => {
+    const run = testRun();
+    await visitFrom(page, freshVisitorIp());
+    const sent = recordStackRequests(page);
+    await page.goto("/employers/request-talent", { waitUntil: "networkidle" });
+    await fillBrief(page, run);
+    // What a password manager that fills every field does.
+    await page.locator(`#${requestTalent.spam.honeypotId}`).fill("filled by something", { force: true });
+    await waitOutSpamDelay(page);
+
+    await send(page);
+    await expect(page.getByRole("status")).toHaveText(requestTalent.outcome.failed);
+    expect(sent.filter((r) => !r.startsWith("OPTIONS"))).toEqual([]);
+    expect(await rowsFor(request, run.marker)).toHaveLength(0);
+
+    await send(page);
+    await expect(page.getByRole("status").filter({ hasText: requestTalent.success.title })).toBeFocused();
+    const stored = await rowsFor(request, run.marker);
+    expect(stored).toHaveLength(1);
+    expect(stored[0]).toMatchObject({ trap_tripped: true });
+    expect(stored[0].held_at).not.toBeNull();
   });
 });

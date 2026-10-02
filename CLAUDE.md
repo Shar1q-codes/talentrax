@@ -297,12 +297,17 @@ Each is flipped in the commit that makes it true, and not before.
 | Validation error | The error summary (`role="alert"`), focused, every problem linked to its control. Nothing is sent |
 | 429 | "Too many ... recently, so yours was not sent", with the wait in minutes from the 429's body (migration 12; a browser cannot read `Retry-After` cross-origin), focused. What was typed stays. Never says which limit |
 | Network failure, refused insert, outage | "Could not be sent, so it has not reached us", focused. What was typed stays. Sending again reuses the submission key, so a send that did land is not stored twice |
-| Caught by the honeypot or the minimum time | The same as a failure: true for a person, who can send it again, and no signal to a script |
+| Caught by the honeypot or the minimum time | **First trip in a submission attempt**: the same as a failure, and nothing is sent. **A repeat in the same attempt**: sent with `trap_tripped`, stored, held for staff review (`held_at`), and the visitor sees the confirmation. A person is never blocked for good (migration 13) |
 | Gate closed | The notice above the form, and "This form is not open yet. Nothing was sent." |
 
-**The submission key** is a UUID made on the first send, resent on every
-retry, and dropped by any edit to the form: changed content is a new
-submission, and must not be swallowed as a retry of the old one. A wired
+**The submission attempt** is a UUID key made on the first send, resent on
+every retry, and a count of spam-trap trips. Any edit to the form starts a
+new attempt: changed content is a new submission, and must not be swallowed
+as a retry of the old one. **The trip count is kept in the page's memory and
+nowhere else**: a refused first trip sends no request, so nothing about a
+refusal reaches the database, a log or the browser's storage; only a stored
+row says a trap tripped, and that row is the person's own submission. A
+reload starts over, which can only cost a person one more refusal. A wired
 seam logs nothing.
 
 **The build order** for the backend's first pieces. Each step is a commit

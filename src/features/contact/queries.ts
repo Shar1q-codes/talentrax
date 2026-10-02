@@ -29,6 +29,11 @@ import { toIntakeResult, type IntakeResult } from "@/lib/supabase/intake-result"
 export type ContactPayload = {
   /** A UUID, generated once per submission and resent on its retries. */
   submissionKey: string;
+  /**
+   * A spam trap tripped more than once in this attempt. The row is stored
+   * and held for staff review, never refused (migration 13).
+   */
+  trapTripped: boolean;
   fullName: string;
   email: string;
   /** Optional; empty string when not given. */
@@ -46,6 +51,7 @@ export async function submitContact(payload: ContactPayload): Promise<SubmitResu
     const supabase = createBrowserSupabaseClient();
     const { error, status } = await supabase.from("contact_messages").insert({
       submission_key: payload.submissionKey,
+      trap_tripped: payload.trapTripped,
       full_name: payload.fullName,
       email: payload.email,
       phone: payload.phone === "" ? null : payload.phone,

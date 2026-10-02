@@ -6,7 +6,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(31);
+select plan(35);
 
 -- -----------------------------------------------------------------------------
 -- Harness: submit a form as anon (or a signed-in user) from an address.
@@ -68,6 +68,11 @@ language sql as $$
 $$;
 
 select tests.act_as(null, null);
+
+-- Start from an empty ledger. Every count below assumes it, and a local
+-- database keeps real ledger rows for 48 hours: the @db browser suite leaves
+-- some. The whole file is rolled back, so nothing outside it is lost.
+delete from private.intake_events;
 
 -- =============================================================================
 -- 1. Per address: twenty an hour, then 429.
@@ -165,6 +170,22 @@ select is_empty($$ select n from generate_series(1, 3) n where tests.lead(n) <> 
   'leads from three addresses fill a (lowered) global ceiling of three');
 select is(tests.lead(4), 'PGRST', 'the fourth, from a fresh address, is refused: the ceiling is per form, not per address');
 select is((select detail::json ->> 'status' from tests.last_error), '429', 'with HTTP 429');
+
+-- =============================================================================
+-- 5b. A repeated spam-trap trip is stored and held, never refused (migration 13).
+-- =============================================================================
+select is(tests.submit_as('anon', '198.51.100.50',
+  $q$ insert into public.contact_messages (full_name, email, enquiry_type, subject, message, trap_tripped)
+      values ('Trap Person', 'trap@limits.example.test', 'employer', 'S', 'tripped twice', true) $q$), 'ok',
+  'a submission marked trap_tripped is accepted, not refused');
+select is((select held_at is not null from public.contact_messages where message = 'tripped twice'), true,
+  'and held for staff review');
+select is(tests.submit_as('anon', '198.51.100.51',
+  $q$ insert into public.contact_messages (full_name, email, enquiry_type, subject, message, trap_tripped)
+      values ('Trap Person', 'trap-2@limits.example.test', 'employer', 'S', 'not tripped', false) $q$), 'ok',
+  'an unmarked one from a fresh address is accepted');
+select is((select held_at from public.contact_messages where message = 'not tripped'), null,
+  'and not held');
 
 -- =============================================================================
 -- 6. Who is not limited, and what is kept.

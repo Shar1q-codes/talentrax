@@ -27,8 +27,9 @@ import { submitContact, type ContactPayload } from "../queries";
  *
  * Spam handling is a honeypot plus a minimum time on page, and both run only
  * AFTER validation passes, so a fast human filling the form correctly is
- * never silently dropped. A submit they catch is told it was not sent and
- * may be sent again - true for a person, and no signal to a script.
+ * never silently dropped. The first catch in a submission attempt is told
+ * it was not sent; a repeat is sent, marked, and held for staff review, so a
+ * real person is never blocked for good.
  *
  * `open` comes from the page, which asks the forms gate at build time
  * (src/lib/supabase/forms-gate.ts). Closed, a valid submit says the form is
@@ -141,12 +142,16 @@ export function ContactForm({ open }: { open: boolean }) {
   const outcomeRef = useRef<HTMLParagraphElement>(null);
   const openedAt = useRef<number | null>(null);
   /**
-   * One per submission, resent on every retry of it, so the database stores
-   * a retried message once (migration 9). Cleared by any edit: changed
-   * content is a new submission, and must not be dropped as a retry of the
-   * old one.
+   * The current submission attempt. Its key is made on the first send and
+   * resent on every retry, so the database stores a retried message once
+   * (migration 9). trapTrips counts spam-trap trips in this attempt: the
+   * first is refused here and sends nothing; a repeat is sent, marked, and
+   * held for staff review (migration 13), so a person is never blocked for
+   * good. It lives only in this page's memory: nothing about a refusal is
+   * sent or kept anywhere. Any edit starts a new attempt - changed content
+   * must not be dropped as a retry of the old one.
    */
-  const submissionKey = useRef<string | null>(null);
+  const attempt = useRef<{ key: string; trapTrips: number } | null>(null);
 
   useEffect(() => {
     openedAt.current = Date.now();
@@ -165,7 +170,7 @@ export function ContactForm({ open }: { open: boolean }) {
   }, [outcomeCount]);
 
   const setValue = (key: FieldKey) => (value: string) => {
-    submissionKey.current = null;
+    attempt.current = null;
     setValues((current) => ({ ...current, [key]: value }));
   };
 
@@ -194,23 +199,29 @@ export function ContactForm({ open }: { open: boolean }) {
       return;
     }
 
-    // Both checks run only on an otherwise valid submission. A catch is
-    // answered as a failed send: true for a person, who can send it again,
-    // and no signal to a script that it was caught.
+    // Both checks run only on an otherwise valid submission. The first catch
+    // in an attempt is answered as a failed send and sends nothing; a
+    // repeat is sent marked, and held for review. See `attempt` above.
     const secondsOnPage = openedAt.current
       ? (Date.now() - openedAt.current) / 1000
       : 0;
     const looksAutomated =
       honeypot.trim() !== "" || secondsOnPage < contactForm.spam.minSubmitSeconds;
 
+    attempt.current ??= { key: crypto.randomUUID(), trapTrips: 0 };
+    const current = attempt.current;
     if (looksAutomated) {
-      showOutcome({ kind: "failed" });
-      return;
+      current.trapTrips += 1;
+      if (current.trapTrips === 1) {
+        showOutcome({ kind: "failed" });
+        return;
+      }
     }
+    const trapTripped = current.trapTrips > 1;
 
-    submissionKey.current ??= crypto.randomUUID();
     const payload: ContactPayload = {
-      submissionKey: submissionKey.current,
+      submissionKey: current.key,
+      trapTripped,
       fullName: values.fullName.trim(),
       email: values.email.trim(),
       phone: values.phone.trim(),
@@ -223,7 +234,7 @@ export function ContactForm({ open }: { open: boolean }) {
     setOutcome(null);
     const result = await submitContact(payload);
     if (result.ok) {
-      submissionKey.current = null;
+      attempt.current = null;
       setStatus("sent");
       return;
     }
@@ -242,7 +253,7 @@ export function ContactForm({ open }: { open: boolean }) {
     setFailedAttempts(0);
     setStatus("idle");
     setOutcome(null);
-    submissionKey.current = null;
+    attempt.current = null;
     openedAt.current = Date.now();
     // Ids are owned by the content layer, so this cannot drift out of step.
     document.getElementById(contactFields.fullName.id)?.focus();
