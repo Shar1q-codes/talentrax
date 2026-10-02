@@ -41,7 +41,9 @@ export const PRODUCTION_RELEASE = {
 
 // THE RESUME FORM'S RELEASE GATE (CLIENT-CONFIRM.md, the note at the top).
 // /job-seekers/upload-resume must not be publicly reachable in production
-// until all three hold. Until then, in production, the public route is a 404
+// until every condition below holds: each of the client's items 1 to 8,
+// answered and written into the privacy policy, terms or contact page, and
+// the policy through the client's lawyer. Until then, in production, the public route is a 404
 // and the form lives behind staff sign-in at /staff/upload-resume, so the
 // production code path can be tried by staff without the public reaching it.
 //
@@ -49,11 +51,18 @@ export const PRODUCTION_RELEASE = {
 // hand, in the commit that records the answer, and the guard they drive is
 // not dead code while any is false.
 export const RESUME_PUBLIC_RELEASE = {
-  // CLIENT-CONFIRM.md item 3: the address that handles data-rights requests.
-  dataRightsContactAnswered: false,
-  // Item 8: the real contact details the policy and /contact need.
-  contactDetailsAnswered: false,
-  // The privacy policy has been through the client's lawyer.
+  // CLIENT-CONFIRM.md, by item number. Each is the client's answer, written
+  // into the page that needs it (its OMITTED marker in content/legal.ts gone).
+  item1RetentionAnswered: false,
+  item2ProcessorsNamed: false,
+  item3DataRightsContactAnswered: false,
+  item4InternationalTransfersAnswered: false,
+  item5HostingAndLogsAnswered: false,
+  item6SaleAndSharingAnswered: false,
+  item7GoverningLawAnswered: false,
+  item8ContactDetailsAnswered: false,
+  // The privacy policy, with all of the above in it, has been through the
+  // client's lawyer.
   lawyerReviewed: false,
 } as const;
 

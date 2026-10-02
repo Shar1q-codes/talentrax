@@ -282,10 +282,9 @@ because the staff session cookie is scoped to `/staff` and an action posts to
 the page it is called from.
 
 **The release gate is code, and flipping it is a release step.**
-`RESUME_PUBLIC_RELEASE` in `src/lib/supabase/forms-gate.ts` names the three
-conditions in CLIENT-CONFIRM.md (the data-rights contact, the contact
-details, the lawyer review), each `false` until the commit that records its
-answer. Until all three hold, **in production** `/job-seekers/upload-resume`
+`RESUME_PUBLIC_RELEASE` in `src/lib/supabase/forms-gate.ts` names the
+conditions in CLIENT-CONFIRM.md: client items 1 to 8, one each, and the
+lawyer review, each `false` until the commit that records its answer. Until all three hold, **in production** `/job-seekers/upload-resume`
 is a 404 and the same form is at `/staff/upload-resume`, for staff past both
 sign-in steps, so the real path can be tried before the public reaches it.
 Everywhere else the public route renders (unlisted, noindex) and follows the

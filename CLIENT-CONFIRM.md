@@ -13,15 +13,13 @@ someone with the authority to answer does.
 > for a lawyer, not a published policy, and collecting that data without one
 > that is accurate is the kind of mistake that is expensive in every sense.
 >
-> **How it is held now** (build step 7): `submitApplication()` is wired, and
-> in production the public route is a 404; the form is reachable only at
+> **How it is held now:** `submitApplication()` is wired, and in production
+> the public route is a 404; the form is reachable only at
 > `/staff/upload-resume`, by signed-in staff. The gate is
-> `RESUME_PUBLIC_RELEASE` in `src/lib/supabase/forms-gate.ts`, whose
-> conditions are, as decided when step 7 was planned, item 3, item 8 and the
-> lawyer review. **That is narrower than this note's "every privacy-policy
-> item below"** (items 1 to 7): which one governs is open, and until it is
-> settled the stricter reading should be assumed before any condition is
-> flipped. Outside production the route renders, unlisted and noindex.
+> `RESUME_PUBLIC_RELEASE` in `src/lib/supabase/forms-gate.ts`: one condition
+> for each of items 1 to 8 below, and one for the lawyer review, every one
+> false until the commit that records its answer. Outside production the
+> route renders, unlisted and noindex.
 
 When an item is answered, write the sentence into `src/content/legal.ts`,
 delete the matching `OMITTED` comment there, and strike the item here.
