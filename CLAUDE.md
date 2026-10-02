@@ -536,50 +536,90 @@ articles whose content changed; a re-import of unchanged sources lists none.
 **The home page rail** (`components/marketing/home/LatestArticles.tsx`) shows the
 first six of that same order and links on to `/insights`. Cards are title
 and summary only, and link to the full page; only the index intercepts into
-the modal. It is a native overflow-x + scroll-snap region in
-`components/ui/ScrollRail.tsx`, whose one focus handler exists because
-browsers do not scroll a focused card that is already partly visible.
-`check:seo` asserts the six cards are in the server HTML, match the index's
-first six, and resolve.
+the modal. `check:seo` asserts the six cards are in the server HTML, match
+the index's first six, and resolve. The behaviour below is
+`components/ui/ScrollRail.tsx`; its header comment is the authority, and
+this section describes the code as it is.
 
-It drifts continuously and loops, at the client's request: 35px/s
-(`DRIFT_PX_PER_SECOND`), driven by requestAnimationFrame writing
-`scrollLeft` - native scrolling, never a transformed track. The cards render
-twice; the copy is aria-hidden, its links are tabIndex -1, and it is not
-displayed until the rail sets `data-looping`, so Tab reaches six links and
-reduced motion shows six cards.
+**Three sets, one real.** `LatestArticles` renders the six cards three
+times: `before`, `real`, `after`. The two copies carry `data-rail-copy`,
+are `aria-hidden`, their links are `tabIndex -1`, and they are `hidden`
+until hydration sets `data-infinite` on the rail. So the server HTML shows
+six cards, and Tab reaches six links plus the rail itself (a focusable
+region, so the arrow keys scroll it). `inert` is not used: a copy card
+under the pointer must still take a click. The rail is infinite whether or
+not it drifts, reduced motion included.
 
-**The user's scroll position always wins, because the loop holds no
-position.** Each frame reads `scrollLeft`, adds drift x elapsed, wraps and
-writes. The only things carried between frames are the value it last wrote
-(to tell its own scroll events from the user's - a mismatch pauses it via
-the scroll listener, which is what catches a scrollbar drag) and a sub-pixel
-remainder the browser's rounding would otherwise eat. Do not reintroduce a
-position, origin or cached offset: a stale one is what every drag bug here
-has been.
+**No visible scrollbar** (`.scrollbar-hidden`). It scrolls by touch, wheel,
+trackpad and keyboard, and the visible manual controls are **Previous and
+Next** buttons. They move one card's pitch, never disable, and pause the
+drift like any other manual scroll. The header row, in tab order, is "All
+articles", Previous, Next, Pause - all before the rail they control.
 
-**It wraps inside a home band, not `[0, setWidth)`.** `scrollLeft` cannot go
-below 0, so a rail parked at 0 can never be dragged left past the start. The
-band `[lo, lo + setWidth)` has `lo` centred in the spare scroll range; the
-loop subtracts or adds one set width at either edge, and when a user scroll
-comes to rest outside the band it is shifted back the same way - onto
-identical content. Set width is measured every frame, unrounded
-(`getBoundingClientRect`, not `offsetLeft`), as copy minus first item, which
-counts the gap between the sets.
+**The invariant: `scrollLeft` stays within the middle set,
+`[setWidth, 2 x setWidth)`.** `setWidth` is measured live from layout each
+time it is needed: the distance from the first card of set one to the first
+card of set two, unrounded (`getBoundingClientRect`, not `offsetLeft`). The
+sets are identical, so moving by exactly one `setWidth` lands on the same
+content. **Everything that repositions the rail:**
+
+1. **Parking, on first appearance and on every change of the rail's
+   width** (ResizeObserver on `clientWidth`): `scrollLeft = setWidth`,
+   the first real card. **This discards the current position.** It is
+   skipped if focus is inside the rail at that moment (`activeElement`,
+   from keyboard or a click); a skipped park is not retried. The rail is
+   as wide as the page container, which is capped at `max-w-7xl` (1280 CSS
+   px), so this fires only while the viewport is narrower than that.
+2. **Every drift frame:** next = current + carry + 35 px/s x elapsed
+   (elapsed capped at 100 ms); at or past `2 x setWidth` it subtracts one
+   `setWidth`, below `setWidth` it adds one. A frame writes only if
+   `scrollLeft` is within 1px of the value it last wrote; otherwise the user
+   moved it, and that frame writes nothing.
+3. **When a user's scroll comes to rest** (`scrollend`), if it is outside
+   the span it moves by one `setWidth`, back inside. Skipped while keyboard
+   focus is inside the rail. **Nothing repositions during a user's scroll.**
+4. **When focus leaves the rail**: the scroll-end recentre that waited for
+   it.
+5. **Previous or Next**: if one card's move would leave the span, first an
+   instant one-`setWidth` shift, then a one-card `scrollBy`, smooth unless
+   reduced motion.
+6. **Keyboard focus on a card**: `scrollIntoView({ inline: "nearest" })`,
+   because browsers do not scroll a focused element that is already partly
+   visible.
+
+**No position state.** The live `scrollLeft` is the only truth. Two values
+carry between frames, and neither is a position: the value the rail last
+wrote (to tell its own scroll events from the user's, with 1px tolerance
+for the device pixel grid) and a sub-pixel `carry` the browser's rounding
+would otherwise eat. Do not reintroduce a position, origin or cached
+offset.
+
 **Snap is off whenever the rail can drift, paused included** - switching it
-on at a press is what made a scrollbar drag snap backwards on release.
-Snap is on only under reduced motion.
+on at a press snapped the rail away from where the user put it. Snap is on
+only under reduced motion.
 
-What makes it acceptable is what stops it: a real pause button that never
-auto-resumes (WCAG 2.2.2) - icon-only, in the header row beside "All
-articles", named by aria-label, and never hover-only - a mouse actually moving over it, focus inside, a
-sideways wheel, a press or any scroll the loop did not write, a touch, the rail off-screen and the tab hidden.
-Under reduced motion it never starts and the button is hidden. Those
-conditions are listed in `ScrollRail.tsx`; removing any one is a
-regression, not a tweak. **Removing the pause button makes the section
-fail WCAG 2.2.2**; restyle it, do not remove it. A vertical wheel and a pointer the page scrolled
-underneath deliberately do not pause it - they did once, and the rail never
-moved for anyone who scrolled down with a mouse. No dots, counters or slide
+**What stops the drift.** Any one of these stops the frame loop outright,
+and a resume carries on from wherever the rail is:
+- **the pause button** (WCAG 2.2.2): a real `<button>`, icon-only, named by
+  aria-label for what it will do, never hover-only. Once pressed it stays
+  paused; it never auto-resumes.
+- **a mouse or pen moving over the rail**, by non-zero movement. A pointer
+  the page scrolled underneath does not count.
+- **keyboard focus inside the rail** (`:focus-visible`).
+- **a manual scroll**: a mouse or pen press on the rail, a sideways wheel or
+  trackpad swipe, Previous or Next, or any scroll the rail did not write.
+  Held until the pointer or focus leaves the whole control (header row and
+  rail), or the rail leaves the viewport.
+- **a touch** on the rail or on Previous or Next, held until the rail
+  leaves the viewport: a finger has no "leave".
+- **the rail off-screen**, or **the tab hidden**.
+
+A vertical wheel is the page scrolling and does not pause it: it did once,
+and the rail never moved for anyone who scrolled down with a mouse. Under
+`prefers-reduced-motion: reduce` the drift never starts, the pause button
+is hidden, and Previous and Next move instantly. **Removing the pause button
+makes the section fail WCAG 2.2.2**; restyle it, do not remove it. Removing
+any stop condition is a regression, not a tweak. No dots, counters or slide
 indicators. It sits between the split section and how it works, on the
 muted tone; how it works moved to the default surface so the alternation
 holds.
