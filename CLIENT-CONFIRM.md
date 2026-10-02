@@ -225,3 +225,49 @@ delete the matching `OMITTED` comment there, and strike the item here.
       kept, and is there a point after which it must be deleted? This is the
       same question as item 1, asked of the audit trail.
     *Omitted: any purge job, and any retention period.*
+
+19. **Federal contracts.** Does Talentrax hold, or expect to hold, a federal
+    contract or subcontract (including as a subcontractor placing staff with
+    a federal contractor)? If so, OFCCP record retention applies:
+    [41 CFR 60-1.12](https://www.law.cornell.edu/cfr/text/41/60-1.12), two
+    years at 150+ employees and a $150,000 contract, otherwise one. The
+    `ofccp-federal-contractor` retention rule is seeded **inactive** until
+    this is answered.
+    *Omitted: OFCCP retention.*
+
+20. **Where Talentrax operates, and which state laws bind it.** California
+    requires employment agencies to keep applications and referral records
+    for four years ([Gov. Code §12946](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=GOV&sectionNum=12946)).
+    The schema applies that only to candidates linked to California. If the
+    agency itself is in California, counsel may say it applies to every
+    candidate. Which other states does Talentrax place into, and do any
+    impose a longer floor?
+    *Assumed: FEHA for California-linked candidates only.*
+
+21. **Employer of record on Contract engagements.** Is Talentrax the W-2
+    employer of contract workers, or does the client employ them? If
+    Talentrax employs them, it owes payroll records (three years,
+    [29 CFR 516.5](https://www.law.cornell.edu/cfr/text/29/516.5)), Form
+    I-9s, and wage-rate history under California, Colorado and Illinois law.
+    None of that is in this schema, and it would need its own system and
+    its own retention rules.
+    *Omitted: any payroll or employee record.*
+
+22. **Does the CCPA apply?** It binds businesses over its revenue or data
+    thresholds ([Civ. Code §1798.140(d)](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.140)).
+    The deletion path is built to its standard either way, because
+    /privacy-policy promises deletion to everyone. Which privacy laws
+    actually apply changes the response deadline and what must be disclosed
+    on refusal.
+
+23. **Counsel review of the erasure design.** `supabase/ERASURE.md` is an
+    engineering reading, not legal advice. Specifically:
+    - Is a recruiter-sourced profile an agency record under
+      [29 CFR 1627.4(a)](https://www.law.cornell.edu/cfr/text/29/1627.4)?
+      The schema assumes yes, which gives every candidate a floor of at
+      least one year.
+    - May submissions, offers and placements be kept, anonymised, after the
+      floor, as the employer's transaction and the basis of a fee?
+    - Should a suppression list survive erasure, so a person who opted out
+      is not contacted again if re-sourced? Today nothing survives.
+    - Which legal-hold triggers does the client recognise?

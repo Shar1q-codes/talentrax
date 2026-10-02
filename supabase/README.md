@@ -17,10 +17,12 @@ No page, form or API route calls the client yet.
 | `migrations/20261001000300_candidates_pipeline.sql` | Resume-form intake, candidates, documents, embeddings, applications, submissions and their timeline, interviews, offers, placements |
 | `migrations/20261001000400_activities_comms_content.sql` | Activities, communication consents, templates, message log, CMS content |
 | `migrations/20261001000500_row_level_security.sql` | Visibility helpers, privileges, every policy, the job board and employer views |
+| `migrations/20261001000600_candidate_erasure.sql` | Deletion requests, retention rules, legal holds, the erasure worker, the storage outbox, and the PII-free audit log |
 | `rollback/*.down.sql` | Reverse of each migration, for local development only |
 | `tests/database/*.test.sql` | pgTAP: catalog-wide structural checks, then behaviour per role |
 | `seed.sql` | One user per role for local testing, all fake |
 | `LOCAL.md` | The local workflow, seeded logins, and the path to hosted |
+| `ERASURE.md` | What a deletion request does to each table, the retention law behind it, and why |
 
 ## Running it
 
@@ -105,6 +107,20 @@ deleting transaction's timestamp, and the hide policy admits
 deleted it. Who may soft-delete a row is exactly who may update it. Only
 admins see or restore deleted rows.
 
+**A deletion request is not a deletion, and deletion is not unconditional.**
+A request is recorded, verified and accepted, then executed later by a
+worker. Applicant and referral records are under federal and California
+retention floors, so an accepted request is often *deferred*: what no rule
+covers goes at once, the rest is restricted and goes automatically when the
+floor passes. Every decision per table, and the citations, are in
+`ERASURE.md`.
+
+**The audit log holds no personal data.** Every string-like column is
+redacted from it unless classified non-personal, and IP addresses are kept
+for staff actions only. Otherwise an erasure could never be complete: the
+log is append-only, and the erasure itself would have written everything it
+removed into it.
+
 **The audit log is append-only for everyone.** RLS has no write policy.
 UPDATE and DELETE privileges are revoked, and a trigger refuses UPDATE,
 DELETE and TRUNCATE even from the owning role, because service_role bypasses
@@ -143,9 +159,9 @@ workflow owner, never a byline: the site names nobody.
 - **Abuse controls on the public forms.** anon inserts straight into three
   tables. Rate limiting, bot protection and the honeypot belong in whatever
   endpoint fronts them. RLS cannot do it.
-- **Data-rights erasure.** Nothing can hard-delete, service_role included.
-  A deletion request under a privacy law will need a deliberate, reviewed
-  function, and the retention answers in CLIENT-CONFIRM.md items 1 and 18.
+- **The storage worker.** Erasure queues every stored object in
+  `storage_erasures`; an Edge Function has to delete them through the
+  Storage API. See `ERASURE.md`.
 - **Employer-facing interviews and offers.** Employers see requisitions,
   sent submissions and scrubbed documents. Anything more is a new view, not
   a base-table policy.

@@ -6,7 +6,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(21);
+select plan(22);
 
 -- Every table in public has RLS enabled.
 select is_empty(
@@ -39,12 +39,16 @@ select is_empty(
 );
 
 -- Every business table is soft-deletable. The exceptions are the taxonomy
--- (retired with is_active), the two append-only logs, and the settings row.
+-- (retired with is_active), the two append-only logs, the settings row, and
+-- three tables from migration 6 that must never be hidden: a deletion
+-- request is the record 11 CCR 7101 requires be kept, a retention rule is
+-- switched off with is_active, and an outbox row is finished, not deleted.
 select is_empty(
   $$ select t.tablename from pg_tables t
      where t.schemaname = 'public'
        and t.tablename not in (
          'audit_log', 'audit_settings', 'submission_events',
+         'deletion_requests', 'retention_rules', 'storage_erasures',
          'desks', 'specialties', 'engagement_types', 'work_modes', 'us_states',
          'job_statuses', 'lead_statuses', 'candidate_statuses', 'submission_statuses')
        and not exists (
@@ -88,6 +92,26 @@ select is_empty(
          where g.tgrelid = format('public.%I', c.table_name)::regclass
            and g.tgname = 'stamp_soft_delete') $$,
   'every soft-deletable table has the stamp_soft_delete trigger'
+);
+
+-- Every string-like column of every audited table is classified personal or
+-- not (migration 6). The audit trigger redacts an unclassified column anyway;
+-- this makes the omission a failing test instead of a silent gap in the log.
+select is_empty(
+  $$ select c.relname || '.' || a.attname
+     from pg_attribute a
+     join pg_class c on c.oid = a.attrelid
+     join pg_type t on t.oid = a.atttypid
+     where c.relnamespace = 'public'::regnamespace and c.relkind = 'r'
+       and a.attnum > 0 and not a.attisdropped
+       and (t.typcategory in ('S', 'A', 'I') or t.typname in ('json', 'jsonb'))
+       and c.relname not in (
+         'audit_log', 'desks', 'specialties', 'engagement_types', 'work_modes', 'us_states',
+         'job_statuses', 'lead_statuses', 'candidate_statuses', 'submission_statuses')
+       and not exists (
+         select 1 from private.column_classification k
+         where k.table_name = c.relname and k.column_name = a.attname) $$,
+  'every string-like column is classified personal or not, for the audit log'
 );
 
 -- No DELETE policy exists on any table.

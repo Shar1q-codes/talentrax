@@ -876,6 +876,14 @@ future migration:
   visibility is defined once, in a `private.can_*` function.
 - **Employers read three views, never base tables.** RLS filters rows, not
   columns.
+- **The audit log never holds personal data.** Every string-like column of
+  a new table must be classified in `private.column_classification`, or
+  `00_schema.test.sql` fails; an unclassified column is redacted anyway.
+- **Erasure goes through `deletion_requests`, never an ad hoc DELETE.** A
+  new table holding candidate data needs a line in `private.erase_candidate`
+  and a row in `supabase/ERASURE.md` saying whether it is erased,
+  anonymised or kept, and why. Retention periods live in `retention_rules`
+  with their citations, never in code.
 
 `supabase/tests/database/` asserts all of it with pgTAP, including catalog
 checks that fail when a new table forgets RLS, the standard columns, the

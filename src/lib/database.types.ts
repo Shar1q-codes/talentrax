@@ -219,13 +219,13 @@ isOneToOne: false
                   ]
                 },"candidates": {
                   Row: {
-                    "city": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"desk": string | null,"email": string | null,"email_normalized": string | null,"expected_salary": number | null,"expected_salary_unit": string | null,"full_name": string,"id": string,"linkedin_url": string | null,"owner_id": string | null,"phone": string | null,"profile_id": string | null,"source": string,"specialty": string | null,"state": string | null,"status": string,"updated_at": string,"work_authorized": boolean | null
+                    "city": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"desk": string | null,"email": string | null,"email_normalized": string | null,"erased_at": string | null,"expected_salary": number | null,"expected_salary_unit": string | null,"full_name": string | null,"id": string,"linkedin_url": string | null,"owner_id": string | null,"phone": string | null,"profile_id": string | null,"source": string,"specialty": string | null,"state": string | null,"status": string,"updated_at": string,"work_authorized": boolean | null
                   }
                   Insert: {
-                    "city"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"desk"?: string | null,"email"?: string | null,"email_normalized"?: never,"expected_salary"?: number | null,"expected_salary_unit"?: string | null,"full_name": string,"id"?: string,"linkedin_url"?: string | null,"owner_id"?: string | null,"phone"?: string | null,"profile_id"?: string | null,"source"?: string,"specialty"?: string | null,"state"?: string | null,"status"?: string,"updated_at"?: string,"work_authorized"?: boolean | null
+                    "city"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"desk"?: string | null,"email"?: string | null,"email_normalized"?: never,"erased_at"?: string | null,"expected_salary"?: number | null,"expected_salary_unit"?: string | null,"full_name"?: string | null,"id"?: string,"linkedin_url"?: string | null,"owner_id"?: string | null,"phone"?: string | null,"profile_id"?: string | null,"source"?: string,"specialty"?: string | null,"state"?: string | null,"status"?: string,"updated_at"?: string,"work_authorized"?: boolean | null
                   }
                   Update: {
-                    "city"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"desk"?: string | null,"email"?: string | null,"email_normalized"?: never,"expected_salary"?: number | null,"expected_salary_unit"?: string | null,"full_name"?: string,"id"?: string,"linkedin_url"?: string | null,"owner_id"?: string | null,"phone"?: string | null,"profile_id"?: string | null,"source"?: string,"specialty"?: string | null,"state"?: string | null,"status"?: string,"updated_at"?: string,"work_authorized"?: boolean | null
+                    "city"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"desk"?: string | null,"email"?: string | null,"email_normalized"?: never,"erased_at"?: string | null,"expected_salary"?: number | null,"expected_salary_unit"?: string | null,"full_name"?: string | null,"id"?: string,"linkedin_url"?: string | null,"owner_id"?: string | null,"phone"?: string | null,"profile_id"?: string | null,"source"?: string,"specialty"?: string | null,"state"?: string | null,"status"?: string,"updated_at"?: string,"work_authorized"?: boolean | null
                   }
                   Relationships: [
                     {
@@ -354,6 +354,55 @@ isOneToOne: false
     },{
       foreignKeyName: "content_reviewer_id_fkey"
       columns: ["reviewer_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"deletion_requests": {
+                  Row: {
+                    "accepted_at": string | null,"accepted_by": string | null,"attempts": number,"cancelled_at": string | null,"cancelled_by": string | null,"candidate_id": string,"created_at": string,"created_by": string | null,"deferral_basis": (string)[],"deferred_until": string | null,"erasure_summary": NonNullable<Json>,"execute_after": string | null,"executed_at": string | null,"id": string,"last_error_at": string | null,"last_error_state": string | null,"manner": string,"partially_executed_at": string | null,"refusal_basis": string | null,"refused_at": string | null,"refused_by": string | null,"requested_at": string,"requested_by": string | null,"status": string,"updated_at": string,"verification_method": string | null
+                  }
+                  Insert: {
+                    "accepted_at"?: string | null,"accepted_by"?: string | null,"attempts"?: number,"cancelled_at"?: string | null,"cancelled_by"?: string | null,"candidate_id": string,"created_at"?: string,"created_by"?: string | null,"deferral_basis"?: (string)[],"deferred_until"?: string | null,"erasure_summary"?: NonNullable<Json>,"execute_after"?: string | null,"executed_at"?: string | null,"id"?: string,"last_error_at"?: string | null,"last_error_state"?: string | null,"manner": string,"partially_executed_at"?: string | null,"refusal_basis"?: string | null,"refused_at"?: string | null,"refused_by"?: string | null,"requested_at"?: string,"requested_by"?: string | null,"status"?: string,"updated_at"?: string,"verification_method"?: string | null
+                  }
+                  Update: {
+                    "accepted_at"?: string | null,"accepted_by"?: string | null,"attempts"?: number,"cancelled_at"?: string | null,"cancelled_by"?: string | null,"candidate_id"?: string,"created_at"?: string,"created_by"?: string | null,"deferral_basis"?: (string)[],"deferred_until"?: string | null,"erasure_summary"?: NonNullable<Json>,"execute_after"?: string | null,"executed_at"?: string | null,"id"?: string,"last_error_at"?: string | null,"last_error_state"?: string | null,"manner"?: string,"partially_executed_at"?: string | null,"refusal_basis"?: string | null,"refused_at"?: string | null,"refused_by"?: string | null,"requested_at"?: string,"requested_by"?: string | null,"status"?: string,"updated_at"?: string,"verification_method"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "deletion_requests_accepted_by_fkey"
+      columns: ["accepted_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "deletion_requests_cancelled_by_fkey"
+      columns: ["cancelled_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "deletion_requests_candidate_id_fkey"
+      columns: ["candidate_id"]
+isOneToOne: false
+      referencedRelation: "candidates"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "deletion_requests_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "deletion_requests_refused_by_fkey"
+      columns: ["refused_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "deletion_requests_requested_by_fkey"
+      columns: ["requested_by"]
 isOneToOne: false
       referencedRelation: "profiles"
       referencedColumns: ["id"]
@@ -687,6 +736,43 @@ isOneToOne: false
       referencedColumns: ["slug"]
     }
                   ]
+                },"legal_holds": {
+                  Row: {
+                    "candidate_id": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"id": string,"matter_reference": string | null,"placed_at": string,"placed_by": string,"reason": string,"released_at": string | null,"released_by": string | null,"updated_at": string
+                  }
+                  Insert: {
+                    "candidate_id": string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"id"?: string,"matter_reference"?: string | null,"placed_at"?: string,"placed_by": string,"reason": string,"released_at"?: string | null,"released_by"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "candidate_id"?: string,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"id"?: string,"matter_reference"?: string | null,"placed_at"?: string,"placed_by"?: string,"reason"?: string,"released_at"?: string | null,"released_by"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "legal_holds_candidate_id_fkey"
+      columns: ["candidate_id"]
+isOneToOne: false
+      referencedRelation: "candidates"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "legal_holds_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "legal_holds_placed_by_fkey"
+      columns: ["placed_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "legal_holds_released_by_fkey"
+      columns: ["released_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"message_log": {
                   Row: {
                     "body": string | null,"candidate_id": string | null,"channel": string,"created_at": string,"created_by": string | null,"deleted_at": string | null,"delivered_at": string | null,"delivery_status": string,"employer_contact_id": string | null,"error": string | null,"id": string,"merge_data": NonNullable<Json>,"provider": string | null,"provider_message_id": string | null,"sent_at": string | null,"sent_by": string | null,"subject": string | null,"template_id": string | null,"to_address": string,"updated_at": string
@@ -1012,6 +1098,31 @@ isOneToOne: false
       referencedColumns: ["code"]
     }
                   ]
+                },"retention_rules": {
+                  Row: {
+                    "citation": string,"code": string,"created_at": string,"created_by": string | null,"id": string,"is_active": boolean,"retention_period": string,"scope_note": string,"state": string | null,"updated_at": string
+                  }
+                  Insert: {
+                    "citation": string,"code": string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_active"?: boolean,"retention_period": string,"scope_note": string,"state"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "citation"?: string,"code"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_active"?: boolean,"retention_period"?: string,"scope_note"?: string,"state"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "retention_rules_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "retention_rules_state_fkey"
+      columns: ["state"]
+isOneToOne: false
+      referencedRelation: "us_states"
+      referencedColumns: ["code"]
+    }
+                  ]
                 },"specialties": {
                   Row: {
                     "created_at": string,"created_by": string | null,"description": string | null,"desk": string,"id": string,"is_active": boolean,"name": string,"slug": string,"sort_order": number,"updated_at": string
@@ -1035,6 +1146,31 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "desks"
       referencedColumns: ["slug"]
+    }
+                  ]
+                },"storage_erasures": {
+                  Row: {
+                    "attempts": number,"completed_at": string | null,"created_at": string,"created_by": string | null,"deletion_request_id": string,"id": string,"last_attempt_at": string | null,"last_error_state": string | null,"object_path": string | null,"source_table": string,"status": string,"updated_at": string
+                  }
+                  Insert: {
+                    "attempts"?: number,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"deletion_request_id": string,"id"?: string,"last_attempt_at"?: string | null,"last_error_state"?: string | null,"object_path"?: string | null,"source_table": string,"status"?: string,"updated_at"?: string
+                  }
+                  Update: {
+                    "attempts"?: number,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"deletion_request_id"?: string,"id"?: string,"last_attempt_at"?: string | null,"last_error_state"?: string | null,"object_path"?: string | null,"source_table"?: string,"status"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "storage_erasures_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "storage_erasures_deletion_request_id_fkey"
+      columns: ["deletion_request_id"]
+isOneToOne: false
+      referencedRelation: "deletion_requests"
+      referencedColumns: ["id"]
     }
                   ]
                 },"submission_events": {
@@ -1364,8 +1500,25 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "can_send_message":
+            "accept_deletion_request":
+{ Args: { "p_execute_after"?: string,"p_request_id": string,"p_verification_method": string }; Returns: string
+                           },
+"can_send_message":
 { Args: { "p_candidate_id": string,"p_channel": string,"p_employer_contact_id": string }; Returns: boolean
+                           },
+"cancel_deletion_request":
+{ Args: { "p_request_id": string }; Returns: undefined
+                           },
+"claim_storage_erasures":
+{ Args: { "p_limit"?: number }; Returns: {
+              "id": string,"object_path": string,"source_table": string
+            }[]
+                           },
+"complete_storage_erasure":
+{ Args: { "p_id": string }; Returns: undefined
+                           },
+"fail_storage_erasure":
+{ Args: { "p_error_code": string,"p_id": string }; Returns: undefined
                            },
 "normalize_company_name":
 { Args: { "value": string }; Returns: string
@@ -1373,8 +1526,26 @@ isOneToOne: false
 "normalize_email":
 { Args: { "value": string }; Returns: string
                            },
+"place_legal_hold":
+{ Args: { "p_candidate_id": string,"p_matter_reference"?: string,"p_reason": string }; Returns: string
+                           },
+"process_due_deletion_requests":
+{ Args: { "p_limit"?: number }; Returns: number
+                           },
+"record_deletion_request":
+{ Args: { "p_candidate_id": string,"p_manner": string }; Returns: string
+                           },
 "record_opt_out":
 { Args: { "p_candidate_id": string,"p_channel": string,"p_employer_contact_id": string,"p_source": string,"p_source_detail"?: string }; Returns: undefined
+                           },
+"refuse_deletion_request":
+{ Args: { "p_basis": string,"p_request_id": string }; Returns: undefined
+                           },
+"release_legal_hold":
+{ Args: { "p_hold_id": string }; Returns: undefined
+                           },
+"request_my_deletion":
+{ Args: Record<PropertyKey, never>; Returns: string
                            }
           }
           Enums: {

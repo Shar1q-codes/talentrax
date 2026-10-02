@@ -109,6 +109,20 @@ what make app code type-safe against the database; a stale file compiles
 happily against columns that no longer exist. The file is generated: never
 edit it by hand.
 
+### Erasure runs on a schedule
+
+Migration 6 schedules `public.process_due_deletion_requests()` with pg_cron
+every fifteen minutes, locally too. It only acts on requests an
+administrator has accepted, so the seed data is untouched. To run it now,
+from the SQL editor or psql as `postgres`:
+
+```sql
+select public.process_due_deletion_requests();
+```
+
+The storage half - deleting the queued objects in `storage_erasures` - needs
+a worker that is not built yet. See `ERASURE.md`.
+
 ### `npx supabase functions serve`
 
 Serves Edge Functions from `supabase/functions/<name>/` with hot reload,
