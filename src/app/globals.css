@@ -175,6 +175,23 @@ p {
   transition: none;
 }
 
+/* A card whose whole area is one link: the link's ::after covers the card
+   (`after:absolute after:inset-0`). The ring is the same ring, drawn on that
+   covering box instead of on the link's text, so it outlines everything that
+   is clickable and does not break where the title wraps. Not a removed
+   outline: the same width and colour, on a different box. It is drawn just
+   inside the card's edge because the card sits in a scroll container, whose
+   overflow clips anything outside its padding box - an outer offset lost the
+   ring's top and bottom. Inside, it sits on the card surface (4.6:1+). */
+.stretched-link:focus-visible {
+  outline: none;
+}
+.stretched-link:focus-visible::after {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+  border-radius: var(--radius-lg);
+}
+
 /* Inside dark brand bands the teal ring loses contrast, so swap it for white. */
 .on-brand {
   --color-focus: #ffffff;

@@ -566,13 +566,17 @@ card of set two, unrounded (`getBoundingClientRect`, not `offsetLeft`). The
 sets are identical, so moving by exactly one `setWidth` lands on the same
 content. **Everything that repositions the rail:**
 
-1. **Parking, on first appearance and on every change of the rail's
-   width** (ResizeObserver on `clientWidth`): `scrollLeft = setWidth`,
-   the first real card. **This discards the current position.** It is
-   skipped if focus is inside the rail at that moment (`activeElement`,
-   from keyboard or a click); a skipped park is not retried. The rail is
-   as wide as the page container, which is capped at `max-w-7xl` (1280 CSS
-   px), so this fires only while the viewport is narrower than that.
+1. **Parking, on first appearance** (ResizeObserver on `clientWidth`):
+   `scrollLeft = setWidth`, the first real card.
+   **On every later change of the rail's width the visitor keeps their
+   place.** The set is re-measured and the live `scrollLeft` is mapped
+   across as the same fraction of a set: `scrollLeft / oldSetWidth x
+   newSetWidth`, folded into the middle set. That covers a phone rotation,
+   a resize, zoom, and a classic scrollbar appearing or disappearing (a
+   drawer or dialog locking the page). The rail is as wide as the page
+   container, capped at `max-w-7xl` (1280 CSS px), so this fires only
+   while the viewport is narrower than that. Resetting to the first card
+   here was a bug, not a policy.
 2. **Every drift frame:** next = current + carry + 35 px/s x elapsed
    (elapsed capped at 100 ms); at or past `2 x setWidth` it subtracts one
    `setWidth`, below `setWidth` it adds one. A frame writes only if
@@ -594,8 +598,15 @@ content. **Everything that repositions the rail:**
 carry between frames, and neither is a position: the value the rail last
 wrote (to tell its own scroll events from the user's, with 1px tolerance
 for the device pixel grid) and a sub-pixel `carry` the browser's rounding
-would otherwise eat. Do not reintroduce a position, origin or cached
-offset.
+would otherwise eat. One more carries between layouts: the previous set
+width, which is geometry - the scale the live `scrollLeft` was laid out
+in - and is what a width change maps from. Do not reintroduce a position,
+origin or cached offset.
+
+**The focus ring outlines the whole card.** A card is one link whose
+`::after` covers it; `.stretched-link` in `globals.css` moves the global
+ring onto that box (same width and colour, inset by its width so the
+rail's overflow cannot clip it). The ring is moved, never removed.
 
 **Snap is off whenever the rail can drift, paused included** - switching it
 on at a press snapped the rail away from where the user put it. Snap is on
@@ -612,7 +623,10 @@ and a resume carries on from wherever the rail is:
 - **a manual scroll**: a mouse or pen press on the rail, a sideways wheel or
   trackpad swipe, Previous or Next, or any scroll the rail did not write.
   Held until the pointer or focus leaves the whole control (header row and
-  rail), or the rail leaves the viewport.
+  rail), or the rail leaves the viewport. A press dragged off the control
+  holds until the button comes up. The card links are `draggable={false}`:
+  the browser's native link drag cancelled the pointer mid-press, and the
+  drift resumed under a held button.
 - **a touch** on the rail or on Previous or Next, held until the rail
   leaves the viewport: a finger has no "leave".
 - **the rail off-screen**, or **the tab hidden**.
@@ -697,12 +711,22 @@ app/(marketing)/insights/(index)/@modal/(.)[slug]/page.tsx   the intercepted art
 app/(marketing)/insights/[slug]/page.tsx                 the full page, unchanged
 ```
 
-- **Only the index intercepts.** An interception applies to every soft
-  navigation made from inside the layout that owns the slot, so the slot
-  lives in a route group holding only the index page. The full page is
-  outside it: a related-reading link on a full article page, and a link to
-  an article from anywhere else on the site, is a normal navigation. Do not
-  move the layout up to `app/(marketing)/insights/`.
+- **Only the index intercepts, and `src/proxy.ts` is what makes that
+  true.** The slot lives in a route group holding only the index page, but
+  the file layout alone does not narrow the match: Next decides
+  interception from the `Next-Url` header of a soft navigation, and its
+  rewrite matches the intercepting path **and every descendant**
+  (`/insights(?:/.*)?`, in `next/dist/lib/generate-interception-routes-rewrites.js`).
+  A full article page is a descendant, so its related-reading links opened
+  the modal over an index that was not there - a dialog over an empty page,
+  no `<h1>`. The proxy, the site's only one, strips `Next-Url` from a soft
+  navigation to `/insights/<slug>` unless it starts on `/insights`, so
+  every other article link is an ordinary navigation to the full page.
+  That includes a related link **inside** the modal: it now opens the full
+  page rather than swapping the dialog's article. The matcher requires the
+  header, so crawlers, direct visits, reloads and `check:seo` never reach
+  it. Do not move the layout up to `app/(marketing)/insights/`, and do not
+  delete the proxy.
 - **A crawler, a refresh, a shared link and a direct visit get the full
   page.** `(index)` and `@modal` are not URL segments, so a hard request
   for `/insights/<slug>` renders `app/(marketing)/insights/[slug]/page.tsx` with its
@@ -713,6 +737,16 @@ app/(marketing)/insights/[slug]/page.tsx                 the full page, unchange
   Escape and the backdrop all call `router.back()`, which is the same thing
   the browser's back button does. The index stays mounted underneath the
   whole time, so its scroll position is intact when the dialog goes.
+- **Focus returns to the card that opened it**, on every way out. The
+  opener is stored when the dialog mounts; the unmount cleanup closes the
+  dialog **before** focusing it, because while a modal `<dialog>` is open
+  everything outside it is inert and `focus()` silently fails - React runs
+  that cleanup before it removes the dialog's nodes. If the opener is gone,
+  the card for the same slug takes focus. The next Tab reaches the next
+  card, not the footer.
+- **A reload of an open article starts at its top.** The article's history
+  entry sets `history.scrollRestoration = "manual"`; restoration is per
+  entry, so the index's own back/forward restoration is untouched.
 - **The scroll lock releases in the commit that removes the dialog.** The
   body overflow is set and restored in a `useLayoutEffect`; that cleanup
   runs synchronously during React's commit, before the App Router's own

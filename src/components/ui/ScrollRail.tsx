@@ -56,15 +56,20 @@ const OWN_WRITE_TOLERANCE_PX = 1;
  * offsetLeft, because offsetLeft rounds to whole pixels and the card
  * widths are percentages (at 1000px a set is 2486.44px).
  *
- * The rail parks at setWidth when the sets first appear and whenever its
- * width changes. A user scroll that comes to rest outside the span
- * (scrollend) is recentred the same way - after a hard swipe to the left,
- * for instance. The one exception is keyboard focus inside the rail: a
- * recentre could put the focused card off-screen, so it waits until focus
- * leaves.
+ * The rail parks at setWidth when the sets first appear. When its width
+ * changes after that - a phone rotating, a window resized, the page zoomed,
+ * a page scrollbar appearing or going - it KEEPS THE VISITOR'S PLACE: the
+ * set is re-measured and scrollLeft is mapped into the new layout by its
+ * fraction of the set. A set is exactly six card pitches, so the same card
+ * stays at the left edge, the same fraction of the way in. (It used to park
+ * at setWidth again, which threw every visitor back to the first article.)
+ * A user scroll that comes to rest outside the span (scrollend) is
+ * recentred - after a hard swipe to the left, for instance - except while
+ * keyboard focus is inside, which waits until focus leaves.
  *
  * NO POSITION STATE. The rail's live scrollLeft is the only truth. Two
- * things carry between frames, and neither is a position:
+ * things carry between frames, and neither is a position (a third, below,
+ * carries between layouts):
  *
  *   - `writtenRef`, the value the rail last wrote, as the browser read it
  *     back. It exists only to tell the rail's own scroll events from the
@@ -104,7 +109,9 @@ const OWN_WRITE_TOLERANCE_PX = 1;
  *     previous/next buttons, or any scroll the rail did not write. A
  *     vertical wheel is the page scrolling. Held until the pointer or
  *     focus leaves the whole control (header row and rail), or the rail
- *     leaves the viewport;
+ *     leaves the viewport. A press dragged off the control holds until the
+ *     button is released; the cards are draggable={false}, because the
+ *     browser's link drag would cancel the pointer mid-press;
  *   - a touch on the rail or on previous/next, held until the rail has
  *     been scrolled out of the viewport - a finger has no "leave";
  *   - the rail being off-screen, or the tab hidden (visibilitychange).
@@ -191,19 +198,36 @@ export function ScrollRail({
     if (target !== x) write(rail, target);
   }
 
-  // Park in the middle set when the sets first appear and whenever the
-  // rail's width changes. Not while keyboard focus is inside: that would
-  // move the focused card.
+  // Park in the middle set when the sets first appear. On every later width
+  // change, keep the visitor's place: map scrollLeft into the new layout by
+  // its fraction of the set.
+  //
+  // `previousSetWidth` is the one value carried across a layout change, and
+  // it is geometry, not a position: the width of a set in the layout the
+  // live scrollLeft was laid out against. The browser keeps scrollLeft as a
+  // number while every card resizes around it, so without the old set width
+  // there is no way to say where the visitor was. It is written here and
+  // read here, at the moment of the change; the drift and every scroll
+  // handler measure afresh. It cannot go stale the way a cached position
+  // did, because it is replaced on every width change before anything reads
+  // it again.
   useEffect(() => {
     const rail = railRef.current;
     if (!infinite || !rail) return;
     let width = -1;
+    let previousSetWidth: number | null = null;
     const observer = new ResizeObserver(() => {
       if (rail.clientWidth === width) return;
       width = rail.clientWidth;
-      if (rail.contains(document.activeElement)) return;
       const setWidth = measureSetWidth(rail, itemSelector, copySelector);
-      if (setWidth !== null) write(rail, setWidth);
+      if (setWidth === null) return;
+      if (previousSetWidth === null) {
+        write(rail, setWidth);
+      } else {
+        const fraction = rail.scrollLeft / previousSetWidth;
+        write(rail, intoMiddleSet(fraction * setWidth, setWidth));
+      }
+      previousSetWidth = setWidth;
     });
     observer.observe(rail);
     return () => observer.disconnect();
@@ -327,6 +351,18 @@ export function ScrollRail({
   function onControlPointerLeave(event: PointerEvent<HTMLDivElement>) {
     if (event.pointerType === "touch") return;
     setHovered(false);
+    // A press dragged off the control is still a press: the hold lasts
+    // until the button comes up, wherever that happens.
+    if (event.buttons !== 0) {
+      const release = () => {
+        window.removeEventListener("pointerup", release);
+        window.removeEventListener("pointercancel", release);
+        setEngaged(false);
+      };
+      window.addEventListener("pointerup", release);
+      window.addEventListener("pointercancel", release);
+      return;
+    }
     setEngaged(false);
   }
 

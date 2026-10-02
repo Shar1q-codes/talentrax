@@ -95,10 +95,20 @@ export function LatestArticles({ articles }: { articles: Article[] }) {
               >
                 <Card className="relative flex w-full flex-col hover:border-border-strong">
                   <h3 className="text-lg font-bold text-ink">
+                    {/*
+                      The whole card is this link (its ::after covers the
+                      card). `stretched-link` draws the focus ring on that
+                      covering box, so it outlines the card, unbroken when
+                      the title wraps. draggable={false}: a mouse press on a
+                      card would otherwise start the browser's link drag,
+                      which cancels the pointer and lets the drift resume
+                      under a held button.
+                    */}
                     <Link
                       href={`/insights/${article.slug}`}
                       tabIndex={isCopy ? -1 : undefined}
-                      className="no-underline transition-colors after:absolute after:inset-0 hover:text-brand active:text-brand-strong"
+                      draggable={false}
+                      className="stretched-link no-underline transition-colors after:absolute after:inset-0 hover:text-brand active:text-brand-strong"
                     >
                       {article.title}
                     </Link>

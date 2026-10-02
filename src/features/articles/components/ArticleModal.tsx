@@ -30,12 +30,28 @@ import { articleDetail, INSIGHTS_PATH } from "@/content/insights";
  * the dialog, the close button and Escape all pass through this cleanup,
  * and there is no other path out.
  *
- * FOCUS RETURNS TO THE CARD that opened the dialog. The index page stays
- * mounted underneath, so on unmount the card link is found by href and
- * focused, without scrolling: the browser is restoring the list's scroll
- * position at the same moment, and the card was in view when it was
- * clicked. If the exit was a navigation to another page the card is gone
- * and nothing is focused, which is the right outcome.
+ * FOCUS RETURNS TO WHAT OPENED THE DIALOG, on every way out: Escape, the
+ * close button, the backdrop and the browser's back button. The element
+ * focused when the dialog mounted is stored; the card link found by href is
+ * the fallback (Safari does not focus a link on click). The index page stays
+ * mounted underneath, so it is still there, and it is focused without
+ * scrolling: the list keeps its scroll position and the card was in view
+ * when it was opened. If the exit was a navigation to another page the card
+ * is gone and nothing is focused, which is the right outcome.
+ *
+ * The dialog is CLOSED before focus moves. React runs this unmount cleanup
+ * before it removes the dialog from the DOM, so the dialog is still open and
+ * modal when the cleanup runs - and everything outside an open modal dialog
+ * is inert, so a focus() on the card silently did nothing. Focus fell to
+ * <body>, and the next Tab went to the footer.
+ *
+ * A RELOAD STARTS AT THE ARTICLE. Opening pushes a history entry for the
+ * article URL while the document is the index, scrolled wherever the list
+ * was. A reload of that entry is a direct load of the full article page, and
+ * the browser restored the index's scroll offset onto it, mid-article. The
+ * entry's scroll restoration is set to manual, which is a property of that
+ * one history entry: the index's own entry keeps the browser's restoration,
+ * so back still returns to the list where it was.
  *
  * Motion is transform and opacity, on the tokens, and is set in CSS. The
  * global reduced-motion rule collapses it to nothing.
@@ -55,6 +71,9 @@ export function ArticleModal({
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const slugRef = useRef(slug);
   const leavingRef = useRef(false);
+  /** The element focused when the dialog opened: the card, normally. */
+  const openerRef = useRef<HTMLElement | null>(null);
+  /** The article the dialog opened on, for the by-href fallback. */
 
   useLayoutEffect(() => {
     slugRef.current = slug;
@@ -74,16 +93,34 @@ export function ArticleModal({
     const dialog = dialogRef.current;
     if (!dialog) return;
 
+    // The slug this dialog opened on: the fallback target if the opener is
+    // gone by the time it closes.
+    const openedSlug = slugRef.current;
+    const active = document.activeElement;
+    openerRef.current =
+      active instanceof HTMLElement && active !== document.body ? active : null;
+
     if (!dialog.open) dialog.showModal();
+    history.scrollRestoration = "manual";
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      document
-        .querySelector<HTMLElement>(`a[href="${INSIGHTS_PATH}/${slugRef.current}"]`)
-        ?.focus({ preventScroll: true });
+      // Still open at this point (see the header). Close it first, or the
+      // focus below lands on nothing. Mark the exit taken, so the close
+      // event cannot start a second router.back() after a browser Back.
+      leavingRef.current = true;
+      if (dialog.open) dialog.close();
+      const opener = openerRef.current;
+      const target =
+        opener && opener.isConnected
+          ? opener
+          : document.querySelector<HTMLElement>(
+              `a[href="${INSIGHTS_PATH}/${openedSlug}"]`,
+            );
+      target?.focus({ preventScroll: true });
     };
   }, []);
 
