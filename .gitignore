@@ -52,3 +52,7 @@ next-env.d.ts
 # scripts/import-articles.ts) and only the generated content is tracked.
 *.docx
 /*.zip
+
+# browser suite (npm run test:browser)
+/test-results/
+/playwright-report/

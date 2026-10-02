@@ -1075,8 +1075,19 @@ The scripts are in `package.json`. `npm test` runs Node's built-in test runner d
 Jest, no Vitest, no transform step, no new dependency. It covers the job
 board and its JobPosting schema, the imported articles and their BlogPosting
 and FAQPage schemas, and the taxonomy. That is not under-testing by neglect:
-those are the code here whose failure is silent and expensive. Everything
-else is content and layout, where a mistake is visible on the page.
+those are the code here whose failure is silent and expensive.
+
+`npm run test:browser` is the other half: a Playwright suite in
+`tests/browser/` that builds, serves the production build with `next start`
+and drives Chromium. It exists because the first real browser pass found six
+defects that no unit test and no curl could see - focus lost after the
+modal, the rail resetting on resize, a related link opening the modal over
+an empty page - and every one of them has a test that failed before its
+fix. Headless-safe except the `@headed` scrollbar test, which `CI=1`
+skips and reports; `tests/browser/README.md` says which is which. Run it
+before committing a change to the modal, the rail, the proxy or the
+header and drawer. `@playwright/test` is pinned exactly, because the
+browser binary it drives is versioned with it.
 
 The `db:*` scripts wrap the Supabase CLI (a devDependency, so its version is
 pinned); `supabase/LOCAL.md` documents them. There is **no CI** in this
