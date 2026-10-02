@@ -28,12 +28,21 @@ goes anywhere hosted. Nothing is created by clicking in a dashboard (see
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | `.env.local`; the deploy environment | The Supabase client throws **when it is constructed**, naming the variable and where to set it |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same | same |
+| `SUPABASE_SERVICE_ROLE_KEY` | `.env.local`; the deploy **runtime** environment, as a secret | The service-role client throws when it is constructed, naming it. Only the resume-upload endpoints construct one |
 | `APP_ENV` | **The deploy environment only.** Never `.env.local` | Treated as `local` |
 
-**Nothing constructs a Supabase client yet**, so `next dev`, `next build`
-and `check:seo` all work with no Supabase variables at all. The
-missing-variable error appears the first time code that actually needs the
-database runs without them, and not on a build that never needed them.
+**Every client checks its variables when it is constructed**, never at
+import or build time, so `next build` and `check:seo` work with no Supabase
+variables at all. The missing-variable error appears the first time code
+that actually needs the database runs without them.
+
+**The service-role key bypasses RLS.** It has no `NEXT_PUBLIC_` prefix, so
+it is never inlined; `src/lib/supabase/admin.ts` is the only reader; and
+`npm run build` ends with `scripts/check-bundle.mjs`, which fails if the
+key's name appears in anything served to a browser or its value anywhere in
+the build output, source maps included. The local value is a public demo
+key; a hosted project's is a real secret and lives only in the deploy
+platform's secret store.
 
 **`APP_ENV`** is `local`, `staging` or `production`, and says which
 environment this is. With `staging` or `production`, a

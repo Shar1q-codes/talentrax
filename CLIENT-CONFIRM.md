@@ -299,3 +299,33 @@ delete the matching `OMITTED` comment there, and strike the item here.
     fit the volume the client expects, especially around hiring events or a
     campaign?
     *Assumed: the defaults above.*
+
+26. **Malware scanning of uploaded files.** Resumes arrive from the public
+    as PDF, DOC and DOCX, and staff download them. What the design already
+    does:
+    - **The bytes are checked, not the label.** After an upload, the server
+      reads the file's first bytes and confirms it really is a PDF, DOC or
+      DOCX. The Content-Type a browser declares is not trusted, and a file
+      whose size or type does not match what was declared is rejected and
+      queued for deletion.
+    - **Size and type limits** (5 MB; the three types) are enforced by
+      Storage itself, at upload.
+    - **Download only, as an attachment.** A staff user gets a short-lived
+      link that downloads the file. Nothing renders it inline: not the
+      inbox, not a preview, not the browser's PDF viewer.
+
+    What remains: a well-formed PDF or Word document can still carry a
+    malicious payload, such as a macro or an exploit for a reader
+    vulnerability, and nothing above detects that. The residual risk sits
+    with the staff machine that opens the file and its own protection.
+    Should uploads be scanned (a scanning service or an antivirus step
+    before a file is marked received), and who pays for and operates it?
+    *Not built: no scanning.*
+
+27. **Multi-factor sign-in for staff** *(recommendation, being built)*.
+    Staff accounts can read every submission: names, contact details,
+    resumes, work authorization. A password alone is the weakest point in
+    that. Staff sign-in will require an authenticator app (TOTP) as a
+    second factor, enrolled at first sign-in. The client should know this
+    is the default, and say if any staff member cannot use an
+    authenticator app.

@@ -1,18 +1,44 @@
 @AGENTS.md
 
-# Talentrax Global — public marketing frontend
+# Talentrax Global — marketing site, and the first pieces of the ATS
 
 US staffing and recruiting (healthcare, IT, professional). Greenfield rebuild.
-Public marketing site only: **no backend, no CMS, no database, no auth, no API
-routes.** Do not add any.
+A public marketing site, gaining its first backend: the three public forms
+are being wired to Supabase, with a small internal inbox for staff to read
+what arrives. Until a form is wired it says it is not open (**Build
+status**). **No CMS.** Everything else on the site is static content.
 
-The one exception is `supabase/`: the ATS database schema, as SQL migrations.
-`src/lib/supabase/` holds its env guard and one client constructor, and
-`src/lib/database.types.ts` its generated types, so the plumbing is in place
-and type-checked. **Nothing on the site calls the client:** no page, form,
-API route or server action reads or writes the database. Making one do so is
-the architectural decision this paragraph guards, not a follow-on detail.
-See **The ATS schema** below.
+**The decision this replaces was deliberate, and so is its scope.** The site
+had no backend at all. It now has exactly what the ATS's first piece needs,
+built in order (forms, staff sign-in, inbox), and nothing beyond it: no
+candidate accounts, no pipeline, no API for anything but the resume upload.
+A new kind of backend surface is a decision in its own right, not a
+follow-on detail of whatever needs it.
+
+`supabase/` is the database, as SQL migrations; see **The ATS schema**.
+`src/lib/supabase/` holds the env guard and the three client constructors
+(below), and `src/lib/database.types.ts` the generated types.
+
+**Three clients, one job each:**
+
+| Constructor | Key | Session | For |
+| --- | --- | --- | --- |
+| `browser.ts` | anon | none: nothing persisted, refreshed or read from the URL | the three public forms, inserting straight from the visitor's browser |
+| `server.ts` | anon + the user's session | an HttpOnly cookie, forced on everything `@supabase/ssr` sets | staff pages, server actions, route handlers acting for someone; RLS applies as them |
+| `admin.ts` | service role (bypasses RLS) | none | the resume-upload endpoints only |
+
+- **The forms insert from the browser, on purpose.** The rate limit
+  (migration 9) keys on the client address Supabase's edge records. Through
+  our server every visitor would share one address and one limit; through
+  the service role nobody would be limited.
+- **`server.ts` and `admin.ts` import `server-only`,** so any client import
+  is a build error.
+- **The service-role key never reaches a browser.** It has no
+  `NEXT_PUBLIC_` prefix, and eslint confines `admin.ts` to a feature's
+  `queries.server.ts`. `npm run build` ends with `scripts/check-bundle.mjs`,
+  which fails the build if the key's name appears in anything served to a
+  browser (`.next/static`, source maps included), or its value anywhere in
+  the build output, server code and every source map included.
 
 ## Brand
 
@@ -51,8 +77,8 @@ of open roles, for example.
 
 Placeholder figures are not an exception: `0,000+` and `00 days` were still
 statistics, so the trust bar that carried them is gone and nothing replaces
-it. Note that this site has no backend and no database (see the top of this
-file), so until one exists the practical effect is **no figures at all**. A
+it. Nothing on the site reads the database for display (see the top of this
+file), so until something does the practical effect is **no figures at all**. A
 number that cannot be traced to a live query does not go on a page.
 
 Counts inside a heading that describe what is rendered directly beneath it
@@ -107,6 +133,9 @@ withdrawn models are absent. That assertion is why "RPO" and
   about.
 - No UI component library. Components are built in this repo; see
   **Repository layout** for where each kind goes.
+- `@supabase/ssr` is pinned exactly (`0.12.7`), because it owns how the
+  staff session cookie is written. Upgrade it deliberately, and re-check
+  that `server.ts` still forces HttpOnly on every cookie it sets.
 
 ## Repository layout
 
@@ -120,14 +149,16 @@ src/
     layout.tsx, not-found.tsx, sitemap.ts, robots.ts, globals.css
   features/<name>/    one folder per domain concept
     components/       UI only this feature uses
-    queries.ts        ALL of the feature's data access, the form seams included
+    queries.ts        data access that may run in the browser (browser client)
+    queries.server.ts data access that must not: session and service-role
     index.ts          the public surface
+    server.ts         the server-only public surface, if it has one
   components/
     ui/               primitives with no domain knowledge
     layout/           header, footer, drawer, nav, skip link
     marketing/        the sections the (marketing) pages compose
   content/            marketing copy, and the imported articles
-  lib/                cross-cutting only: Supabase client and env, metadata,
+  lib/                cross-cutting only: Supabase clients and env, metadata,
                       site-wide JSON-LD
 ```
 
@@ -153,15 +184,25 @@ route created outside that group would make the importer drop links to it.
 1. **A feature's internals are private.** Code outside
    `src/features/<name>/` imports from `@/features/<name>` and nothing
    deeper - never `@/features/<name>/components/...` or its `queries`.
-   Inside a feature, files import each other relatively. The one exception:
-   a `*.test.ts` may import another feature's `*.fixture.ts` directly,
-   because fixtures are never exported from an `index.ts`, which is what
-   keeps them out of the build.
-2. **All database access lives in a feature's `queries.ts`.** No Supabase
-   call in a component, page, layout or route handler, ever. This is what
-   makes the RLS surface auditable: one file per feature lists every query
-   that feature can make. Only `queries.ts` and `src/lib/supabase/` may
-   import the client or the SDK.
+   **The one other entry point is `@/features/<name>/server`**, the
+   feature's `server.ts`: its server-only public surface, for pages, server
+   actions and route handlers. It is separate from `index.ts` because a
+   client component may import the index, and a server-only module behind
+   it would break that build. Inside a feature, files import each other
+   relatively. The one exception: a `*.test.ts` may import another
+   feature's `*.fixture.ts` directly, because fixtures are never exported
+   from an `index.ts`, which is what keeps them out of the build.
+2. **All database access lives in a feature's `queries.ts` and
+   `queries.server.ts`.** No Supabase call in a component, page, layout or
+   route handler, ever. This is what makes the RLS surface auditable: two
+   files per feature list every query that feature can make.
+   - `queries.ts` may be bundled for the browser, so it uses the browser
+     client only.
+   - `queries.server.ts` is server-only. It holds anything needing the
+     user's session (`server.ts`) or the service role (`admin.ts`), and is
+     reached through the feature's `server.ts`.
+   - Only those two files and `src/lib/supabase/` may import a client or
+     the SDK, and `queries.ts` may not import the server ones.
 3. **`components/ui` is for primitives with no domain knowledge.** If it
    knows what a submission is, it belongs to a feature. A primitive earns a
    place there by being used by three or more features.
@@ -169,7 +210,9 @@ route created outside that group would make the importer drop links to it.
    Anything domain-specific that lands there is misfiled.
 
 Rules 1 and 2 are enforced by `no-restricted-imports` in
-`eslint.config.mjs`, so `npm run lint` fails on a violation.
+`eslint.config.mjs`, so `npm run lint` fails on a violation: a deep import
+other than `/server`, a client in a component, or a session or service-role
+client in `queries.ts`.
 
 **Every feature folder carries a `package.json` of `{ "sideEffects": false }`,
 and a new feature needs one too.** A barrel that re-exports a `"use client"`
@@ -1039,23 +1082,29 @@ file. Nothing reads the TypeScript at test time.
 
 ## Environment variables
 
-Four variables. Templates: `.env.local.example` (the local stack's public
+Five variables. Templates: `.env.local.example` (the local stack's public
 demo keys, committed on purpose) and `.env.production.example` (names only,
 empty values). `supabase/LOCAL.md` documents them.
 
 | Variable | If missing |
 | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | falls back to `http://localhost:3000` - see below |
-| `NEXT_PUBLIC_SUPABASE_URL` | the Supabase client throws when constructed, naming it |
+| `NEXT_PUBLIC_SUPABASE_URL` | each Supabase client throws when constructed, naming it |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same |
+| `SUPABASE_SERVICE_ROLE_KEY` | the service-role client throws when constructed, naming it |
 | `APP_ENV` | `local` |
 
-**The Supabase pair has no fallback and is checked at the point of use**,
-in `readSupabaseEnv()`, which `createSupabaseClient()` calls. Nothing
-constructs a client yet, so every build, Netlify's included, succeeds with
-no Supabase variables at all. Do not move that check back into
-`next.config.ts` or module scope: it failed every build that never needed
-the value, Netlify's and the local one `check:seo` runs against.
+**The Supabase variables have no fallback and are checked at the point of
+use**: `readSupabaseEnv()`, and the service-role key in `admin.ts`, run
+when a client is constructed, never at import or build time. So every
+build, Netlify's included, succeeds with no Supabase variables at all. Do
+not move that check back into `next.config.ts` or module scope: it failed
+every build that never needed the value, Netlify's and the local one
+`check:seo` runs against.
+
+**`SUPABASE_SERVICE_ROLE_KEY` is a runtime secret, not a build input.** It
+is never `NEXT_PUBLIC_`. On Netlify it is marked secret and scoped to
+Functions, so the build cannot see it at all.
 
 **`APP_ENV` (`local` | `staging` | `production`) is what "deployed"
 means.** It is set in the deploy environment only, never in
@@ -1116,6 +1165,13 @@ browser binary it drives is versioned with it.
 The `db:*` scripts wrap the Supabase CLI (a devDependency, so its version is
 pinned); `supabase/LOCAL.md` documents them. There is **no CI** in this
 repo, so nothing runs `db:test` for you.
+
+`npm run build` runs `postbuild` after `next build`: `scripts/check-bundle.mjs`
+(also `npm run check:bundle`), which fails the build if the service-role
+key could reach a browser - see the top of this file. Netlify builds with
+`npm run build`, so a leaking build never deploys. It reads the configured
+key from the environment or `.env.local`, and also matches any
+`service_role` JWT or `sb_secret_` key by shape, so it works with none set.
 
 `import:articles` also runs on Node directly, with no dependency: the .docx
 is a zip and `node:zlib` inflates it. It takes one or more directories the

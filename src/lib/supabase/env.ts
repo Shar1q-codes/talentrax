@@ -3,9 +3,10 @@
 // Two checks, at two different times:
 //
 // - Missing variables are checked at the point of use: readSupabaseEnv(),
-//   called by createSupabaseClient(). Nothing constructs a client yet, so a
-//   build with no Supabase variables at all succeeds, and keeps succeeding
-//   until code that actually needs the database runs without them.
+//   called by each of the three client constructors (browser.ts, server.ts,
+//   admin.ts) when it is called, never at import. So a build with no
+//   Supabase variables at all succeeds, and keeps succeeding until code that
+//   actually needs the database runs without them.
 // - A deployed environment pointed at a local stack is checked at boot:
 //   next.config.ts calls assertDeployTarget(), so a staging or production
 //   build or server wired to someone's laptop never starts. It only looks at
