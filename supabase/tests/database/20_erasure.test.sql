@@ -9,7 +9,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(79);
+select plan(78);
 
 -- -----------------------------------------------------------------------------
 -- Harness (as in 10_access.test.sql, plus service_role).
@@ -409,15 +409,12 @@ select ok((select erased_at is not null and full_name is null from public.candid
           and (select (erasure_summary -> 'final' ->> 'activities')::int = 0 from public.deletion_requests where id = tests.id('req_none')),
   'cNone: erased cleanly, with nothing else to touch');
 
--- The storage worker's contract.
-select is(tests.value_as('service_role', $$ select count(*)::text from public.claim_storage_erasures(10) $$), '3',
-  'the worker claims the pending objects');
-select tests.act_as('service_role');
-select public.complete_storage_erasure(id) from public.storage_erasures where deletion_request_id = tests.id('req_full_actual');
-select tests.act_as(null);
-select is((select count(*) from public.storage_erasures
-           where deletion_request_id = tests.id('req_full_actual') and status = 'done' and object_path is null), 3::bigint,
-  'a completed object leaves no path behind');
+-- Each object is queued in the bucket it lives in (migration 7).
+select results_eq(
+  format($$ select bucket, count(*)::int from public.storage_erasures
+            where deletion_request_id = %L group by bucket order by bucket $$, tests.id('req_full_actual')),
+  $$ values ('candidate-originals', 1), ('candidate-scrubbed', 1), ('resume-intake', 1) $$,
+  'the original, the scrubbed copy and the intake resume are queued in their own buckets');
 
 -- =============================================================================
 -- 4. A request that is cancelled.

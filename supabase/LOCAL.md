@@ -120,8 +120,22 @@ from the SQL editor or psql as `postgres`:
 select public.process_due_deletion_requests();
 ```
 
-The storage half - deleting the queued objects in `storage_erasures` - needs
-a worker that is not built yet. See `ERASURE.md`.
+The storage half - deleting the queued objects in `storage_erasures` - is
+the `storage-erasure-worker` Edge Function. pg_cron calls it only once two
+Vault secrets exist, so locally it runs when you run it:
+
+```bash
+npx supabase functions serve          # in one terminal
+curl -X POST -H "Authorization: Bearer $SERVICE_ROLE_KEY"   http://127.0.0.1:54321/functions/v1/storage-erasure-worker
+```
+
+`SERVICE_ROLE_KEY` is in `npx supabase status -o env`. Any other key gets
+401. To have pg_cron call it locally, store the two secrets it reads:
+
+```sql
+select vault.create_secret('http://kong:8000/functions/v1/storage-erasure-worker', 'storage_worker_url');
+select vault.create_secret('<the service role key>', 'storage_worker_key');
+```
 
 ### `npx supabase functions serve`
 

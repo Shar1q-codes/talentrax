@@ -187,18 +187,56 @@ writes a row to `storage_erasures` per object **in the same transaction**
 that removes the metadata. That's a transactional outbox:
 - The metadata and its outbox rows commit together or not at all, so bytes
   are never deleted while a row still points at them.
-- A worker calls `claim_storage_erasures()`, deletes each object through the
-  Storage API, and calls `complete_storage_erasure()`, which clears the
-  stored path. A 404 counts as done.
 - The only possible divergence is bytes outliving their row until the
-  worker succeeds. Any `pending` row says exactly which. Alert on pending
-  rows older than a day.
+  worker succeeds. Any `pending` row says exactly which.
+
+### The worker
+
+`functions/storage-erasure-worker` (migration 7) drains the outbox. pg_cron
+calls it every five minutes through pg_net, with the URL and the service
+role key read from Vault (`storage_worker_url`, `storage_worker_key`), set
+per environment. Only the service role key gets past its first line.
+
+**The database decides the outcome, not the Storage API.** Measured locally,
+a bulk delete answers `200 []` for an object that does not exist, for a
+bucket that does not exist, and for a caller not allowed to delete. A worker
+that believed that answer would mark a typo'd bucket or a wrong key as
+"already gone" and leave every file in place. So:
+
+| What happened | Row | Why it cannot be mistaken |
+| --- | --- | --- |
+| Present at claim, absent at completion | `done`, outcome `deleted` | Checked in `storage.objects`, which only the Storage API can delete from |
+| Absent at claim | `done`, outcome `already_absent` | **Success**: there was nothing to delete. The worker does not even call Storage |
+| Worker reports success, object still there | `pending`, error `still_present` | The database refuses the completion |
+| Storage unreachable, or an HTTP error | `pending`, error `network` or `http_<status>` | A pending row never carries an outcome; a done row never carries an error |
+| Bucket does not exist | `pending`, error `bucket_missing` | Never handed to the worker at all |
+
+**Concurrency.** A claim takes rows `FOR UPDATE SKIP LOCKED` and leases
+them: `next_attempt_at` moves five minutes ahead and the row gets a fresh
+`claim_token`. Two workers started together take disjoint rows. Every
+completion or failure must present the current token, so a worker whose
+lease expired cannot overwrite a newer result. A worker that dies loses
+nothing: the lease expires and the row is due again.
+
+**A row that keeps failing never blocks the queue, and is never dropped.**
+- **Backoff:** each failure doubles the wait, capped at six hours. Claims
+  take due rows only, so a failing row steps aside and the rows behind it
+  are processed.
+- **After eight attempts:** `needs_attention_at` is set, and it goes on
+  being retried every six hours, because the object still has to go.
+
+**How anyone notices:**
+- `storage_erasure_backlog()` gives pending and needs-attention counts and
+  the oldest of each.
+- **An hourly pg_cron job fails**, so `cron.job_run_details` records the run
+  as failed and the dashboard shows it, while anything needs attention or
+  has waited over a day. That catches a worker that was never configured as
+  surely as a broken one.
+- The worker logs a JSON line at error level whenever a run has failures.
 
 **Not built here:**
-- **The storage worker.** It needs the Storage API and is an Edge Function.
-- **An orphan sweep** for uploads that never got a row (a presigned upload
-  finished after the restriction began).
-- **Bucket policies.** Those are a separate prompt.
+- **Delivery of those signals to a person.** Log alerting, or a log drain
+  to the client's paging tool, is a deploy-time decision, not in this repo.
 
 ## Backups
 

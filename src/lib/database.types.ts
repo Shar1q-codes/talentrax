@@ -1150,13 +1150,13 @@ isOneToOne: false
                   ]
                 },"storage_erasures": {
                   Row: {
-                    "attempts": number,"completed_at": string | null,"created_at": string,"created_by": string | null,"deletion_request_id": string,"id": string,"last_attempt_at": string | null,"last_error_state": string | null,"object_path": string | null,"source_table": string,"status": string,"updated_at": string
+                    "attempts": number,"bucket": string,"claim_token": string | null,"completed_at": string | null,"created_at": string,"created_by": string | null,"deletion_request_id": string | null,"id": string,"last_attempt_at": string | null,"last_error_state": string | null,"needs_attention_at": string | null,"next_attempt_at": string,"object_path": string | null,"outcome": string | null,"present_at_claim": boolean | null,"reason": string,"status": string,"updated_at": string
                   }
                   Insert: {
-                    "attempts"?: number,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"deletion_request_id": string,"id"?: string,"last_attempt_at"?: string | null,"last_error_state"?: string | null,"object_path"?: string | null,"source_table": string,"status"?: string,"updated_at"?: string
+                    "attempts"?: number,"bucket": string,"claim_token"?: string | null,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"deletion_request_id"?: string | null,"id"?: string,"last_attempt_at"?: string | null,"last_error_state"?: string | null,"needs_attention_at"?: string | null,"next_attempt_at"?: string,"object_path"?: string | null,"outcome"?: string | null,"present_at_claim"?: boolean | null,"reason"?: string,"status"?: string,"updated_at"?: string
                   }
                   Update: {
-                    "attempts"?: number,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"deletion_request_id"?: string,"id"?: string,"last_attempt_at"?: string | null,"last_error_state"?: string | null,"object_path"?: string | null,"source_table"?: string,"status"?: string,"updated_at"?: string
+                    "attempts"?: number,"bucket"?: string,"claim_token"?: string | null,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"deletion_request_id"?: string | null,"id"?: string,"last_attempt_at"?: string | null,"last_error_state"?: string | null,"needs_attention_at"?: string | null,"next_attempt_at"?: string,"object_path"?: string | null,"outcome"?: string | null,"present_at_claim"?: boolean | null,"reason"?: string,"status"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -1510,15 +1510,15 @@ isOneToOne: false
 { Args: { "p_request_id": string }; Returns: undefined
                            },
 "claim_storage_erasures":
-{ Args: { "p_limit"?: number }; Returns: {
-              "id": string,"object_path": string,"source_table": string
+{ Args: { "p_lease"?: string,"p_limit"?: number }; Returns: {
+              "bucket": string,"claim_token": string,"id": string,"object_path": string,"present": boolean
             }[]
                            },
 "complete_storage_erasure":
-{ Args: { "p_id": string }; Returns: undefined
+{ Args: { "p_claim_token": string,"p_id": string }; Returns: string
                            },
 "fail_storage_erasure":
-{ Args: { "p_error_code": string,"p_id": string }; Returns: undefined
+{ Args: { "p_claim_token": string,"p_error_code": string,"p_id": string }; Returns: string
                            },
 "normalize_company_name":
 { Args: { "value": string }; Returns: string
@@ -1546,6 +1546,11 @@ isOneToOne: false
                            },
 "request_my_deletion":
 { Args: Record<PropertyKey, never>; Returns: string
+                           },
+"storage_erasure_backlog":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "needs_attention": number,"oldest_attention_at": string,"oldest_pending_at": string,"pending": number
+            }[]
                            }
           }
           Enums: {

@@ -18,6 +18,8 @@ No page, form or API route calls the client yet.
 | `migrations/20261001000400_activities_comms_content.sql` | Activities, communication consents, templates, message log, CMS content |
 | `migrations/20261001000500_row_level_security.sql` | Visibility helpers, privileges, every policy, the job board and employer views |
 | `migrations/20261001000600_candidate_erasure.sql` | Deletion requests, retention rules, legal holds, the erasure worker, the storage outbox, and the PII-free audit log |
+| `migrations/20261001000700_storage_worker.sql` | The outbox's leases, outcomes and backoff, the worker's schedule, and its health check |
+| `functions/storage-erasure-worker/` | The Edge Function that deletes queued objects through the Storage API |
 | `rollback/*.down.sql` | Reverse of each migration, for local development only |
 | `tests/database/*.test.sql` | pgTAP: catalog-wide structural checks, then behaviour per role |
 | `seed.sql` | One user per role for local testing, all fake |
@@ -159,9 +161,6 @@ workflow owner, never a byline: the site names nobody.
 - **Abuse controls on the public forms.** anon inserts straight into three
   tables. Rate limiting, bot protection and the honeypot belong in whatever
   endpoint fronts them. RLS cannot do it.
-- **The storage worker.** Erasure queues every stored object in
-  `storage_erasures`; an Edge Function has to delete them through the
-  Storage API. See `ERASURE.md`.
 - **Employer-facing interviews and offers.** Employers see requisitions,
   sent submissions and scrubbed documents. Anything more is a new view, not
   a base-table policy.
