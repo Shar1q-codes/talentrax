@@ -194,8 +194,24 @@ and [its Auth hooks](https://supabase.com/docs/guides/auth/auth-hooks).
 | Our sign-in page (`/staff/sign-in`) | Migration 16, per address: the growing delay and one attempt at a time. Then Supabase Auth's per-IP limit, which sees **our server's** address for every attempt |
 | Supabase Auth's own API, called directly. The anon key is public by design, so anyone can call `/auth/v1/token` and the MFA verify endpoint from their own machine | **Only Supabase Auth's per-IP limits**, by the caller's real address. Migration 16 never sees these attempts |
 
-A password found either way still reads nothing without the code: a staff
-role counts only after the second factor (migration 14).
+**What a guessed password opens: the person's own profile row, and
+nothing else.** A password that works, found by either route, gets an
+`aal1` session: the password has been checked, the authenticator code has
+not. The database grants a staff role only to an `aal2` session (migration
+14, `private.current_role()`), so at `aal1` the account holds no role at
+all. It can read its own profile row (name, email, role) and no submission,
+candidate, lead, file or other person. It can do nothing a stranger with
+no account cannot. `70_staff_sign_in.test.sql` asserts this, and so does a
+`@db` browser test that queries the API directly with a password-only
+token.
+
+**So the authenticator code is the control that matters, and the direct
+route is bounded.** The worst a guessed password does is confirm the
+password and reveal one profile row. Getting further needs the code from
+the person's phone, which changes every 30 seconds and is limited per IP
+address by Auth (15 verifications a minute by default). The per-IP limits
+below slow the password half; the second factor is what keeps the data
+closed.
 
 **So Supabase's per-IP limit is not useless, and is not raised.** On the
 direct path it is the only limit there is. Its defaults are 30 sign-ins per
