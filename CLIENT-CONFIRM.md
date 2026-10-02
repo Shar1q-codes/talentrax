@@ -149,7 +149,9 @@ delete the matching `OMITTED` comment there, and strike the item here.
     which is the least it could plausibly do. What does the client want it to
     do - track applications, see which employers hold a resume, withdraw an
     application, set availability? That answers whether the account is worth
-    building at all, given the resume form already works without one.
+    building at all, given the resume form needs no account - though the
+    resume form is not open yet either, and is unlinked under the release
+    gate above.
 
 16. **The copy itself.** Every word on this site is placeholder marketing copy
     written during the build, not approved client copy. The process sections

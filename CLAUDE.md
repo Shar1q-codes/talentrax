@@ -434,7 +434,10 @@ coming-soon page (they are all the same four-line stub).
 
 **It ships with zero jobs, and that is a real state, not a broken one.**
 `getJobs()` in `src/features/jobs/queries.ts` returns `[]`; `/jobs` renders an honest
-empty state that routes people to the resume form and the requisition form.
+empty state that routes employers to the requisition form. It offers job
+seekers no route onward: the resume form is unlinked under the release gate,
+and the site publishes no contact channel to point them at instead
+(CLIENT-CONFIRM.md items 3 and 8).
 The full list and filter UI is built and sits behind that check, so postings
 appear with no code change. Filters render only when there is at least one
 job.

@@ -9,6 +9,13 @@ this commit when this file was written.
 **[conv]** marks a fact that is known only from the working session that
 produced this file and is **not recorded anywhere else in the repo**.
 
+**Partly regenerated after `5796955`** (forms fixed and resume form
+unlinked in `4b7baee`; CLAUDE.md's rail section corrected in `5796955`).
+Only these entries were regenerated: the form and resume-link rows in
+sections 2 and 4, and sections 7.1 to 7.3. **Everything else - section 1
+included, which predates the push of `feat/ats-foundation` - still describes
+`fba7834`.**
+
 ---
 
 ## 1. Branch state
@@ -56,15 +63,15 @@ The public URLs:
 | `/` | Finished | Hero, services, desks, split section, latest-articles rail (see 7.1), how it works, CTA |
 | `/employers` | Finished | |
 | `/employers/services` | Finished, with omissions | 5 commercial points are `detail: null` and render nothing (client item 9) |
-| `/employers/request-talent` | **Partial** | Form UI complete; submit only `console.log`s and shows "Requisition received" (see 7.2) |
+| `/employers/request-talent` | **Partial** | Form UI complete. Not open yet: a notice above the form, and a submit answers "This form is not open yet. Nothing was sent." (see 7.2) |
 | `/job-seekers` | Finished | |
-| `/job-seekers/upload-resume` | **Partial** | As above, "Resume received". Linked in nav and footer despite the release gate (see 7.3) |
-| `/jobs` | Finished | `getJobs()` returns `[]`; renders the empty state by design |
+| `/job-seekers/upload-resume` | **Partial, unlisted** | As above. Reachable by URL only: linked from no page, noindex, not in the sitemap (release gate; see 7.3) |
+| `/jobs` | Finished | `getJobs()` returns `[]`; the empty state routes employers to the requisition form and offers job seekers no route (see 7.3) |
 | `/jobs/[slug]` | Stub by design | Builds zero pages; every slug 404s. 410 for expired postings not wired |
 | `/insights` | Finished | Index of 40 articles; a card click opens the modal (intercepting route) |
 | `/insights/[slug]` | Finished | 40 pages, plus 40 modal variants under `(.)[slug]`. BlogPosting and FAQPage JSON-LD |
 | `/about` | Finished | |
-| `/contact` | **Partial** | As above, "Message received". No contact details: all `isPlaceholder` (client item 8) |
+| `/contact` | **Partial** | As above, not open yet. No contact details: all `isPlaceholder` (client item 8). The "You are looking for work" card is removed |
 | `/faq` | Finished | |
 | `/locations` | Finished | No market list, by design |
 | `/resources` | Finished | |
@@ -138,7 +145,7 @@ Supabase client or reads `public_jobs`):
 | Storage worker deployment: Vault secrets `storage_worker_url`, `storage_worker_key`, and deploying the function | Not started. Needs a hosted project, and there is none |
 | Signed-upload endpoint for the resume form (mints a URL, sets `resume_storage_path`) | Not started |
 | CAPTCHA or honeypot on the public forms | Not started (supabase/README.md) |
-| Database wiring of the three forms (`submitRequisition`, `submitApplication`, `submitContact`) | Not started. Each logs and returns `ok` |
+| Database wiring of the three forms (`submitRequisition`, `submitApplication`, `submitContact`) | Not started. Each logs and returns `unavailable`; the form says it is not open yet |
 | `submission_key` sent by the forms | Not started. Retries are de-duplicated on content only until it is |
 | Auth backend for `/login`, `/register`, `/forgot-password` | Blocked on client items 14, 15 |
 | Any `(portal)` or `(internal)` page | Not started. Root-layout split deferred to the first such page (CLAUDE.md) |
@@ -235,61 +242,58 @@ waits.
 ### 7.1 Home-page latest-articles rail: actual behaviour
 
 Code: `src/components/ui/ScrollRail.tsx` and
-`src/components/marketing/home/LatestArticles.tsx`. Both are unchanged
-since `39f2d6b` (2026-09-26).
+`src/components/marketing/home/LatestArticles.tsx`, both unchanged since
+`39f2d6b` (2026-09-26). **CLAUDE.md now describes this code** (`5796955`):
+three sets, `data-infinite`, the middle-set span, a hidden scrollbar,
+Previous/Next, every repositioning and every stop condition. The earlier
+mismatch is resolved.
 
-No record of your three earlier questions about it exists in the repo, or
-in the session that produced this file.
+**The defect that remains: any change of the rail's width parks it on the
+first real card, discarding the visitor's place.** It is skipped only if
+focus is inside the rail at that moment. The rail is as wide as the page
+container, capped at 1280 CSS px, so it fires only below that width. From
+the code and its CSS, **not verified in a browser**:
 
-What the code does:
+| Action | Resets? |
+| --- | --- |
+| Phone rotation | Yes |
+| Desktop window resize, DevTools docked to the side, snapping to half the screen, below 1280 CSS px | Yes |
+| Window resize that stays above 1280 CSS px | No |
+| Browser page zoom | Yes, once the zoomed viewport is below 1280 CSS px; no above |
+| Pinch zoom on a phone | No |
+| Page scrollbar appearing or disappearing (classic scrollbars, below 1280 CSS px; e.g. the mobile drawer opening in a narrow desktop window) | Yes; no `scrollbar-gutter` is set |
+| Mobile address bar collapsing, on-screen keyboard | No (height only) |
 
-- Renders the six cards **three times** (`before`, `real`, `after`). The two
-  copies are `aria-hidden`, `tabIndex -1` and `hidden` until hydration sets
-  `data-infinite`.
-- The invariant is that `scrollLeft` stays in `[setWidth, 2 × setWidth)`,
-  the middle set. `setWidth` is measured live: from the first card of set
-  one to the first card of set two.
-- **Recentring happens in five places:**
-  1. **On first appearance, and on every change of the rail's width**
-     (ResizeObserver), it writes `scrollLeft = setWidth`. This resets the
-     rail to the first real card and discards the current position. It is
-     skipped only while focus is inside the rail.
-  2. **Every drift frame (35 px/s):** if the new position reaches
-     `2 × setWidth`, it subtracts `setWidth`.
-  3. **On `scrollend` after a user scroll:** it shifts by ±`setWidth` if
-     outside the span. This is skipped while keyboard focus is inside.
-  4. **When focus leaves the rail:** the recentre that was skipped.
-  5. **Previous/Next buttons:** if the move would leave the span, it shifts
-     first, then smooth-scrolls one card.
-- **Nothing recentres during a user's scroll**, only after `scrollend`.
-- **Unverified:**
-  - Whether any recentre is visually seamless.
-  - `scrollend` support in every target browser. Where it is missing, a
-    user's scroll outside the span stays there until the next drift frame
-    or button press.
-  - The width-change reset on phone rotation.
-- **CLAUDE.md describes a different implementation.** The code differs:
-  - CLAUDE.md says two copies, `data-looping`, a "home band"
-    `[lo, lo + setWidth)` centred in the spare range, and scrollbar-drag
-    handling.
-  - The code has three copies, `data-infinite`, the middle-set span, a
-    hidden scrollbar (`.scrollbar-hidden`), and Previous/Next buttons,
-    which CLAUDE.md does not mention.
+Also unverified: whether any recentre is visually seamless, and `scrollend`
+support in every target browser.
 
-### 7.2 Forms report success but store nothing
+### 7.2 The three forms: no longer claim success (`4b7baee`)
 
-- `/employers/request-talent`, `/job-seekers/upload-resume` and `/contact`
-  show "… received" and promise a reply.
-- The seams only `console.log` the payload and return `{ ok: true }`.
-- Unlike the account screens, none of the three carries a "not open yet"
-  notice.
+- The seams return `{ ok: false, reason: "unavailable" }`. Each form shows
+  "This form is not open yet. Nothing was sent." (`role="status"`,
+  focused), and keeps what was typed. The spam path shows the same.
+- Each page carries a `NotOpenNotice` above the form. It is the same
+  component the account screens now use.
+- **Remaining:** the seams still `console.log` the payload in the visitor's
+  own browser.
 
-### 7.3 Release gate not enforced in code
+### 7.3 The resume form is unlinked; job seekers have no route
 
-- CLIENT-CONFIRM.md: `/job-seekers/upload-resume` "must not be publicly
-  reachable" until the privacy items are answered.
-- It is built, indexable, and linked from the header and the footer.
-- Whether any deployment serves it publicly: unverified.
+`/job-seekers/upload-resume` is linked from no generated page. Checked
+across every built HTML file and its RSC payload: none links to it. It is
+out of the sitemap, noindex, and in check:seo's `UNLISTED_ROUTES`. Still in
+the code:
+
+- `applyHref` on `/jobs/[slug]` points at it. That route builds zero pages
+  while there are no jobs, so nothing renders it.
+- **Copy that still invites a resume, with no link.** Blocked: the site
+  publishes no contact channel to point it at (client items 3 and 8).
+  - the `/job-seekers` opening section, and its closing block ("Send us
+    your resume", now offering only "Browse open roles");
+  - the closing blocks on `/jobs`, `/locations` and `/resources`;
+  - the FAQ answer "How do I apply?".
+- The candidate cards on `/contact`, `/insights` and the empty job board are
+  removed, waiting on the same channel.
 
 ### 7.4 CLAUDE.md "Build status" is stale
 
