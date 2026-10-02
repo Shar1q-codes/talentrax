@@ -4,7 +4,7 @@ The runbook for one situation: **a staff member cannot produce their
 second factor** - a lost or wiped phone, a deleted authenticator app - and
 asks for it to be reset.
 
-Written before staff MFA is built (build step 6), on purpose. The reset is
+Written before staff MFA was built (build step 6), on purpose. The reset is
 the weakest point of any second factor: an attacker who has someone's
 password and can talk their way through a reset has beaten MFA without
 touching it. So who may reset, what they run and what they accept as proof
@@ -12,10 +12,11 @@ are decided here first, and the MFA build implements this rather than
 inventing a path under time pressure. CLIENT-CONFIRM.md item 27 is the
 client's half.
 
-**Status: MFA is not built.** Staff sign-in does not exist yet, and TOTP
-enrolment is off in `config.toml` (`[auth.mfa.totp] enroll_enabled =
-false`). The SQL below was run against the local stack on 2026-10-02,
-against a factor inserted by hand (see **Verified locally**).
+**Status: built.** Staff sign-in requires TOTP (step 6; CLAUDE.md, "Staff
+sign-in"), and TOTP is on in `config.toml`. A hosted project needs it on
+too (`LOCAL.md`, "What a migration cannot configure"). The SQL below was
+first run against the local stack on 2026-10-02, against a factor inserted
+by hand (see **Verified locally**).
 
 ---
 
@@ -132,7 +133,7 @@ commit;
 
 **3. The person signs in, on the call, and enrols a new factor.** Their
 password still works; with no factor, staff sign-in sends them straight to
-enrolment (to be built in step 6, and required of it).
+setup (`/staff/sign-in/set-up`), and to nothing else.
 
 **4. Confirm only their factor exists.**
 
@@ -153,7 +154,7 @@ step 4 shows one factor that is theirs.
 
 ## Passwords
 
-There is no staff password reset in the app either (the plan for step 6).
+There is no staff password reset in the app either.
 An administrator sends a recovery email from the dashboard, Authentication
 > Users > that user > Send password recovery. It goes to the account's own
 address, so it is only safe when the mailbox is not in doubt.
@@ -198,12 +199,15 @@ On the local stack, 2026-10-02, with the seeded `recruiter@example.test`
 
 ---
 
-## What staff MFA (build step 6) must keep true
+## What staff MFA keeps true, and where
 
-- A staff account with no verified factor reaches enrolment and nothing
-  else.
-- Nothing in the app removes another user's factor.
-- Removing your own factor needs a session already at the second factor,
-  and is refused if it would leave the account with none.
-- The database, not only the page, requires the second factor before a
-  staff account reads the form tables.
+| Must hold | How |
+| --- | --- |
+| A staff account with no verified factor reaches setup and nothing else | `staffPathFor()` in `src/features/auth/queries.server.ts`, asked by every staff page and action |
+| Nothing in the app removes another user's factor | Nothing in the app removes any factor at all: no page, no action. Setup only clears its own half-finished (unverified) factor before starting again |
+| Nobody removes their own factor from the app | As above. Changing phones is this runbook |
+| The database, not only the page, requires the second factor | Migration 14: a staff role counts only at `aal2`, for every table. `70_staff_sign_in.test.sql`, and the `@db` browser test that reads with a password-only token |
+
+The `@db` browser suite runs step 3 of this runbook on every run: it
+removes a seeded account's factors (through the Auth admin API, the
+equivalent of step 2's SQL) and signs in to set up a new one.

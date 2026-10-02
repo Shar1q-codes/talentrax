@@ -46,6 +46,12 @@ export function readAppEnv(): AppEnv {
   );
 }
 
+// Whether this build can reach a database at all: both public values set
+// and non-empty. Staff sign-in asks it before constructing a client.
+export function isSupabaseConfigured(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
 // Whether the public forms are open, from what the build knows. The rule
 // itself; forms-gate.ts is the server-only caller that reads the inputs.
 // Kept here, alias-free and pure, so `npm test` can pin every branch.

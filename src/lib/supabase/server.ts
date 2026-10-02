@@ -10,14 +10,19 @@ import "server-only";
 // which forces HttpOnly, Secure and SameSite=Lax. Nothing signs in from the
 // browser, so nothing in the browser needs to read them.
 //
+// SCOPED TO /staff. The only sessions are staff sessions, so the cookie is
+// sent only to the staff pages and their server actions, never with a
+// visitor-facing request (and the privacy policy says so).
+//
 // One client per request: it carries that request's cookies. In a server
 // component the cookie store is read-only, so a token refresh there cannot
 // be written; the proxy refreshes sessions on staff routes before the page
-// renders.
+// renders (createProxySupabaseClient, below).
 
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { NextResponse, type NextRequest } from "next/server";
 
 import type { Database } from "../database.types";
 import { readSupabaseEnv } from "./env";
@@ -28,7 +33,7 @@ export const SESSION_COOKIE: CookieOptions = {
   // Browsers treat http://localhost as secure, so local runs work too.
   secure: true,
   sameSite: "lax",
-  path: "/",
+  path: "/staff",
 };
 
 export async function createServerSupabaseClient(): Promise<SupabaseClient<Database>> {
@@ -50,4 +55,29 @@ export async function createServerSupabaseClient(): Promise<SupabaseClient<Datab
       },
     },
   });
+}
+
+// The same client for the proxy, which reads the request's cookies and
+// writes refreshed ones onto the response it returns. `response()` is read
+// after the auth call: a refresh replaces it.
+export function createProxySupabaseClient(request: NextRequest): {
+  supabase: SupabaseClient<Database>;
+  response: () => NextResponse;
+} {
+  const { url, anonKey } = readSupabaseEnv();
+  let response = NextResponse.next({ request });
+  const supabase = createServerClient<Database>(url, anonKey, {
+    cookieOptions: SESSION_COOKIE,
+    cookies: {
+      getAll: () => request.cookies.getAll(),
+      setAll(toSet) {
+        for (const { name, value } of toSet) request.cookies.set(name, value);
+        response = NextResponse.next({ request });
+        for (const { name, value, options } of toSet) {
+          response.cookies.set(name, value, { ...options, ...SESSION_COOKIE });
+        }
+      },
+    },
+  });
+  return { supabase, response: () => response };
 }

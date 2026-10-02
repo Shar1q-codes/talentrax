@@ -25,7 +25,7 @@ begin
   if r is null then return; end if;
   perform set_config('request.headers',
     case when ip is null then '{}' else json_build_object('cf-connecting-ip', ip)::text end, true);
-  perform set_config('request.jwt.claims', json_build_object('role', r, 'sub', uid)::text, true);
+  perform set_config('request.jwt.claims', json_build_object('role', r, 'sub', uid, 'aal', 'aal2')::text, true);
   perform set_config('request.jwt.claim.role', r, true);
   if uid is not null then perform set_config('request.jwt.claim.sub', uid::text, true); end if;
   perform set_config('role', r, true);

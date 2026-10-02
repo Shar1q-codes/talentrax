@@ -180,9 +180,14 @@ deliver mail.
 | `employer.user@example.test` | `employer_user`, attached to the test employer |
 | `job.seeker@example.test` | `job_seeker`, with their own candidate row |
 
-The site's `/login` page is not wired to anything yet, so sign in against
-the API directly. This returns a session whose `access_token` is a real
-JWT for that user:
+**Staff accounts sign in at `/staff/sign-in`** on the local site (`npm run
+dev`, or a production build). The first sign-in asks for an authenticator
+app and sets it up; after that, every sign-in asks for its code. To start an
+account over, remove its factors as `STAFF-ACCESS.md` describes.
+
+The candidate `/login` page is not wired to anything yet. Against the API
+directly, this returns a session whose `access_token` is a real JWT for
+that user:
 
 ```bash
 curl -s "http://127.0.0.1:54321/auth/v1/token?grant_type=password" \
@@ -191,7 +196,12 @@ curl -s "http://127.0.0.1:54321/auth/v1/token?grant_type=password" \
   -d '{"email":"recruiter@example.test","password":"local-password-only"}'
 ```
 
-Then query as that user, and RLS applies exactly as it will for them:
+Then query as that user, and RLS applies exactly as it will for them.
+**For a staff account that token is `aal1`, so it reads nothing but its own
+profile row** (migration 14): a staff role counts only after the second
+factor. To query as a staff role from the command line, sign in through the
+site, or use the pgTAP approach below with `'aal', 'aal2'` in the claims.
+`employer.user` and `job.seeker` need no second factor:
 
 ```bash
 curl -s "http://127.0.0.1:54321/rest/v1/candidates?select=full_name" \
@@ -262,6 +272,13 @@ writing down as they are set:
 - **Redirect URLs**: the exact URLs auth emails and sign-in may send people
   back to. Exact origins only, no wildcards across domains, and production's
   list must not include localhost or staging.
+- **TOTP multi-factor on** (Authentication > Multi-Factor): enrolment and
+  verification both. Staff sign-in requires it; without it no staff member
+  can get past setup.
+- **Sign-in rate limits** (Authentication > Rate Limits): staff sign in
+  through our server, so Supabase sees one address for all of them. The
+  per-address limits there must allow every staff member's sign-ins
+  together; the per-account limit is ours (migration 14).
 - **Storage limits**: bucket file-size limit and allowed MIME types, and the
   `storage.objects` policies the README lists as missing, before any upload
   is wired.

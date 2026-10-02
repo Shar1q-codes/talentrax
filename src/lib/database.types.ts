@@ -1566,6 +1566,12 @@ isOneToOne: false
 "request_my_deletion":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"sign_in_attempt":
+{ Args: { "email": string }; Returns: boolean
+                           },
+"sign_in_succeeded":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
 "storage_erasure_backlog":
 { Args: Record<PropertyKey, never>; Returns: {
               "needs_attention": number,"oldest_attention_at": string,"oldest_pending_at": string,"pending": number

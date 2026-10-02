@@ -24,7 +24,7 @@ follow-on detail of whatever needs it.
 | Constructor | Key | Session | For |
 | --- | --- | --- | --- |
 | `browser.ts` | anon | none: nothing persisted, refreshed or read from the URL | the three public forms, inserting straight from the visitor's browser |
-| `server.ts` | anon + the user's session | an HttpOnly cookie, forced on everything `@supabase/ssr` sets | staff pages, server actions, route handlers acting for someone; RLS applies as them |
+| `server.ts` | anon + the user's session | an HttpOnly cookie scoped to `/staff`, forced on everything `@supabase/ssr` sets | staff pages, server actions, the proxy's session refresh; RLS applies as them |
 | `admin.ts` | service role (bypasses RLS) | none | the resume-upload endpoints only |
 
 - **The forms insert from the browser, on purpose.** The rate limit
@@ -144,7 +144,7 @@ src/
   app/
     (marketing)/      every public route; route groups are not URL segments
     (portal)/         candidate and employer areas - layout only, no pages yet
-    (internal)/       the ATS for staff roles - layout only, no pages yet
+    (internal)/       the ATS for staff roles: /staff and its sign-in steps
     api/              route handlers - none yet
     layout.tsx, not-found.tsx, sitemap.ts, robots.ts, globals.css
   features/<name>/    one folder per domain concept
@@ -318,7 +318,7 @@ that leaves every check passing.
 | 1-3 | The three Supabase clients; migration 11; the root layout split | Done |
 | 4 | Contact wired, with the forms gate and the storage disclosure | Done |
 | 5 | Request Talent wired | Done |
-| 6 | Staff sign-in and sign-out, TOTP MFA required, the sign-in attempt limiter | |
+| 6 | Staff sign-in and sign-out, TOTP MFA required, the sign-in attempt limiter | Done |
 | 7 | Resume upload endpoints and form, behind staff sign-in in production | |
 | 8 | The staff inbox | |
 
@@ -827,7 +827,8 @@ app/(marketing)/insights/[slug]/page.tsx                 the full page, unchange
   (`/insights(?:/.*)?`, in `next/dist/lib/generate-interception-routes-rewrites.js`).
   A full article page is a descendant, so its related-reading links opened
   the modal over an index that was not there - a dialog over an empty page,
-  no `<h1>`. The proxy, the site's only one, strips `Next-Url` from a soft
+  no `<h1>`. The proxy, the site's only one (its other job is refreshing
+  the staff session on `/staff`), strips `Next-Url` from a soft
   navigation to `/insights/<slug>` unless it starts on `/insights`, so
   every other article link is an ordinary navigation to the full page.
   That includes a related link **inside** the modal: it now opens the full
@@ -991,6 +992,49 @@ These are not placeholders to be relaxed when the backend lands.
    a time check punishes the people doing it properly, and credential
    stuffing is stopped by server-side rate limiting, which a hidden input
    cannot do.
+
+## Staff sign-in
+
+`/staff/sign-in`, then `/staff/sign-in/set-up` (first time) or
+`/staff/sign-in/verify`, then `/staff`. Built in step 6. The candidate
+screens above are untouched and still sign nobody in.
+
+- **Unlisted.** Noindex, out of the sitemap, linked from nothing:
+  `check:seo` asserts `/staff/sign-in` in `UNLISTED_ROUTES`, that `/staff`
+  with no session redirects to it, and that no built page links into
+  `/staff`.
+- **TOTP is required.** A staff account with no verified factor reaches
+  setup and nothing else; one with a factor reaches the code step. The QR
+  code is redrawn from module coordinates (`features/auth/totp-qr.ts`): no
+  markup from Auth reaches the page, and there is no `<img>`. The key is
+  always shown as text too.
+- **The database holds the same line** (migration 14): a staff role counts
+  only when the session's JWT says `aal2`. A password alone, used straight
+  against the API, reads the caller's own profile row and nothing else.
+  employer_user and job_seeker are unaffected. Every pgTAP harness signs in
+  at `aal2`; `70_staff_sign_in.test.sql` checks aal1.
+- **Every page and every action checks for itself**, through
+  `getStaffAccess()` in `features/auth/queries.server.ts`. The `(internal)`
+  layout only draws `StaffChrome`: a layout is not a guard. `staffPathFor()`
+  sends anyone at the wrong step to the right one. The proxy refreshes the
+  session on `/staff` routes and decides nothing.
+- **The session cookie is scoped to `/staff`**, HttpOnly, Secure,
+  SameSite=Lax (`SESSION_COOKIE` in `lib/supabase/server.ts`). It is the one
+  cookie the site sets, and `/privacy-policy` says so.
+- **Attempts are limited per address, in the database**: five password or
+  code attempts in fifteen minutes (`private.sign_in_settings`), counted on
+  an HMAC of the address, any string alike. Supabase Auth's own per-IP limit
+  cannot do this, because it sees our server's address for every staff
+  member. Passing the second factor clears the count. Anyone can spend an
+  address's attempts and lock it for the window; that is the accepted cost
+  of any per-account limit.
+- **Every refusal reads the same and takes the same time**: a wrong
+  password, an unknown address, a non-staff account (signed straight out
+  again) and a locked address all answer after at least 1.5 seconds with
+  `staffSignIn.failed`.
+- **No reset in the app**, for passwords or factors, for any role. A lost
+  factor goes by `supabase/STAFF-ACCESS.md`.
+- **Nothing is logged**, as on the account screens.
 
 ## Two pages that constrain what may be written on them
 

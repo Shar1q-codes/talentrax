@@ -6,6 +6,7 @@ import {
   requestTalent,
   roleFields,
 } from "@/content/request-talent";
+import { staffSignIn, staffUnavailable } from "@/content/staff";
 
 /**
  * Site-wide checks from the first browser pass that held, kept so they
@@ -19,7 +20,7 @@ const ROUTES = [
   "/job-seekers", "/job-seekers/upload-resume", "/jobs", "/insights",
   "/insights/healthcare-staffing-models", "/about", "/contact", "/faq",
   "/locations", "/resources", "/accessibility", "/privacy-policy", "/terms",
-  "/login", "/register", "/forgot-password",
+  "/login", "/register", "/forgot-password", "/staff/sign-in",
 ];
 
 test.describe("every route at 320px", () => {
@@ -137,4 +138,11 @@ test("/employers/request-talent with no database: says it is not open, and a val
 test("/privacy-policy with no database: names no storage for the forms", async ({ page }) => {
   await page.goto("/privacy-policy", { waitUntil: "networkidle" });
   await expect(page.locator("main")).not.toContainText("Supabase");
+});
+
+test("/staff with no database: sign-in says it is not available, and offers no form", async ({ page }) => {
+  await page.goto("/staff");
+  await expect(page).toHaveURL(/\/staff\/sign-in$/);
+  await expect(page.getByText(staffUnavailable)).toBeVisible();
+  await expect(page.locator(`#${staffSignIn.fields.password.id}`)).toHaveCount(0);
 });

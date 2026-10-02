@@ -195,7 +195,7 @@ export function buildPrivacyPolicy({ formsStored }: { formsStored: boolean }): L
           {
             kind: "paragraph",
             id: "collect-visit",
-            text: "When you simply visit the site, this site collects nothing. It sets no cookies, stores nothing in your browser, runs no analytics, no advertising tags, no session recording and no chat widget, and loads no scripts, fonts or images from anyone else's servers. There is nothing to opt out of because there is nothing running.",
+            text: `When you simply visit the site, this site collects nothing. It sets no cookies in your browser, stores nothing in it, runs no analytics, no advertising tags, no session recording and no chat widget, and loads no scripts, fonts or images from anyone else's servers. There is nothing to opt out of because there is nothing running. The one cookie the site sets at all is for ${site.name} staff: signing in to the staff area sets a cookie that keeps that person signed in. It is sent only to the staff pages, and signing out removes it.`,
           },
           // OMITTED: what the hosting provider's server logs retain, and for how
           // long. CLIENT-CONFIRM.md question 5.

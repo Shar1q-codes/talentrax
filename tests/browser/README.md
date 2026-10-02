@@ -37,6 +37,22 @@ the wired forms against the local stack (`playwright.db.config.ts`).
 | A retry after a lost response: stored once | | yes |
 | The privacy policy names the storage | | yes |
 
+## Staff sign-in
+
+| Path | No database (`site.spec.ts`) | `@db` (`staff.db.spec.ts`) |
+| --- | --- | --- |
+| `/staff` with no session goes to sign-in | yes, and it says sign-in is not available | yes |
+| First sign-in: password, set up the app (QR and key), a wrong code, then in | | yes |
+| The session cookie is HttpOnly, `path=/staff`, SameSite=Lax | | yes |
+| Sign out; sign in again goes to the code step | | yes |
+| A password-only token reads nothing from the API | | yes |
+| Wrong password, unknown address, non-staff account: one message, at least 1.5 s | | yes |
+| Past five attempts the right password is refused | | yes, and `research.analyst` stays locked for 15 minutes |
+
+The tests play the phone's part with `totp.ts` (RFC 6238, checked against
+the RFC's own vectors). The second sign-in waits for the next 30-second
+window, so it never depends on whether Auth would accept the same code twice.
+
 The 429 test fills one client address's hourly allowance and then submits
 from the same address. Locally nothing sets `cf-connecting-ip` (on hosted
 Supabase the edge does), so the test adds it to each request, from a fresh

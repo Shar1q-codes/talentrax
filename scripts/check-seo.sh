@@ -72,6 +72,8 @@ UNLISTED_ROUTES=(
   # The resume form: the release gate in CLIENT-CONFIRM.md. Real, reachable
   # by URL, unlinked from every page, noindex, and not in the sitemap.
   /job-seekers/upload-resume
+  # Staff sign-in: for staff, by its address. Never linked, never listed.
+  /staff/sign-in
 )
 
 # Empty: there are no unbuilt routes left.
@@ -276,6 +278,25 @@ for route in "${UNLISTED_ROUTES[@]}"; do
     *)         fail "$route robots meta is \"$robots\" - an unwired account screen must be noindex" ;;
   esac
 done
+
+# The staff area itself never answers a visitor with a page: a request with
+# no session is sent to sign-in. And nothing public links into it.
+echo
+staff_redirect=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 20 "$BASE_URL/staff")
+case "$staff_redirect" in
+  30[1278]\ *"/staff/sign-in") pass "/staff with no session -> $staff_redirect" ;;
+  *) fail "/staff with no session answered \"$staff_redirect\", expected a redirect to /staff/sign-in" ;;
+esac
+staff_links=0
+for route in "${BUILT_ROUTES[@]}"; do
+  if fetch "$BASE_URL$route" | grep -qE 'href="(https?://[^"]*)?/staff'; then
+    fail "$route links into /staff - the staff area is linked from nothing"
+    staff_links=$((staff_links + 1))
+  fi
+done
+if [ "$staff_links" -eq 0 ]; then
+  pass "no built page links into /staff"
+fi
 
 # --- 4. every coming-soon route is noindex ----------------------------------
 echo

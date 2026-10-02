@@ -322,7 +322,7 @@ delete the matching `OMITTED` comment there, and strike the item here.
     before a file is marked received), and who pays for and operates it?
     *Not built: no scanning.*
 
-27. **Multi-factor sign-in for staff** *(recommendation, being built)*.
+27. **Multi-factor sign-in for staff** *(recommendation, built)*.
     Staff accounts can read every submission: names, contact details,
     resumes, work authorization. A password alone is the weakest point in
     that. Staff sign-in will require an authenticator app (TOTP) as a

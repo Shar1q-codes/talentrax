@@ -1,7 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { refreshStaffSession } from "@/features/auth/server";
+
 /**
- * Only the /insights index opens an article in the modal.
+ * The site's one proxy, with two jobs on two matchers.
+ *
+ * 1. STAFF ROUTES: refresh the staff session before the page renders.
+ *    A server component cannot write cookies, so an access token that
+ *    expires between visits is renewed here and the new cookies go out on
+ *    the response. Not an access check: every staff page and action makes
+ *    its own (features/auth/queries.server.ts). With no database in the
+ *    build there is no session to refresh.
+ *
+ * 2. ARTICLES: only the /insights index opens an article in the modal.
  *
  * Next decides interception from the `Next-Url` request header the App
  * Router sends on a soft navigation, matched against the intercepting
@@ -26,7 +37,11 @@ import { NextResponse, type NextRequest } from "next/server";
  * not run this or does not honour the header it removes. This keeps the bad
  * case from happening; that keeps it from showing. Keep both.
  */
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+  if (request.nextUrl.pathname === "/staff" || request.nextUrl.pathname.startsWith("/staff/")) {
+    return refreshStaffSession(request);
+  }
+
   const from = request.headers.get("next-url");
   if (from === null || from === "/insights" || from === "/insights/") {
     return NextResponse.next();
@@ -37,5 +52,9 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [{ source: "/insights/:slug", has: [{ type: "header", key: "next-url" }] }],
+  matcher: [
+    "/staff",
+    "/staff/:path*",
+    { source: "/insights/:slug", has: [{ type: "header", key: "next-url" }] },
+  ],
 };

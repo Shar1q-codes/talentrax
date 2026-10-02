@@ -47,7 +47,7 @@ begin
   select u.id, u.email into user_id, user_email
   from auth.users u where u.id = tests.id(fixture);
   perform set_config('request.jwt.claims',
-    json_build_object('sub', user_id, 'role', 'authenticated', 'email', user_email)::text, true);
+    json_build_object('sub', user_id, 'role', 'authenticated', 'email', user_email, 'aal', 'aal2')::text, true);
   perform set_config('request.jwt.claim.sub', user_id::text, true);
   perform set_config('request.jwt.claim.role', 'authenticated', true);
   perform set_config('request.jwt.claim.email', user_email, true);
