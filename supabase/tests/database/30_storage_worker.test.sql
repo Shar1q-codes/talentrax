@@ -12,6 +12,12 @@ set search_path = public, extensions;
 
 select plan(31);
 
+-- Start from an empty outbox. Every count below assumes it, and a local
+-- database keeps real rows: the @db browser suite's rejected upload queues
+-- one, and locally no worker drains it. The whole file is rolled back, so
+-- nothing outside it is lost.
+delete from public.storage_erasures;
+
 -- Harness: become service_role or an authenticated user, as PostgREST would.
 create schema tests;
 grant usage on schema tests to authenticated, service_role;
@@ -204,8 +210,12 @@ select throws_ok($$ select private.assert_storage_erasures_healthy() $$, 'P0001'
 -- -----------------------------------------------------------------------------
 -- A bucket that does not exist is never "already absent".
 -- -----------------------------------------------------------------------------
+-- The bucket must be empty to go, and a local one holds the @db suite's
+-- uploads. Their rows go first: all of it rolls back with the file, and no
+-- bytes are touched (Storage keeps them; only its records are rolled back).
 select set_config('storage.allow_delete_query', 'true', true);
-delete from storage.buckets where id = 'resume-intake' and not exists (select 1 from storage.objects where bucket_id = 'resume-intake');
+delete from storage.objects where bucket_id = 'resume-intake';
+delete from storage.buckets where id = 'resume-intake';
 select set_config('storage.allow_delete_query', 'false', true);
 update public.storage_erasures set next_attempt_at = now() where object_path = 'w/later.pdf';
 select is(tests.claim(10, 6), 0, 'a row whose bucket is missing is not handed to the worker');

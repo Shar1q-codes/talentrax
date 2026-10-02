@@ -7,6 +7,8 @@ import {
   roleFields,
 } from "@/content/request-talent";
 import { staffSignIn, staffUnavailable } from "@/content/staff";
+import { uploadResume, workFields } from "@/content/upload-resume";
+import { fillResumeForm, REAL_PDF } from "./resume-form";
 
 /**
  * Site-wide checks from the first browser pass that held, kept so they
@@ -132,6 +134,21 @@ test("/employers/request-talent with no database: says it is not open, and a val
   await expect(outcome).toHaveText(requestTalent.notOpen.afterSubmit);
   await expect(outcome).toBeFocused();
   await expect(page.locator(`#${roleFields.roleTitle.id}`)).toHaveValue("Closed role");
+  expect(offSite).toEqual([]);
+});
+
+test("/job-seekers/upload-resume with no database: says it is not open, and a valid submit sends nothing, file included", async ({ page, baseURL }) => {
+  const offSite = requestsOffSite(page, baseURL!);
+  await page.goto("/job-seekers/upload-resume", { waitUntil: "networkidle" });
+  await expect(page.getByText(uploadResume.notOpen.notice)).toBeVisible();
+
+  await fillResumeForm(page, "closed-form@example.com", "Nothing should send this.", REAL_PDF);
+  await page.getByRole("button", { name: uploadResume.submit.label }).click();
+
+  const outcome = page.getByRole("status");
+  await expect(outcome).toHaveText(uploadResume.notOpen.afterSubmit);
+  await expect(outcome).toBeFocused();
+  await expect(page.locator(`#${workFields.message.id}`)).toHaveValue("Nothing should send this.");
   expect(offSite).toEqual([]);
 });
 

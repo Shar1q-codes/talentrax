@@ -1,6 +1,7 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 
-import { staffHome, staffSetUp, staffSignIn, staffVerify } from "@/content/staff";
+import { staffHome, staffResumeForm, staffSetUp, staffSignIn, staffVerify } from "@/content/staff";
+import { uploadResume } from "@/content/upload-resume";
 import { expectStackRunning, stack } from "./db";
 import { freshWindow, totp } from "./totp";
 
@@ -98,6 +99,8 @@ test.describe("@db staff sign-in", () => {
     await page.goto("/staff");
     await expect(page).toHaveURL(/\/staff\/sign-in$/);
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    await page.goto("/staff/upload-resume");
+    await expect(page).toHaveURL(/\/staff\/sign-in$/);
   });
 
   test("first sign-in: password, set up the app, a wrong code, then in; sign out; sign in again", async ({
@@ -130,6 +133,14 @@ test.describe("@db staff sign-in", () => {
     await enterCode(page, totp(secret), staffSetUp.submit.label);
     await expect(page).toHaveURL(/\/staff$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(staffHome.heading);
+
+    // The resume form behind sign-in: the same form, open.
+    await page.getByRole("link", { name: staffHome.resumeFormLabel }).click();
+    await expect(page).toHaveURL(/\/staff\/upload-resume$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(staffResumeForm.heading);
+    await expect(page.getByRole("button", { name: uploadResume.submit.label })).toBeVisible();
+    await expect(page.getByText(uploadResume.notOpen.notice)).toHaveCount(0);
+    await page.goto("/staff");
 
     // The session: HttpOnly, sent only to /staff, SameSite=Lax.
     const session = (await context.cookies()).filter((cookie) => cookie.name.startsWith("sb-"));

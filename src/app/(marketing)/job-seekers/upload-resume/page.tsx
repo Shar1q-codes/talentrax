@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 import { UploadResumeForm } from "@/features/job-seekers";
 import { Container } from "@/components/ui/Container";
@@ -8,6 +9,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { jobSeekersMeta } from "@/content/job-seekers";
 import { uploadResume } from "@/content/upload-resume";
 import { buildMetadata } from "@/lib/metadata";
+import { resumeFormOpenToPublic, resumeRoutePublic } from "@/lib/supabase/forms-gate";
 
 export const metadata: Metadata = buildMetadata({
   title: jobSeekersMeta.uploadResume.title,
@@ -23,8 +25,17 @@ export const metadata: Metadata = buildMetadata({
  * The resume upload page. The page itself is a server component: only the
  * form below is a client component, so the h1, the intro and the metadata are
  * all in the server-rendered HTML.
+ *
+ * THE RELEASE GATE (CLIENT-CONFIRM.md, and RESUME_PUBLIC_RELEASE in
+ * src/lib/supabase/forms-gate.ts). In production, until it clears, this
+ * route is a 404 for everyone: not publicly reachable, as the gate says. The
+ * same form is at /staff/upload-resume for signed-in staff. Elsewhere it
+ * renders, unlisted and noindex, and the forms gate decides whether it is
+ * open. Opening it to the public is a release step, not a cleanup.
  */
 export default function Page() {
+  if (!resumeRoutePublic()) notFound();
+  const open = resumeFormOpenToPublic();
   return (
     <>
       <PageHeader
@@ -32,8 +43,7 @@ export default function Page() {
         heading={uploadResume.heading}
         intro={uploadResume.intro}
       >
-        {/* Removed when the form is wired. See content/upload-resume.ts. */}
-        <NotOpenNotice>{uploadResume.notOpen.notice}</NotOpenNotice>
+        {open ? null : <NotOpenNotice>{uploadResume.notOpen.notice}</NotOpenNotice>}
         <ul className="mt-8 flex flex-col gap-2">
           {uploadResume.beforeYouStart.map((item) => (
             <li
@@ -49,7 +59,7 @@ export default function Page() {
 
       <Container>
         <div className="max-w-3xl py-14 sm:py-16 lg:py-20">
-          <UploadResumeForm />
+          <UploadResumeForm open={open} />
         </div>
       </Container>
     </>

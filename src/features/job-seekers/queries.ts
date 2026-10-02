@@ -1,54 +1,46 @@
 /**
- * The submit seam for the Upload Resume form.
+ * The submit seam for the Upload Resume form. Four steps, from the visitor's
+ * browser (supabase/STORAGE.md):
  *
- * There is no backend on this site yet, so nothing is transmitted and no file
- * leaves the browser: the validated payload is written to the console and the
- * seam answers `unavailable`. The form says the form is not open yet and
- * nothing was sent; it never claims the resume was received.
+ *   1. Insert the intake row with the publishable key - the visitor's own
+ *      request, so the rate limit (migration 9) sees the visitor. The row
+ *      declares the file: name, type and size. It holds no path: anon
+ *      cannot set one (migration 8).
+ *   2. Ask our server for a slot (requestResumeUploadAction). It finds the
+ *      row by the submission key, assigns the path under the row's id, and
+ *      returns a signed upload token for exactly that path.
+ *   3. Upload the file straight to Storage with that token. The bytes never
+ *      pass through our server or this site's logs.
+ *   4. Ask our server to check what arrived (completeResumeUploadAction):
+ *      size, stored type and the file's own first bytes. Kept, or rejected
+ *      and queued for deletion.
  *
- * TODO(api): when the applications endpoint exists, this is the ONLY file
- * that changes. Keep the `SubmitResult` shape and the form picks up success
- * and failure with no edits of its own.
+ * A retry with the same submission key picks up wherever the last try
+ * stopped: the insert is recognised as a retry and stores nothing, the slot
+ * is the same path, an upload already there is not repeated, and a check
+ * already made is reported, not made again.
  *
- * The resume needs a two-step upload, NOT a multipart POST through this
- * function: ask the API for a presigned URL, PUT the File straight to object
- * storage from the browser, then submit the application with the returned
- * object key in place of the File. Posting the binary through the application
- * endpoint puts resume bytes through every proxy and log in between, which
- * for a document full of personal data is not a trade worth making.
- *
- *   const { uploadUrl, objectKey } = await (
- *     await fetch("/api/uploads/resume", {
- *       method: "POST",
- *       headers: { "Content-Type": "application/json" },
- *       body: JSON.stringify({
- *         filename: payload.resume.name,
- *         contentType: payload.resume.type,
- *         bytes: payload.resume.size,
- *       }),
- *     })
- *   ).json();
- *   await fetch(uploadUrl, { method: "PUT", body: payload.resume });
- *   const response = await fetch("/api/applications", {
- *     method: "POST",
- *     headers: { "Content-Type": "application/json" },
- *     body: JSON.stringify({ ...payload, resume: { objectKey } }),
- *   });
- *   if (!response.ok) return { ok: false, reason: "failed" };
- *   return { ok: true };
- *
- * Note that an /api route would be the first backend code in this repo. See
- * CLAUDE.md: that is a deliberate architectural decision, not a detail to
- * settle inside a form component.
+ * NOTHING IS LOGGED. This used to console.log the payload while the form was
+ * unwired; it now carries a résumé to a database.
  *
  * NO EEO OR DEMOGRAPHIC DATA passes through here. See the note at the top of
- * content/upload-resume.ts: that collection is separate, later, and in the
- * ATS, so it cannot reach a screening decision.
+ * content/upload-resume.ts.
  */
 
+import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { toIntakeResult, type IntakeResult } from "@/lib/supabase/intake-result";
+
+import { completeResumeUploadAction, requestResumeUploadAction } from "./actions";
+import { declaredType } from "./resume-check";
+
 export type ApplicationPayload = {
-  /** ISO 8601, set at submit time. */
-  submittedAt: string;
+  /** A UUID, generated once per submission and resent on its retries. */
+  submissionKey: string;
+  /**
+   * A spam trap tripped more than once in this attempt. The row is stored
+   * and held for staff review, never refused (migration 13).
+   */
+  trapTripped: boolean;
   applicant: {
     fullName: string;
     email: string;
@@ -56,6 +48,7 @@ export type ApplicationPayload = {
     location: { city: string; state: string };
     /** Optional; empty string when not given. */
     linkedinUrl: string;
+    /** Optional; empty string when not given. */
     message: string;
   };
   preferences: {
@@ -72,32 +65,70 @@ export type ApplicationPayload = {
     /** Separate and optional. Contact about roles beyond those selected. */
     futureRoles: boolean;
   };
-  /**
-   * Carried as the File object. Stubbed deliberately - see the TODO above:
-   * this becomes { objectKey } once presigned uploads exist.
-   */
   resume: File;
 };
 
 /**
- * `unavailable`: the form is not connected to anything, so nothing was sent.
- * The form says exactly that. When the endpoint exists, a failed request
- * returns `{ ok: false, reason: "failed" }` with copy of its own.
+ * The intake outcomes, plus one only this form has: `file_rejected`, the
+ * details were stored but the file was not what its name said, and it was
+ * not kept.
  */
-export type SubmitResult = { ok: true } | { ok: false; reason: "unavailable" };
+export type SubmitResult = IntakeResult | { ok: false; reason: "file_rejected" };
 
-export async function submitApplication(
-  payload: ApplicationPayload,
-): Promise<SubmitResult> {
-  // Stands in for the two-step upload sketched above. The File is logged by
-  // reference only; its contents are never read here.
-  console.log("[upload-resume] application payload", {
-    ...payload,
-    resume: {
-      name: payload.resume.name,
-      type: payload.resume.type,
-      bytes: payload.resume.size,
-    },
-  });
-  return { ok: false, reason: "unavailable" };
+const BUCKET = "resume-intake";
+
+export async function submitApplication(payload: ApplicationPayload): Promise<SubmitResult> {
+  const { applicant, preferences, consent, resume } = payload;
+  // The type the form declares comes from the extension the form already
+  // checked, not from the browser's guess, which is often empty for .doc.
+  const mimeType = declaredType(resume.name);
+  if (!mimeType) return { ok: false, reason: "failed" };
+  const [desk, specialty] = preferences.specialty.split(":");
+
+  try {
+    const supabase = createBrowserSupabaseClient();
+    const inserted = toIntakeResult(
+      await supabase.from("resume_submissions").insert({
+        submission_key: payload.submissionKey,
+        trap_tripped: payload.trapTripped,
+        full_name: applicant.fullName,
+        email: applicant.email,
+        phone: applicant.phone,
+        city: applicant.location.city,
+        state: applicant.location.state,
+        linkedin_url: applicant.linkedinUrl === "" ? null : applicant.linkedinUrl,
+        message: applicant.message === "" ? null : applicant.message,
+        desk,
+        specialty,
+        work_authorized: preferences.workAuthorization === "authorized",
+        engagement_types: preferences.engagementTypes,
+        consent_store: consent.storeAndContact,
+        consent_future_roles: consent.futureRoles,
+        resume_filename: resume.name,
+        resume_mime_type: mimeType,
+        resume_size_bytes: resume.size,
+      }),
+    );
+    if (!inserted.ok) return inserted;
+
+    const slot = await requestResumeUploadAction(payload.submissionKey);
+    if (slot.state === "refused") return { ok: false, reason: "failed" };
+    if (slot.state === "received") return { ok: true };
+    if (slot.state === "rejected") return { ok: false, reason: "file_rejected" };
+    if (slot.state === "upload") {
+      const { error } = await supabase.storage
+        .from(BUCKET)
+        .uploadToSignedUrl(slot.path, slot.token, resume, { contentType: mimeType });
+      if (error) return { ok: false, reason: "failed" };
+    }
+
+    const checked = await completeResumeUploadAction(payload.submissionKey);
+    if (checked === "received") return { ok: true };
+    if (checked === "rejected") return { ok: false, reason: "file_rejected" };
+    return { ok: false, reason: "failed" };
+  } catch {
+    // A client that could not be built, a dropped connection, an action
+    // that never answered. A retry with the same key resumes from here.
+    return { ok: false, reason: "failed" };
+  }
 }

@@ -1528,6 +1528,11 @@ isOneToOne: false
 "cancel_deletion_request":
 { Args: { "p_request_id": string }; Returns: undefined
                            },
+"claim_resume_upload":
+{ Args: { "p_submission_key": string }; Returns: {
+              "mime_type": string,"size_bytes": number,"state": string,"storage_path": string
+            }[]
+                           },
 "claim_storage_erasures":
 { Args: { "p_lease"?: string,"p_limit"?: number }; Returns: {
               "bucket": string,"claim_token": string,"id": string,"object_path": string,"present": boolean
@@ -1556,6 +1561,9 @@ isOneToOne: false
                            },
 "record_opt_out":
 { Args: { "p_candidate_id": string,"p_channel": string,"p_employer_contact_id": string,"p_source": string,"p_source_detail"?: string }; Returns: undefined
+                           },
+"record_resume_check":
+{ Args: { "p_rejected_reason": string,"p_submission_key": string }; Returns: string
                            },
 "refuse_deletion_request":
 { Args: { "p_basis": string,"p_request_id": string }; Returns: undefined

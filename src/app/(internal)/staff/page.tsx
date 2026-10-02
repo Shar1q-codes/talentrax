@@ -5,7 +5,8 @@ import { StaffSignOutButton } from "@/features/auth";
 import { getStaffAccess, staffPathFor } from "@/features/auth/server";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { STAFF_HOME_PATH, staffHome, staffMeta } from "@/content/staff";
+import { STAFF_HOME_PATH, STAFF_RESUME_FORM_PATH, staffHome, staffMeta } from "@/content/staff";
+import { ButtonLink } from "@/components/ui/Button";
 import { buildMetadata } from "@/lib/metadata";
 
 /**
@@ -36,7 +37,10 @@ export default async function Page() {
       <Container>
         <div className="flex max-w-xl flex-col gap-8 py-14 sm:py-16 lg:py-20">
           <p className="text-base text-ink-muted">{staffHome.nothingYet}</p>
-          <StaffSignOutButton />
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <ButtonLink href={STAFF_RESUME_FORM_PATH}>{staffHome.resumeFormLabel}</ButtonLink>
+            <StaffSignOutButton />
+          </div>
         </div>
       </Container>
     </>

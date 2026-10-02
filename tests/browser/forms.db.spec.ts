@@ -6,6 +6,7 @@ import {
   requestTalent,
   roleFields,
 } from "@/content/request-talent";
+import { aboutYouFields, resumeFile, uploadResume, workFields } from "@/content/upload-resume";
 import {
   expectStackRunning,
   freshVisitorIp,
@@ -16,6 +17,7 @@ import {
   testRun,
   visitFrom,
 } from "./db";
+import { DISGUISED_FILE, fillResumeForm, REAL_PDF } from "./resume-form";
 
 /**
  * @db: the wired public forms against the real local stack.
@@ -196,7 +198,7 @@ test.describe("@db contact form", () => {
   test("the privacy policy says where form submissions are stored", async ({ page }) => {
     await page.goto("/privacy-policy", { waitUntil: "networkidle" });
     await expect(page.locator("main")).toContainText(
-      "What you send through the contact form or the Request Talent form is stored by Supabase, Inc., the company that runs our database.",
+      "What you send through the contact form, the Request Talent form or the resume form is stored by Supabase, Inc., the company that runs our database and file storage.",
     );
   });
 });
@@ -371,5 +373,172 @@ test.describe("@db request talent form", () => {
     expect(stored).toHaveLength(1);
     expect(stored[0]).toMatchObject({ trap_tripped: true });
     expect(stored[0].held_at).not.toBeNull();
+  });
+});
+
+type ResumeRow = {
+  email: string;
+  resume_filename: string | null;
+  resume_mime_type: string | null;
+  resume_size_bytes: number | null;
+  resume_storage_path: string | null;
+  resume_upload_issued_at: string | null;
+  resume_received_at: string | null;
+  resume_rejected_at: string | null;
+  resume_rejected_reason: string | null;
+  submission_key: string | null;
+  is_test: boolean;
+  work_authorized: boolean;
+  engagement_types: string[];
+  desk: string;
+  specialty: string;
+};
+
+test.describe("@db resume form", () => {
+  test.beforeAll(async ({ request }) => {
+    await expectStackRunning(request);
+  });
+
+  const send = (page: Page) => page.getByRole("button", { name: uploadResume.submit.label }).click();
+  const rowsFor = (request: Parameters<typeof selectRows>[0], marker: string) =>
+    selectRows<ResumeRow>(request, "resume_submissions", `message=eq.${encodeURIComponent(marker)}&select=*`);
+
+  test("the page says nothing about being closed", async ({ page }) => {
+    await page.goto("/job-seekers/upload-resume", { waitUntil: "networkidle" });
+    await expect(page.getByText(uploadResume.notOpen.notice)).toHaveCount(0);
+  });
+
+  test("success: the details are stored, the file uploaded and checked, and the visitor told", async ({ page, request }) => {
+    const run = testRun();
+    await visitFrom(page, freshVisitorIp());
+    await page.goto("/job-seekers/upload-resume", { waitUntil: "networkidle" });
+    await fillResumeForm(page, run.email, run.marker, REAL_PDF);
+    await waitOutSpamDelay(page);
+    await send(page);
+
+    const confirmation = page.getByRole("status").filter({ hasText: uploadResume.success.title });
+    await expect(confirmation).toBeFocused({ timeout: 15_000 });
+    await expect(confirmation).toContainText(uploadResume.success.body);
+
+    const rows = await rowsFor(request, run.marker);
+    expect(rows).toHaveLength(1);
+    const row = rows[0];
+    expect(row).toMatchObject({
+      email: run.email,
+      resume_filename: REAL_PDF.name,
+      resume_mime_type: "application/pdf",
+      resume_size_bytes: REAL_PDF.buffer.length,
+      resume_rejected_at: null,
+      is_test: true,
+      work_authorized: true,
+      engagement_types: ["contract"],
+      desk: "healthcare",
+      specialty: "nursing",
+    });
+    expect(row.resume_received_at).not.toBeNull();
+    expect(row.resume_upload_issued_at).not.toBeNull();
+    // The server named the path, under the row's own id.
+    expect(row.resume_storage_path).toMatch(/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.pdf$/);
+  });
+
+  test("a file that is not what its name says: details kept, file refused and queued for deletion", async ({ page, request }) => {
+    const run = testRun();
+    await visitFrom(page, freshVisitorIp());
+    await page.goto("/job-seekers/upload-resume", { waitUntil: "networkidle" });
+    await fillResumeForm(page, run.email, run.marker, DISGUISED_FILE);
+    await waitOutSpamDelay(page);
+    await send(page);
+
+    const outcome = page.getByRole("status");
+    await expect(outcome).toHaveText(uploadResume.outcome.fileRejected, { timeout: 15_000 });
+    await expect(outcome).toBeFocused();
+    await expect(page.locator(`#${aboutYouFields.fullName.id}`)).toHaveValue("Db Test Candidate");
+
+    const rows = await rowsFor(request, run.marker);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ resume_received_at: null, resume_rejected_reason: "signature_mismatch" });
+    const queued = await selectRows(
+      request,
+      "storage_erasures",
+      `reason=eq.rejected_upload&bucket=eq.resume-intake&object_path=eq.${encodeURIComponent(rows[0].resume_storage_path!)}&select=status`,
+    );
+    expect(queued).toEqual([{ status: "pending" }]);
+  });
+
+  test("validation error: a file of the wrong type never leaves the browser", async ({ page, request }) => {
+    const run = testRun();
+    const sent = recordStackRequests(page);
+    await page.goto("/job-seekers/upload-resume", { waitUntil: "networkidle" });
+    await fillResumeForm(page, run.email, run.marker, {
+      name: "resume.png",
+      mimeType: "image/png",
+      buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47]),
+    });
+    await waitOutSpamDelay(page);
+    await send(page);
+
+    const summary = page.locator('main [role="alert"]');
+    await expect(summary).toBeFocused();
+    await expect(summary).toContainText(resumeFile.errorType);
+    expect(sent).toEqual([]);
+    expect(await rowsFor(request, run.marker)).toHaveLength(0);
+  });
+
+  test("429: the wait is shown, what was entered is kept, nothing is stored and no file is sent", async ({ page, request }) => {
+    const ip = freshVisitorIp();
+    const { id } = testRun();
+    for (let n = 1; n <= 20; n++) {
+      const response = await insertAsVisitor(request, "resume_submissions", {
+        full_name: "Db Test Filler",
+        email: `db-test-filler-${n}@example.com`,
+        consent_store: true,
+        message: `DB-TEST filler ${id} ${n}`,
+      }, ip);
+      expect(response.status()).toBe(201);
+    }
+
+    const run = testRun();
+    const sent = recordStackRequests(page);
+    await visitFrom(page, ip);
+    await page.goto("/job-seekers/upload-resume", { waitUntil: "networkidle" });
+    await fillResumeForm(page, run.email, run.marker, REAL_PDF);
+    await waitOutSpamDelay(page);
+    await send(page);
+
+    const outcome = page.getByRole("status");
+    await expect(outcome).toHaveText(uploadResume.outcome.rateLimited(3600));
+    await expect(outcome).toBeFocused();
+    await expect(page.locator(`#${workFields.message.id}`)).toHaveValue(run.marker);
+    expect(await rowsFor(request, run.marker)).toHaveLength(0);
+    expect(sent.filter((r) => r.includes("/storage/"))).toEqual([]);
+  });
+
+  test("a retry after a lost upload response resumes: one row, one file, received", async ({ page, request }) => {
+    const run = testRun();
+    await visitFrom(page, freshVisitorIp());
+    // The upload reaches Storage, and its answer never reaches the browser.
+    let dropped = false;
+    await page.route(`${stack().url}/storage/v1/object/upload/sign/**`, async (route) => {
+      if (dropped) return route.fallback();
+      dropped = true;
+      await route.fetch();
+      await route.abort("failed");
+    });
+    await page.goto("/job-seekers/upload-resume", { waitUntil: "networkidle" });
+    await fillResumeForm(page, run.email, run.marker, REAL_PDF);
+    await waitOutSpamDelay(page);
+    await send(page);
+
+    await expect(page.getByRole("status")).toHaveText(uploadResume.outcome.failed, { timeout: 15_000 });
+    const first = await rowsFor(request, run.marker);
+    expect(first).toHaveLength(1);
+    expect(first[0].resume_received_at).toBeNull();
+
+    await send(page);
+    await expect(page.getByRole("status").filter({ hasText: uploadResume.success.title })).toBeFocused({ timeout: 15_000 });
+    const after = await rowsFor(request, run.marker);
+    expect(after).toHaveLength(1);
+    expect(after[0].resume_storage_path).toBe(first[0].resume_storage_path);
+    expect(after[0].resume_received_at).not.toBeNull();
   });
 });

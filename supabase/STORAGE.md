@@ -79,6 +79,21 @@ insert nor change them, and cannot change the path either.
 | `resume_received_at` | The object was checked: its size and type match what was declared, and its first bytes really are a PDF, DOC or DOCX |
 | `resume_rejected_at`, `resume_rejected_reason` | It failed that check (`size_mismatch`, `type_mismatch`, `signature_mismatch`), or never arrived (`not_received`) |
 
+**The endpoints** (build step 7) are two server actions in
+`src/features/job-seekers/actions.ts`, acting with the secret key through
+two service-role-only functions (migration 17):
+
+- `claim_resume_upload(key)` finds the row for a submission key, if it was
+  inserted less than fifteen minutes ago, is live and undecided, and
+  declares a type and size the bucket accepts. It assigns the path once
+  (`<row id>/<random>.<pdf|doc|docx>`) and stamps `resume_upload_issued_at`.
+  A retry gets the same path; an object already there skips the upload.
+- `record_resume_check(key, reason)` records the verdict. Rejected: the row
+  says why, and the object is queued in `storage_erasures` with reason
+  `rejected_upload` in the same transaction, for the worker to delete. Until
+  it runs, the rejected file is still in the bucket: the inbox must not offer
+  it for download.
+
 The byte check needs the file, so it runs in the upload endpoint. Hourly,
 pg_cron runs `private.expire_unreceived_resumes()`, which marks
 `not_received` on any row whose URL has expired (two hours, plus a margin)

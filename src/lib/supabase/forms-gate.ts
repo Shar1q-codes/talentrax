@@ -23,7 +23,7 @@ import "server-only";
 
 import { formStorage } from "@/content/legal";
 
-import { decideFormsOpen, readAppEnv } from "./env";
+import { decideFormsOpen, decideResumeAccess, readAppEnv } from "./env";
 
 // What production waits on before a wired form may take a real submission.
 // Named, not inferred, so nobody deletes the check as dead code: each one is
@@ -39,12 +39,63 @@ export const PRODUCTION_RELEASE = {
   inboxStaffed: false,
 } as const;
 
-export function publicFormsOpen(): boolean {
-  return decideFormsOpen({
+// THE RESUME FORM'S RELEASE GATE (CLIENT-CONFIRM.md, the note at the top).
+// /job-seekers/upload-resume must not be publicly reachable in production
+// until all three hold. Until then, in production, the public route is a 404
+// and the form lives behind staff sign-in at /staff/upload-resume, so the
+// production code path can be tried by staff without the public reaching it.
+//
+// FLIPPING THESE IS A DELIBERATE RELEASE STEP, not a cleanup. Each is set by
+// hand, in the commit that records the answer, and the guard they drive is
+// not dead code while any is false.
+export const RESUME_PUBLIC_RELEASE = {
+  // CLIENT-CONFIRM.md item 3: the address that handles data-rights requests.
+  dataRightsContactAnswered: false,
+  // Item 8: the real contact details the policy and /contact need.
+  contactDetailsAnswered: false,
+  // The privacy policy has been through the client's lawyer.
+  lawyerReviewed: false,
+} as const;
+
+function inputs() {
+  return {
     appEnv: readAppEnv(),
     // By literal name: the same values the browser bundle has inlined.
     url: process.env.NEXT_PUBLIC_SUPABASE_URL,
     publishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     productionReleased: Object.values(PRODUCTION_RELEASE).every(Boolean),
-  });
+  };
+}
+
+function resumeAccess() {
+  return decideResumeAccess({ ...inputs(), resumePublished: Object.values(RESUME_PUBLIC_RELEASE).every(Boolean) });
+}
+
+/** Contact and Request Talent. */
+export function publicFormsOpen(): boolean {
+  return decideFormsOpen(inputs());
+}
+
+/**
+ * Whether the public resume route exists at all. Everywhere but production
+ * it does (unlisted, noindex). In production, only once the release gate
+ * clears; until then it is a 404.
+ */
+export function resumeRoutePublic(): boolean {
+  return resumeAccess().routePublic;
+}
+
+/** The public resume form takes submissions: the route exists, and the forms gate is open. */
+export function resumeFormOpenToPublic(): boolean {
+  return resumeAccess().openToPublic;
+}
+
+/**
+ * The resume form at /staff/upload-resume, for signed-in staff: open
+ * wherever a database is configured for the environment, production
+ * included, so staff can try the real path before the public can. Who is
+ * signed in is the page's and the endpoints' check, not this one.
+ */
+export function resumeFormOpenToStaff(): boolean {
+  return resumeAccess().openToStaff;
 }

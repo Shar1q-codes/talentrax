@@ -37,6 +37,22 @@ the wired forms against the local stack (`playwright.db.config.ts`).
 | A retry after a lost response: stored once | | yes |
 | The privacy policy names the storage | | yes |
 
+## The resume form
+
+| Path | No database (`site.spec.ts`) | `@db` (`forms.db.spec.ts`) |
+| --- | --- | --- |
+| Closed: notice, "nothing was sent", no request off the site, the file included | yes | |
+| Stored: details, a signed upload, the check passed; the row names the path under its own id | | yes |
+| A file named `.pdf` that is not one: details kept, file rejected (`signature_mismatch`) and queued for deletion | | yes |
+| A file of the wrong type: validation error, nothing sent | | yes |
+| 429: the wait shown, nothing stored, no file sent | | yes |
+| A retry after a lost upload response: one row, one path, received | | yes |
+| `/staff/upload-resume`: sign-in required; the same form, open, once signed in | | yes (`staff.db.spec.ts`) |
+
+What a local run cannot show: production's 404 for the public route, which
+no local build can produce (a production build refuses a local stack).
+`decideResumeAccess()` is pinned by `npm test` instead.
+
 ## Staff sign-in
 
 | Path | No database (`site.spec.ts`) | `@db` (`staff.db.spec.ts`) |

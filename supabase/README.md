@@ -28,6 +28,7 @@ No page, form or API route calls the client yet.
 | `migrations/20261001001400_staff_second_factor_and_sign_in_limit.sql` | A staff role counts only at aal2 (the second factor passed); the first per-address sign-in limit, replaced by migration 16 |
 | `migrations/20261001001500_reset_sign_in_attempts.sql` | Clearing an address's sign-in count on purpose: service role and the SQL editor only |
 | `migrations/20261001001600_sign_in_delay_not_lockout.sql` | Sign-in failures earn a growing delay (ceiling 10 s), one attempt per address at a time, and nothing is ever locked |
+| `migrations/20261001001700_resume_upload_endpoints.sql` | The resume upload's server steps: a slot for a fresh intake row, and the verdict on what arrived, with a rejected file queued for deletion |
 | `functions/storage-erasure-worker/` | The Edge Function that deletes queued objects through the Storage API |
 | `rollback/*.down.sql` | Reverse of each migration, for local development only |
 | `tests/database/*.test.sql` | pgTAP: catalog-wide structural checks, then behaviour per role |

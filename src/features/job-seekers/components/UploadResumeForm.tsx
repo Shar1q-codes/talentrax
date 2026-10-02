@@ -41,15 +41,21 @@ import {
  *
  * Spam handling is a honeypot plus a minimum time on page, and both run only
  * AFTER validation passes, so a fast human filling the form correctly is
- * never silently dropped.
+ * never silently dropped. The first catch in a submission attempt is told
+ * it was not sent; a repeat is sent, marked, and held for staff review, so a
+ * real person is never blocked for good.
  *
- * Two things this form deliberately does not do:
+ * `open` comes from the page: the public page asks resumeFormOpenToPublic(),
+ * the staff page resumeFormOpenToStaff() (src/lib/supabase/forms-gate.ts).
+ * Closed, a valid submit says the form is not open and sends nothing. Open,
+ * it goes to submitApplication() in ../queries.ts: the row, the signed
+ * upload, and the server's check on the file.
  *
- *   - no EEO or demographic fields, and no visa-type field behind the work
- *     authorization question. See content/upload-resume.ts.
- *   - no upload pipeline. The File is carried in the payload and
- *     submitApplication() in features/job-seekers/queries.ts is the single seam where a
- *     presigned upload gets wired in.
+ * Every outcome other than success keeps what was entered and takes focus,
+ * the attached file included.
+ *
+ * No EEO or demographic fields, and no visa-type field behind the work
+ * authorization question. See content/upload-resume.ts.
  */
 
 type TextKey =
@@ -69,6 +75,26 @@ type FieldError = {
 };
 
 type Values = Record<TextKey, string>;
+
+/** Why a submit did not get through, when it did not. */
+type Outcome =
+  | { kind: "unavailable" }
+  | { kind: "failed" }
+  | { kind: "file_rejected" }
+  | { kind: "rate_limited"; retryAfterSeconds: number | null };
+
+function outcomeText(outcome: Outcome): string {
+  switch (outcome.kind) {
+    case "unavailable":
+      return uploadResume.notOpen.afterSubmit;
+    case "rate_limited":
+      return uploadResume.outcome.rateLimited(outcome.retryAfterSeconds);
+    case "file_rejected":
+      return uploadResume.outcome.fileRejected;
+    case "failed":
+      return uploadResume.outcome.failed;
+  }
+}
 
 const initialValues: Values = {
   fullName: "",
@@ -179,7 +205,7 @@ function validate(
   return errors;
 }
 
-export function UploadResumeForm() {
+export function UploadResumeForm({ open }: { open: boolean }) {
   const [values, setValues] = useState<Values>(initialValues);
   const [engagementTypes, setEngagementTypes] = useState<string[]>([]);
   const [resume, setResume] = useState<File | null>(null);
@@ -189,15 +215,28 @@ export function UploadResumeForm() {
   });
 
   const [errors, setErrors] = useState<FieldError[]>([]);
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "unavailable">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [honeypot, setHoneypot] = useState("");
   const [failedAttempts, setFailedAttempts] = useState(0);
+  /** Bumped on every outcome, so focus moves even when it repeats. */
+  const [outcomeCount, setOutcomeCount] = useState(0);
 
   const summaryRef = useRef<HTMLDivElement>(null);
   const successRef = useRef<HTMLDivElement>(null);
   const outcomeRef = useRef<HTMLParagraphElement>(null);
   const resumeInputRef = useRef<HTMLInputElement>(null);
   const openedAt = useRef<number | null>(null);
+  /**
+   * The current submission attempt. Its key is made on the first send and
+   * resent on every retry, so a retry resumes the same row and the same
+   * upload rather than starting another (migrations 9 and 17). trapTrips
+   * counts spam-trap trips in this attempt: the first is refused here and
+   * sends nothing; a repeat is sent, marked, and held for staff review
+   * (migration 13). Kept only in this page's memory. Any edit, the file
+   * included, starts a new attempt.
+   */
+  const attempt = useRef<{ key: string; trapTrips: number } | null>(null);
 
   useEffect(() => {
     openedAt.current = Date.now();
@@ -209,16 +248,27 @@ export function UploadResumeForm() {
 
   useEffect(() => {
     if (status === "sent") successRef.current?.focus();
-    if (status === "unavailable") outcomeRef.current?.focus();
   }, [status]);
 
-  const setValue = (key: TextKey) => (value: string) =>
+  useEffect(() => {
+    if (outcomeCount > 0) outcomeRef.current?.focus();
+  }, [outcomeCount]);
+
+  const setValue = (key: TextKey) => (value: string) => {
+    attempt.current = null;
     setValues((current) => ({ ...current, [key]: value }));
+  };
+
+  function showOutcome(next: Outcome) {
+    setOutcome(next);
+    setOutcomeCount((count) => count + 1);
+  }
 
   const errorFor = (key: FieldKey) =>
     errors.find((error) => error.key === key)?.message;
 
   function toggleEngagementType(value: string, checked: boolean) {
+    attempt.current = null;
     setEngagementTypes((current) =>
       checked
         ? [...current, value]
@@ -231,18 +281,25 @@ export function UploadResumeForm() {
 
     const found = validate(values, engagementTypes, resume, consents);
     if (found.length > 0) {
+      setOutcome(null);
       setErrors(found);
       setFailedAttempts((count) => count + 1);
       return;
     }
     setErrors([]);
 
+    if (!open) {
+      showOutcome({ kind: "unavailable" });
+      return;
+    }
+
     // Unreachable: validate() reports a missing resume. Here to narrow the
     // type for the payload below, rather than assert one.
     if (!resume) return;
 
-    // Both checks run only on an otherwise valid submission, and both fail
-    // closed into the outcome a person gets: a bot gets no signal it was caught.
+    // Both checks run only on an otherwise valid submission. The first catch
+    // in an attempt is answered as a failed send and sends nothing; a
+    // repeat is sent marked, and held for review. See `attempt` above.
     const secondsOnPage = openedAt.current
       ? (Date.now() - openedAt.current) / 1000
       : 0;
@@ -250,13 +307,19 @@ export function UploadResumeForm() {
       honeypot.trim() !== "" ||
       secondsOnPage < uploadResume.spam.minSubmitSeconds;
 
+    attempt.current ??= { key: crypto.randomUUID(), trapTrips: 0 };
+    const current = attempt.current;
     if (looksAutomated) {
-      setStatus("unavailable");
-      return;
+      current.trapTrips += 1;
+      if (current.trapTrips === 1) {
+        showOutcome({ kind: "failed" });
+        return;
+      }
     }
 
     const payload: ApplicationPayload = {
-      submittedAt: new Date().toISOString(),
+      submissionKey: current.key,
+      trapTripped: current.trapTrips > 1,
       applicant: {
         fullName: values.fullName.trim(),
         email: values.email.trim(),
@@ -275,8 +338,24 @@ export function UploadResumeForm() {
     };
 
     setStatus("sending");
+    setOutcome(null);
     const result = await submitApplication(payload);
-    setStatus(result.ok ? "sent" : "unavailable");
+    if (result.ok) {
+      attempt.current = null;
+      setStatus("sent");
+      return;
+    }
+    setStatus("idle");
+    if (result.reason === "file_rejected") {
+      // That attempt is finished: its row holds the details and a rejected
+      // file. Sending again, with a new file, is a new submission.
+      attempt.current = null;
+      showOutcome({ kind: "file_rejected" });
+    } else if (result.reason === "rate_limited") {
+      showOutcome({ kind: "rate_limited", retryAfterSeconds: result.retryAfterSeconds });
+    } else {
+      showOutcome({ kind: "failed" });
+    }
   }
 
   function handleReset() {
@@ -288,6 +367,8 @@ export function UploadResumeForm() {
     setHoneypot("");
     setFailedAttempts(0);
     setStatus("idle");
+    setOutcome(null);
+    attempt.current = null;
     openedAt.current = Date.now();
     // A file input's value cannot be set in React, so clear it directly.
     if (resumeInputRef.current) resumeInputRef.current.value = "";
@@ -309,9 +390,6 @@ export function UploadResumeForm() {
         <p className="mt-4 text-base text-ink-muted">
           {uploadResume.success.body}
         </p>
-        <p className="mt-4 text-sm text-ink-muted">
-          {uploadResume.success.note}
-        </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Button onClick={handleReset}>{uploadResume.success.resetLabel}</Button>
           <ButtonLink href={JOB_SEEKERS_PATH} variant="secondary">
@@ -324,15 +402,15 @@ export function UploadResumeForm() {
 
   return (
     <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-10">
-      {/* Not connected yet: say so, and keep what they typed. */}
-      {status === "unavailable" ? (
+      {/* Not sent, for whichever reason: say so, and keep what they entered. */}
+      {outcome ? (
         <p
           ref={outcomeRef}
           tabIndex={-1}
           role="status"
           className="rounded-lg border border-brand bg-brand-soft p-5 text-base text-ink"
         >
-          {uploadResume.notOpen.afterSubmit}
+          {outcomeText(outcome)}
         </p>
       ) : null}
       {errors.length > 0 ? (
@@ -464,7 +542,10 @@ export function UploadResumeForm() {
         <FileField
           field={workFields.resume}
           file={resume}
-          onChange={setResume}
+          onChange={(file) => {
+            attempt.current = null;
+            setResume(file);
+          }}
           error={errorFor("resume")}
           accept={resumeFile.acceptAttribute}
           constraintText={resumeFile.constraintText}
@@ -501,9 +582,10 @@ export function UploadResumeForm() {
         <CheckboxField
           field={consentFields.storeAndContact}
           checked={consents.storeAndContact}
-          onChange={(checked) =>
-            setConsents((current) => ({ ...current, storeAndContact: checked }))
-          }
+          onChange={(checked) => {
+            attempt.current = null;
+            setConsents((current) => ({ ...current, storeAndContact: checked }));
+          }}
           error={errorFor("storeAndContact")}
         />
 
@@ -511,9 +593,10 @@ export function UploadResumeForm() {
         <CheckboxField
           field={consentFields.futureRoles}
           checked={consents.futureRoles}
-          onChange={(checked) =>
-            setConsents((current) => ({ ...current, futureRoles: checked }))
-          }
+          onChange={(checked) => {
+            attempt.current = null;
+            setConsents((current) => ({ ...current, futureRoles: checked }));
+          }}
           error={errorFor("futureRoles")}
         />
       </fieldset>

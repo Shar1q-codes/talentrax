@@ -16,6 +16,7 @@
  * yes/no with no visa-type field for the same reason.
  */
 
+import { retryIn } from "./form-outcomes";
 import { engagementModels, specialtyAreas } from "./taxonomy";
 import type { FieldConfig, OptionGroup, SelectOption } from "./request-talent";
 
@@ -195,13 +196,31 @@ export const resumeFile = {
 
 export const uploadResume = {
   /**
-   * Shown above the form, and after a submit, while the form is not
-   * connected to anything - the pattern the account screens use
-   * (content/auth.ts, notOpenYet). Both go in the commit that wires it.
+   * Shown above the form, and after a submit, whenever the form is closed
+   * (src/lib/supabase/forms-gate.ts): a build with no database. In
+   * production, until the release gate clears, the public page is a 404
+   * instead, and the form is at /staff/upload-resume.
    */
   notOpen: {
     notice: "This form is not open yet, so a resume sent here does not reach us.",
     afterSubmit: "This form is not open yet. Nothing was sent.",
+  },
+  /**
+   * What a submit that did not get through says. None names a cause it
+   * cannot know, and none says which limit refused it.
+   */
+  outcome: {
+    rateLimited: (retryAfterSeconds: number | null) =>
+      "Too many resumes have been sent through this form recently, so yours was not sent. What you entered is still here. " +
+      retryIn(retryAfterSeconds),
+    failed:
+      "Your resume could not be sent, so it has not reached us. What you entered is still here. Check your connection and send it again.",
+    /**
+     * The details arrived; the file did not pass the check on what it
+     * really is, and was deleted. Says what to do, not what was detected.
+     */
+    fileRejected:
+      "Your details reached us, but your file did not: it is not a PDF, DOC or DOCX file inside, whatever its name says, so we have not kept it and it will be deleted. Save your resume as a PDF, attach it again and send the form.",
   },
   eyebrow: "Job Seekers",
   heading: "Upload your resume",
@@ -246,7 +265,6 @@ export const uploadResume = {
   success: {
     title: "Resume received",
     body: "Thanks - your resume is with the desk that recruits your specialty. A recruiter will come back to you at the email address you gave, either way.",
-    note: "This site has no backend yet, so nothing was transmitted and no file left your device. The payload was written to the browser console instead.",
     resetLabel: "Send another resume",
     backLabel: "Back to Job Seekers",
   },

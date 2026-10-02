@@ -79,6 +79,34 @@ export function decideFormsOpen(input: {
   }
 }
 
+// The resume form's three answers, from the same inputs plus its own
+// release gate (RESUME_PUBLIC_RELEASE in forms-gate.ts). Pure, so npm test
+// can pin production, which no local build can be.
+//
+//   routePublic   the public route renders at all: everywhere but
+//                 production, and in production only once released
+//   openToPublic  the public form takes submissions
+//   openToStaff   the form at /staff/upload-resume takes submissions:
+//                 wherever a database is configured for the environment,
+//                 production included, release or not
+export function decideResumeAccess(input: {
+  appEnv: AppEnv;
+  url: string | undefined;
+  publishableKey: string | undefined;
+  productionReleased: boolean;
+  resumePublished: boolean;
+}): { routePublic: boolean; openToPublic: boolean; openToStaff: boolean } {
+  const { appEnv, url, publishableKey } = input;
+  const routePublic = appEnv !== "production" || input.resumePublished;
+  return {
+    routePublic,
+    openToPublic:
+      routePublic &&
+      decideFormsOpen({ appEnv, url, publishableKey, productionReleased: input.productionReleased && input.resumePublished }),
+    openToStaff: decideFormsOpen({ appEnv, url, publishableKey, productionReleased: true }),
+  };
+}
+
 function isLocalUrl(url: string): boolean {
   return url.includes("localhost") || url.includes("127.0.0.1");
 }

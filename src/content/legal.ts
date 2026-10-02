@@ -103,11 +103,13 @@ export const formStorage = {
    */
   location: null as string | null,
   /** The wired forms, as the disclosure names them. Grows as each is wired. */
-  forms: ["the contact form", "the Request Talent form"],
+  forms: ["the contact form", "the Request Talent form", "the resume form"],
 };
 
 function formStorageDisclosure(): LegalBlock[] {
-  const forms = formStorage.forms.join(" or ");
+  const names = formStorage.forms;
+  const forms =
+    names.length > 2 ? `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}` : names.join(" or ");
   const where =
     formStorage.location === null
       ? ""
@@ -116,7 +118,7 @@ function formStorageDisclosure(): LegalBlock[] {
     {
       kind: "paragraph",
       id: "share-storage",
-      text: `What you send through ${forms} is stored by ${formStorage.processor}, the company that runs our database.${where}`,
+      text: `What you send through ${forms} is stored by ${formStorage.processor}, the company that runs our database and file storage.${where}`,
     },
   ];
 }

@@ -18,12 +18,14 @@ export const STAFF_HOME_PATH = "/staff";
 export const STAFF_SIGN_IN_PATH = "/staff/sign-in";
 export const STAFF_VERIFY_PATH = "/staff/sign-in/verify";
 export const STAFF_SET_UP_PATH = "/staff/sign-in/set-up";
+export const STAFF_RESUME_FORM_PATH = "/staff/upload-resume";
 
 export const staffMeta = {
   signIn: { title: "Staff sign-in", description: `Sign-in for ${site.name} staff.` },
   verify: { title: "Staff sign-in: code", description: `Sign-in for ${site.name} staff.` },
   setUp: { title: "Staff sign-in: set up", description: `Sign-in for ${site.name} staff.` },
   home: { title: "Staff", description: `The ${site.name} staff area.` },
+  resumeForm: { title: "Staff: the resume form", description: `The resume form, for ${site.name} staff.` },
 };
 
 export const staffForm = {
@@ -119,6 +121,19 @@ export const staffHome = {
   heading: "Signed in",
   signedInAs: (name: string) => `You are signed in as ${name}.`,
   /** Build step 8 is the inbox. Say so, rather than show an empty shell. */
-  nothingYet: "There is nothing here yet. The inbox for what arrives through the site's forms comes next.",
+  nothingYet: "There is no inbox here yet: what arrives through the site's forms is visible only in the Supabase dashboard until it is built.",
+  resumeFormLabel: "Try the resume form",
   signOut: "Sign out",
+};
+
+/**
+ * The resume form behind staff sign-in: the release gate keeps the public
+ * page a 404 in production, and this is how staff try the real thing there.
+ */
+export const staffResumeForm = {
+  eyebrow: "Staff",
+  heading: "The resume form",
+  intro:
+    "This is the resume form exactly as candidates will use it, and what you send here is stored for real. It is not open to the public yet. Use an address at example.com to have the submission marked as a test.",
+  backLabel: "Back to the staff area",
 };

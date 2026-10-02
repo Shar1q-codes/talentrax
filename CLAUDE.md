@@ -261,15 +261,37 @@ and `/contact` - are the only client components on the site.
 | --- | --- | --- |
 | Contact | `submitContact()` in `src/features/contact/queries.ts` | **Wired**: inserts into `contact_messages` |
 | Request Talent | `submitRequisition()` in `src/features/employers/queries.ts` | **Wired**: inserts a new `website_form` row into `leads` |
-| Upload Resume | `submitApplication()` in `src/features/job-seekers/queries.ts` | Not wired: logs and returns `unavailable` |
+| Upload Resume | `submitApplication()` in `src/features/job-seekers/queries.ts` | **Wired**: inserts into `resume_submissions`, then the signed upload and the server's check (below). Behind the release gate in production |
 
-**An unwired form** submits through its seam, which logs the payload and
-returns `unavailable`. The page says the form is not open yet, above the
-form, and the form says nothing was sent after a submit: the account
-screens' pattern, with the same `NotOpenNotice` component and copy in each
-form's content file (`notOpen`). The resume upload is stubbed on purpose:
-the `File` rides in the payload, and the TODO spells out the presigned-URL
-upload it needs instead of a multipart POST.
+No form is unwired any more. The `NotOpenNotice` and each form's
+`notOpen` copy now mean only "the gate is closed".
+
+**The resume upload** is four steps from the browser (`supabase/STORAGE.md`):
+insert the intake row with the publishable key (rate limited as the visitor);
+ask the server for a slot (`requestResumeUploadAction`), which finds the row
+by its submission key, assigns the path under the row's id and returns a
+signed upload token; upload straight to Storage; ask the server to check what
+arrived (`completeResumeUploadAction`). The check reads the bytes
+(`features/job-seekers/resume-check.ts`): exact declared size, exact declared
+type, and the file's own first bytes (`%PDF-`, the Word 97-2003 header, or a
+zip holding `word/document.xml`). Kept: `resume_received_at`. Refused: the
+row records why, and the file is queued for deletion in the same transaction
+(migration 17, `rejected_upload`). The server's two database functions are
+service-role only; the endpoints are **server actions**, not route handlers,
+because the staff session cookie is scoped to `/staff` and an action posts to
+the page it is called from.
+
+**The release gate is code, and flipping it is a release step.**
+`RESUME_PUBLIC_RELEASE` in `src/lib/supabase/forms-gate.ts` names the three
+conditions in CLIENT-CONFIRM.md (the data-rights contact, the contact
+details, the lawyer review), each `false` until the commit that records its
+answer. Until all three hold, **in production** `/job-seekers/upload-resume`
+is a 404 and the same form is at `/staff/upload-resume`, for staff past both
+sign-in steps, so the real path can be tried before the public reaches it.
+Everywhere else the public route renders (unlisted, noindex) and follows the
+forms gate. The endpoints check the same thing on every call. Do not remove
+the guard as dead code while any condition is false; the rule is
+`decideResumeAccess()` in `env.ts`, pinned by `npm test`.
 
 **A wired form follows the forms gate**, `publicFormsOpen()` in
 `src/lib/supabase/forms-gate.ts`, asked once at build time by the page.
@@ -303,6 +325,7 @@ Each is flipped in the commit that makes it true, and not before.
 | Validation error | The error summary (`role="alert"`), focused, every problem linked to its control. Nothing is sent |
 | 429 | "Too many ... recently, so yours was not sent", with the wait in minutes from the 429's body (migration 12; a browser cannot read `Retry-After` cross-origin), focused. What was typed stays. Never says which limit |
 | Network failure, refused insert, outage | "Could not be sent, so it has not reached us", focused. What was typed stays. Sending again reuses the submission key, so a send that did land is not stored twice |
+| Resume only: the file is not what its name says | "Your details reached us, but your file did not": stored as a row with the file rejected and queued for deletion. What was entered stays; sending again with another file is a new submission |
 | Caught by the honeypot or the minimum time | **First trip in a submission attempt**: the same as a failure, and nothing is sent. **A repeat in the same attempt**: sent with `trap_tripped`, stored, held for staff review (`held_at`), and the visitor sees the confirmation. A person is never blocked for good (migration 13) |
 | Gate closed | The notice above the form, and "This form is not open yet. Nothing was sent." |
 
@@ -325,7 +348,7 @@ that leaves every check passing.
 | 4 | Contact wired, with the forms gate and the storage disclosure | Done |
 | 5 | Request Talent wired | Done |
 | 6 | Staff sign-in and sign-out, TOTP MFA required, the sign-in attempt limiter | Done |
-| 7 | Resume upload endpoints and form, behind staff sign-in in production | |
+| 7 | Resume upload endpoints and form, behind staff sign-in in production | Done |
 | 8 | The staff inbox | |
 
 Steps 6 and 7 were swapped from the first plan: the resume form's
@@ -950,9 +973,11 @@ carries noindex **and** is not in the sitemap. A future edit that makes one
 indexable fails there.
 
 **`/job-seekers/upload-resume` is in that list too**, for a different reason:
-the release gate in CLIENT-CONFIRM.md. It is reachable by URL and linked
-from no page - not the navigation, the footer, a CTA, an intent card or the
-sitemap. Relinking it is the decision the gate guards.
+the release gate in CLIENT-CONFIRM.md. Outside production it is reachable by
+URL and linked from no page - not the navigation, the footer, a CTA, an
+intent card or the sitemap. In production it is a 404 until
+`RESUME_PUBLIC_RELEASE` clears (see **Build status**). Relinking it is the
+decision the gate guards.
 
 **Candidate accounts only.** Employer accounts are created by the Talentrax
 team. There is deliberately no account-type selector on `/register` - a
@@ -1135,7 +1160,8 @@ section the section is gone too (rule 6). Every omission is marked with an
 
 That file also carries a release gate: **`/job-seekers/upload-resume` must
 not be publicly reachable until the privacy items are answered and the policy
-has been through the client lawyer review.**
+has been through the client lawyer review.** In code that is
+`RESUME_PUBLIC_RELEASE` (see **Build status**).
 
 ## The ATS schema
 
