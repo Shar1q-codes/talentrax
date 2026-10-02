@@ -6,6 +6,8 @@ import type { ReactNode } from "react";
 
 import { articleDetail, INSIGHTS_PATH } from "@/content/insights";
 
+import { INSIGHTS_INDEX_SELECTOR } from "../index-marker";
+
 /**
  * The article dialog, mounted by the intercepted route at
  * app/(marketing)/insights/(index)/@modal/(.)[slug]. It exists only while that route is
@@ -53,6 +55,19 @@ import { articleDetail, INSIGHTS_PATH } from "@/content/insights";
  * one history entry: the index's own entry keeps the browser's restoration,
  * so back still returns to the list where it was.
  *
+ * A BACKSTOP: NO INDEX BENEATH, NO DIALOG. The dialog is only right over
+ * the index. If it mounts with no index rendered under it, the intercept
+ * fired from somewhere it should not have - the "dialog over an empty page,
+ * no <h1>" failure - and it does a full page load of the same URL instead,
+ * before showModal() and before paint, so nothing flashes. A hard load never
+ * intercepts, so that load is the full article page.
+ *
+ * This is the second of two independent protections. The first is
+ * src/proxy.ts, which stops the intercept firing anywhere but the index.
+ * That one depends on the host running the proxy and honouring the header
+ * it removes, which `next start` does and an edge deploy has to be trusted
+ * to; this one depends on nothing but the DOM. Neither is redundant.
+ *
  * Motion is transform and opacity, on the tokens, and is set in CSS. The
  * global reduced-motion rule collapses it to nothing.
  */
@@ -73,7 +88,6 @@ export function ArticleModal({
   const leavingRef = useRef(false);
   /** The element focused when the dialog opened: the card, normally. */
   const openerRef = useRef<HTMLElement | null>(null);
-  /** The article the dialog opened on, for the by-href fallback. */
 
   useLayoutEffect(() => {
     slugRef.current = slug;
@@ -92,6 +106,14 @@ export function ArticleModal({
   useLayoutEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
+
+    // The backstop (see the header). replace(), not assign(): the router has
+    // already pushed this URL, and the full load takes over that entry.
+    if (!document.querySelector(INSIGHTS_INDEX_SELECTOR)) {
+      leavingRef.current = true;
+      window.location.replace(`${INSIGHTS_PATH}/${slugRef.current}`);
+      return;
+    }
 
     // The slug this dialog opened on: the fallback target if the opener is
     // gone by the time it closes.
@@ -125,9 +147,8 @@ export function ArticleModal({
   }, []);
 
   /**
-   * On open, and again when a related-reading link inside the dialog swaps
-   * the article (the same interception, so the same dialog instance): start
-   * at the top, with focus on the close control. showModal() has already
+   * On open, and again if the article ever changes under the same dialog
+   * instance: start at the top, with focus on the close control. showModal() has already
    * run by the time this effect does, so the button is focusable.
    */
   useLayoutEffect(() => {

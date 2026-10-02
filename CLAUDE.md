@@ -725,8 +725,28 @@ app/(marketing)/insights/[slug]/page.tsx                 the full page, unchange
   That includes a related link **inside** the modal: it now opens the full
   page rather than swapping the dialog's article. The matcher requires the
   header, so crawlers, direct visits, reloads and `check:seo` never reach
-  it. Do not move the layout up to `app/(marketing)/insights/`, and do not
-  delete the proxy.
+  it. Do not move the layout up to `app/(marketing)/insights/`.
+- **Two independent protections, and neither is redundant.**
+  1. **The proxy** (above) stops the intercept firing anywhere but the
+     index. It depends on the host: the proxy has to run, and the host has
+     to forward the request with the header removed. `next start` does;
+     Netlify runs it in an edge function, which is trusted, not tested.
+  2. **The backstop in `ArticleModal`**: before `showModal()`, it checks
+     for the index's marker (`insightsIndexMarker`, on the index page's
+     content in both the list and the empty state). With no index beneath
+     it, it does `location.replace()` of the same URL instead - a full page
+     load, which never intercepts, so the result is the full article page.
+     It depends on nothing but the DOM.
+
+  If the header is simply lost (a CDN strips `Next-Url`), Next serves the
+  ordinary page and neither is needed. The case they exist for is the
+  reverse: the header arrives intact and the proxy did not act on it. Then
+  the server intercepts, and without the backstop the visitor gets a dialog
+  over an empty page with no `<h1>`. `tests/browser/insights-modal.spec.ts`
+  forces exactly that (every `Next-Url` rewritten to `/insights`) and
+  asserts a full page; it fails with the backstop removed. **Delete
+  neither**: the proxy keeps the bad case from happening, the backstop
+  keeps it from showing.
 - **A crawler, a refresh, a shared link and a direct visit get the full
   page.** `(index)` and `@modal` are not URL segments, so a hard request
   for `/insights/<slug>` renders `app/(marketing)/insights/[slug]/page.tsx` with its

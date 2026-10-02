@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 
-import { ArticleList, EmptyInsights, getArticles } from "@/features/articles";
+import {
+  ArticleList,
+  EmptyInsights,
+  getArticles,
+  insightsIndexMarker,
+} from "@/features/articles";
 import { Container } from "@/components/ui/Container";
 import { CtaBand } from "@/components/ui/CtaBand";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -39,7 +44,8 @@ export default async function Page() {
       />
 
       <Container>
-        <div className="py-14 sm:py-16 lg:py-20">
+        {/* The article modal checks for this before it opens. */}
+        <div {...insightsIndexMarker} className="py-14 sm:py-16 lg:py-20">
           {articles.length > 0 ? (
             <ArticleList articles={articles} />
           ) : (

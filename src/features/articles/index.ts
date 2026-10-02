@@ -9,6 +9,7 @@ export { ArticleList } from "./components/ArticleList";
 export { ArticleModal } from "./components/ArticleModal";
 export { EmptyInsights } from "./components/EmptyInsights";
 export { blogPostingJsonLd } from "./article-schema";
+export { insightsIndexMarker } from "./index-marker";
 export { getArticleBySlug, getArticles, getRelatedArticles } from "./queries";
 export type {
   Article,

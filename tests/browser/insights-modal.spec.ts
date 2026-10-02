@@ -47,6 +47,36 @@ test.describe("defect 1: related reading on a full article", () => {
     expect(after.jsonLd, "the full page's structured data").toBe(expected.jsonLd);
   });
 
+  test("with the proxy bypassed, the modal's backstop still gives a full page", async ({ page }) => {
+    // What a host that skips src/proxy.ts, or does not honour the header it
+    // removes, sends: every soft navigation claims to come from the index.
+    // The server then intercepts, and only the modal's own check is left.
+    await page.route("**/*", (route) => {
+      const headers = route.request().headers();
+      if ("next-url" in headers) headers["next-url"] = "/insights";
+      return route.continue({ headers });
+    });
+    const start = "/insights/healthcare-staffing-models";
+    await page.goto(start, { waitUntil: "networkidle" });
+    const related = page
+      .locator("section", { has: page.getByRole("heading", { name: articleDetail.relatedHeading }) })
+      .locator('a[href^="/insights/"]')
+      .first();
+    const href = (await related.getAttribute("href"))!;
+
+    await related.click();
+    await page.waitForURL(`**${href}`);
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("h1")).toHaveCount(1);
+    await expect(page.locator("dialog")).toHaveCount(0);
+    expect((await pageFacts(page)).jsonLd, "the full page, with its structured data").toBeGreaterThan(0);
+
+    // The full load took over the pushed entry: back is the article before.
+    await page.goBack();
+    await page.waitForURL(`**${start}`);
+    await expect(page.locator("h1")).toHaveCount(1);
+  });
+
   test("a card on the index still opens the modal", async ({ page }) => {
     await page.goto("/insights", { waitUntil: "networkidle" });
     await indexCards(page).nth(2).click();

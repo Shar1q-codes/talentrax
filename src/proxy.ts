@@ -20,6 +20,11 @@ import { NextResponse, type NextRequest } from "next/server";
  * The matcher means this runs only for soft navigations to an article - the
  * requests that carry `Next-Url`. A crawler, a direct visit, a reload and
  * `check:seo` never reach it.
+ *
+ * NOT THE ONLY PROTECTION, AND NOT REDUNDANT. ArticleModal does a full page
+ * load if it mounts with no index beneath it, which covers a host that does
+ * not run this or does not honour the header it removes. This keeps the bad
+ * case from happening; that keeps it from showing. Keep both.
  */
 export function proxy(request: NextRequest) {
   const from = request.headers.get("next-url");
