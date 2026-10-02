@@ -888,6 +888,12 @@ future migration:
   live in separate buckets.** No storage policy may admit a path that no
   row names, and none may allow UPDATE or DELETE on `storage.objects`.
   `supabase/STORAGE.md` is the access matrix.
+- **The public forms are rate limited in the database, and a retry is never
+  counted.** When a form is wired to the database, it sends a
+  `submission_key`: generated once per submission, resent on every retry.
+  The three seams do not yet. A per-email limit holds, it never refuses: a refusal would
+  disclose that someone used the form. Thresholds live in `intake_limits`,
+  never in code.
 
 `supabase/tests/database/` asserts all of it with pgTAP, including catalog
 checks that fail when a new table forgets RLS, the standard columns, the

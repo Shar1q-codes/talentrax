@@ -20,6 +20,7 @@ No page, form or API route calls the client yet.
 | `migrations/20261001000600_candidate_erasure.sql` | Deletion requests, retention rules, legal holds, the erasure worker, the storage outbox, and the PII-free audit log |
 | `migrations/20261001000700_storage_worker.sql` | The outbox's leases, outcomes and backoff, the worker's schedule, and its health check |
 | `migrations/20261001000800_storage_buckets.sql` | The three buckets, their policies, and the orphan sweep |
+| `migrations/20261001000900_intake_rate_limits.sql` | Rate limits on the three public forms |
 | `functions/storage-erasure-worker/` | The Edge Function that deletes queued objects through the Storage API |
 | `rollback/*.down.sql` | Reverse of each migration, for local development only |
 | `tests/database/*.test.sql` | pgTAP: catalog-wide structural checks, then behaviour per role |
@@ -125,6 +126,27 @@ for staff actions only. Otherwise an erasure could never be complete: the
 log is append-only, and the erasure itself would have written everything it
 removed into it.
 
+**The public forms are rate limited in the database**, because every path
+to the three intake tables passes through it (migration 9). Thresholds are
+rows in `intake_limits`, editable by a super_admin:
+
+| Measured on | Limit, per form | Over it |
+| --- | --- | --- |
+| Client address (`cf-connecting-ip`; IPv6 by /64) | 20 an hour | HTTP 429, `Retry-After`, a message that does not say why |
+| The email address on the form | 3 resumes, or 5 messages or leads, a day | **Accepted, `held_at` set** for staff: a 429 would tell a stranger whether that person used the form |
+| Everything, from anywhere | 300 an hour | HTTP 429 |
+
+**A retry is never counted.** A row whose `submission_key` was already
+accepted, or whose content matches one accepted in the last day, succeeds
+silently and stores nothing - so a candidate who resubmits after a dropped
+connection is never penalised, even at their address's limit.
+- **Addresses are trusted only from Cloudflare.** Only `cf-connecting-ip`
+  is trusted, because Cloudflare sets it in front of hosted Supabase. With
+  no such header there is no per-address limit, rather than a forgeable one.
+- **No address is stored readably.** The ledger keeps HMACs and forgets them
+  after 48 hours.
+- **Staff and the trusted backend are not limited.**
+
 **The audit log is append-only for everyone.** RLS has no write policy.
 UPDATE and DELETE privileges are revoked, and a trigger refuses UPDATE,
 DELETE and TRUNCATE even from the owning role, because service_role bypasses
@@ -156,9 +178,9 @@ workflow owner, never a byline: the site names nobody.
   their own candidate row only under their account's email. That is safe
   only if the email is verified. Hosted Supabase confirms emails by default;
   `config.toml` does not locally (`enable_confirmations = false`).
-- **Abuse controls on the public forms.** anon inserts straight into three
-  tables. Rate limiting, bot protection and the honeypot belong in whatever
-  endpoint fronts them. RLS cannot do it.
+- **Bot protection and the honeypot on the public forms.** Rate limits are
+  in (below); a CAPTCHA or honeypot still belongs in whatever endpoint
+  fronts the forms.
 - **Employer-facing interviews and offers.** Employers see requisitions,
   sent submissions and scrubbed documents. Anything more is a new view, not
   a base-table policy.

@@ -278,3 +278,12 @@ delete the matching `OMITTED` comment there, and strike the item here.
     often photos or scans. Should those buckets accept images, and up to
     what size?
     *Assumed: the resume form's limits everywhere.*
+
+25. **Rate limits on the public forms.** Seeded as engineering defaults in
+    `intake_limits`: 20 submissions an hour per client address (generous,
+    because hospital networks and mobile carriers put many people behind one
+    address), 3 resumes or 5 messages or leads a day per email address (held
+    for review, never refused), and 300 an hour per form overall. Do these
+    fit the volume the client expects, especially around hiring events or a
+    campaign?
+    *Assumed: the defaults above.*

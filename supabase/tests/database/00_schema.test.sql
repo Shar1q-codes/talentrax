@@ -43,12 +43,13 @@ select is_empty(
 -- three tables from migration 6 that must never be hidden: a deletion
 -- request is the record 11 CCR 7101 requires be kept, a retention rule is
 -- switched off with is_active, and an outbox row is finished, not deleted.
+-- Rate limits (migration 9) are configuration, edited in place.
 select is_empty(
   $$ select t.tablename from pg_tables t
      where t.schemaname = 'public'
        and t.tablename not in (
          'audit_log', 'audit_settings', 'submission_events',
-         'deletion_requests', 'retention_rules', 'storage_erasures',
+         'deletion_requests', 'retention_rules', 'storage_erasures', 'intake_limits',
          'desks', 'specialties', 'engagement_types', 'work_modes', 'us_states',
          'job_statuses', 'lead_statuses', 'candidate_statuses', 'submission_statuses')
        and not exists (

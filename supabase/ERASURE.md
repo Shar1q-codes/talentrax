@@ -125,6 +125,7 @@ deferred. **Executed** is the final state.
 | `communication_consents` | No legal floor (see "unclear") | Held, with opt-outs recorded at acceptance as evidence the contact stopped | **Erased** | With the address gone there is nobody left to contact. |
 | `message_log` | Yes, conservatively: messages about an application | Held intact | **Erased** | Addresses and bodies are the candidate's. |
 | `profiles` + `auth.users` | Not a record | Kept working, so the candidate can sign in and see their request | **Anonymised and disabled**: name and email cleared, deactivated. Login address, phone, password, metadata, identities, sessions, MFA factors, one-time tokens and GoTrue's own `auth.audit_log_entries` cleared | `profiles` is referenced by `created_by` across the schema and cannot be deleted. Staff accounts are never touched by a candidate erasure. |
+| `private.intake_events` | n/a | Untouched | **Untouched**: HMACs of an address and an email, no plaintext, deleted after 48 hours by pg_cron | The rate-limit ledger (migration 9). It expires long before the 45 days a request may take to answer. |
 | `audit_log` | n/a | Untouched | **Untouched** | Append-only for every role, and now never holds personal data at all (below). |
 | `deletion_requests` | 11 CCR §7101: 24 months minimum | n/a | **Kept**: dates, manner, decision, basis codes, row counts | The request record. It holds no personal data, so keeping it is not keeping the candidate. |
 
