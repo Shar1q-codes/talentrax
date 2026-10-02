@@ -1043,6 +1043,12 @@ future migration:
   live in separate buckets.** No storage policy may admit a path that no
   row names, and none may allow UPDATE or DELETE on `storage.objects`.
   `supabase/STORAGE.md` is the access matrix.
+- **An intake row is real unless shown otherwise.** `is_test` on the three
+  intake tables defaults false, the opposite of `jobs`: hiding a real
+  candidate costs more than showing a test row. On an end user's insert it
+  is computed from the address alone (reserved test domains), and staff
+  mark the rest. **Whether a resume arrived is the upload endpoint's word
+  only** (migration 11, `supabase/STORAGE.md`); no end user can write it.
 - **The public forms are rate limited in the database, and a retry is never
   counted.** When a form is wired to the database, it sends a
   `submission_key`: generated once per submission, resent on every retry.

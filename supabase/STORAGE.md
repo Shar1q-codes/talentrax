@@ -65,6 +65,26 @@ The row is written first and the upload goes to the path it names.
 - The public form uploads through a signed upload URL, which a trusted
   server mints for one intake row. There is no intake upload policy at all.
 
+## Whether a resume arrived
+
+The upload is two steps: the intake row, then a signed upload straight to
+Storage. So a row can exist with no file, or with a file that is not what
+was declared. Migration 11 records which, and **only the trusted backend
+writes it**: an end user, staff included, can neither set these columns on
+insert nor change them, and cannot change the path either.
+
+| Column | Set when |
+| --- | --- |
+| `resume_upload_issued_at` | A signed upload URL was minted for the row's path |
+| `resume_received_at` | The object was checked: its size and type match what was declared, and its first bytes really are a PDF, DOC or DOCX |
+| `resume_rejected_at`, `resume_rejected_reason` | It failed that check (`size_mismatch`, `type_mismatch`, `signature_mismatch`), or never arrived (`not_received`) |
+
+The byte check needs the file, so it runs in the upload endpoint. Hourly,
+pg_cron runs `private.expire_unreceived_resumes()`, which marks
+`not_received` on any row whose URL has expired (two hours, plus a margin)
+with no object at its path. A row whose file arrived but was never checked
+is left alone; it is checked when staff open it.
+
 ## The orphan sweep
 
 Hourly, pg_cron runs `public.sweep_orphaned_storage_objects()`, which
