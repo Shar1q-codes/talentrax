@@ -23,9 +23,9 @@ follow-on detail of whatever needs it.
 
 | Constructor | Key | Session | For |
 | --- | --- | --- | --- |
-| `browser.ts` | anon | none: nothing persisted, refreshed or read from the URL | the three public forms, inserting straight from the visitor's browser |
-| `server.ts` | anon + the user's session | an HttpOnly cookie scoped to `/staff`, forced on everything `@supabase/ssr` sets | staff pages, server actions, the proxy's session refresh; RLS applies as them |
-| `admin.ts` | service role (bypasses RLS) | none | the resume-upload endpoints only |
+| `browser.ts` | publishable (acts as `anon`) | none: nothing persisted, refreshed or read from the URL | the three public forms, inserting straight from the visitor's browser |
+| `server.ts` | publishable + the user's session; the **secret** key on staff sign-in calls to Auth only (`auth-fetch.ts`) | an HttpOnly cookie scoped to `/staff`, forced on everything `@supabase/ssr` sets | staff pages, server actions, the proxy's session refresh; RLS applies as them |
+| `admin.ts` | secret (acts as `service_role`, bypasses RLS) | none | the resume-upload endpoints only |
 
 - **The forms insert from the browser, on purpose.** The rate limit
   (migration 9) keys on the client address Supabase's edge records. Through
@@ -33,7 +33,13 @@ follow-on detail of whatever needs it.
   the service role nobody would be limited.
 - **`server.ts` and `admin.ts` import `server-only`,** so any client import
   is a build error.
-- **The service-role key never reaches a browser.** It has no
+- **The keys are the new format**: publishable (`sb_publishable_...`) and
+  secret (`sb_secret_...`). The legacy `anon` and `service_role` JWTs are
+  not used, and `check-bundle.mjs` still fails a build that leaks either.
+  The secret key goes to Auth on four staff sign-in calls, so Auth can trust
+  a forwarded visitor address; never to PostgREST through the session
+  client, where a request without a user token would run as `service_role`.
+- **The secret key never reaches a browser.** It has no
   `NEXT_PUBLIC_` prefix, and eslint confines `admin.ts` to a feature's
   `queries.server.ts`. `npm run build` ends with `scripts/check-bundle.mjs`,
   which fails the build if the key's name appears in anything served to a
@@ -1032,7 +1038,7 @@ screens above are untouched and still sign nobody in.
   to one attempt per delay per address; the accepted cost is that an
   address under an active flood refuses its owner too, while the flood
   lasts. Passing the second factor clears the count.
-- **This governs our page only.** The anon key is public, so a password can
+- **This governs our page only.** The publishable key is public, so a password can
   be tried straight against Supabase Auth's API, where only Auth's own
   per-IP limits apply. Those limits therefore stay at their defaults, at
   the cost of a shared bucket for every sign-in through our server.
@@ -1220,26 +1226,27 @@ file. Nothing reads the TypeScript at test time.
 ## Environment variables
 
 Five variables. Templates: `.env.local.example` (the local stack's public
-demo keys, committed on purpose) and `.env.production.example` (names only,
+demo keys, committed on purpose, except the secret key: secret-shaped values
+are never committed, demo or not, and LOCAL.md says where to copy it from) and `.env.production.example` (names only,
 empty values). `supabase/LOCAL.md` documents them.
 
 | Variable | If missing |
 | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | falls back to `http://localhost:3000` - see below |
 | `NEXT_PUBLIC_SUPABASE_URL` | each Supabase client throws when constructed, naming it |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same |
-| `SUPABASE_SERVICE_ROLE_KEY` | the service-role client throws when constructed, naming it |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | same |
+| `SUPABASE_SECRET_KEY` | the secret-key client throws when constructed, naming it; staff sign-in calls go out with the publishable key instead, and nothing is forwarded |
 | `APP_ENV` | `local` |
 
 **The Supabase variables have no fallback and are checked at the point of
-use**: `readSupabaseEnv()`, and the service-role key in `admin.ts`, run
+use**: `readSupabaseEnv()`, and the secret key in `admin.ts`, run
 when a client is constructed, never at import or build time. So every
 build, Netlify's included, succeeds with no Supabase variables at all. Do
 not move that check back into `next.config.ts` or module scope: it failed
 every build that never needed the value, Netlify's and the local one
 `check:seo` runs against.
 
-**`SUPABASE_SERVICE_ROLE_KEY` is a runtime secret, not a build input.** It
+**`SUPABASE_SECRET_KEY` is a runtime secret, not a build input.** It
 is never `NEXT_PUBLIC_`. On Netlify it is marked secret and scoped to
 Functions, so the build cannot see it at all.
 

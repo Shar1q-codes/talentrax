@@ -21,7 +21,7 @@
 
 export type SupabaseEnv = {
   url: string;
-  anonKey: string;
+  publishableKey: string;
 };
 
 export type AppEnv = "local" | "staging" | "production";
@@ -49,14 +49,14 @@ export function readAppEnv(): AppEnv {
 // Whether this build can reach a database at all: both public values set
 // and non-empty. Staff sign-in asks it before constructing a client.
 export function isSupabaseConfigured(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 }
 
 // Whether the public forms are open, from what the build knows. The rule
 // itself; forms-gate.ts is the server-only caller that reads the inputs.
 // Kept here, alias-free and pure, so `npm test` can pin every branch.
 //
-//   not configured  closed, everywhere (no URL, or no anon key)
+//   not configured  closed, everywhere (no URL, or no publishable key)
 //   local           open only against the local stack: a hosted URL with
 //                   APP_ENV unset is a deploy that forgot to say which one
 //                   it is, and it must not take real submissions on a guess
@@ -65,10 +65,10 @@ export function isSupabaseConfigured(): boolean {
 export function decideFormsOpen(input: {
   appEnv: AppEnv;
   url: string | undefined;
-  anonKey: string | undefined;
+  publishableKey: string | undefined;
   productionReleased: boolean;
 }): boolean {
-  if (!input.url || !input.anonKey) return false;
+  if (!input.url || !input.publishableKey) return false;
   switch (input.appEnv) {
     case "local":
       return isLocalUrl(input.url);
@@ -103,11 +103,11 @@ export function assertDeployTarget(): void {
 // substitution, and a computed `process.env[name]` would be undefined there.
 export function readSupabaseEnv(): SupabaseEnv {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   const missing = [
     !url && "NEXT_PUBLIC_SUPABASE_URL",
-    !anonKey && "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    !publishableKey && "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
   ].filter(Boolean);
 
   if (missing.length > 0) {
@@ -123,5 +123,5 @@ export function readSupabaseEnv(): SupabaseEnv {
 
   refuseLocalUrlWhenDeployed(url);
 
-  return { url: url!, anonKey: anonKey! };
+  return { url: url!, publishableKey: publishableKey! };
 }

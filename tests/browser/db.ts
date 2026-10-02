@@ -11,7 +11,7 @@ import { expect, type APIRequestContext, type Page } from "@playwright/test";
  * this one's included, on machines with no stack and no .env.local.
  */
 
-type Stack = { url: string; anonKey: string; serviceRoleKey: string };
+type Stack = { url: string; publishableKey: string; secretKey: string };
 
 function readEnvFile(path: string): Record<string, string> {
   if (!existsSync(path)) return {};
@@ -31,23 +31,23 @@ export function stack(): Stack {
   const file = readEnvFile(".env.local");
   const pick = (name: string) => process.env[name] || file[name] || "";
   const url = pick("NEXT_PUBLIC_SUPABASE_URL");
-  const anonKey = pick("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  const serviceRoleKey = pick("SUPABASE_SERVICE_ROLE_KEY");
-  if (!url || !anonKey || !serviceRoleKey) {
+  const publishableKey = pick("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+  const secretKey = pick("SUPABASE_SECRET_KEY");
+  if (!url || !publishableKey || !secretKey) {
     throw new Error(
-      "The @db suite needs the local stack's URL, anon key and service-role key in .env.local " +
-        "(copy .env.local.example). See supabase/LOCAL.md.",
+      "The @db suite needs the local stack's URL, publishable key and secret key in .env.local " +
+        "(copy .env.local.example, then SECRET_KEY from `npx supabase status -o env`). See supabase/LOCAL.md.",
     );
   }
-  cached = { url, anonKey, serviceRoleKey };
+  cached = { url, publishableKey, secretKey };
   return cached;
 }
 
 /** Fails the suite with a plain instruction when the stack is not up. */
 export async function expectStackRunning(request: APIRequestContext) {
-  const { url, anonKey } = stack();
+  const { url, publishableKey } = stack();
   const response = await request
-    .get(`${url}/rest/v1/`, { headers: { apikey: anonKey }, timeout: 5_000 })
+    .get(`${url}/rest/v1/`, { headers: { apikey: publishableKey }, timeout: 5_000 })
     .catch(() => null);
   expect(response, "The local Supabase stack is not running: npm run db:start").not.toBeNull();
 }
@@ -58,9 +58,9 @@ export async function selectRows<T = Record<string, unknown>>(
   table: string,
   query: string,
 ): Promise<T[]> {
-  const { url, serviceRoleKey } = stack();
+  const { url, secretKey } = stack();
   const response = await request.get(`${url}/rest/v1/${table}?${query}`, {
-    headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+    headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` },
   });
   expect(response.status()).toBe(200);
   return (await response.json()) as T[];
@@ -73,11 +73,11 @@ export async function insertAsVisitor(
   row: Record<string, unknown>,
   ip: string,
 ) {
-  const { url, anonKey } = stack();
+  const { url, publishableKey } = stack();
   return request.post(`${url}/rest/v1/${table}`, {
     headers: {
-      apikey: anonKey,
-      Authorization: `Bearer ${anonKey}`,
+      apikey: publishableKey,
+      Authorization: `Bearer ${publishableKey}`,
       "Content-Type": "application/json",
       Prefer: "return=minimal",
       "cf-connecting-ip": ip,

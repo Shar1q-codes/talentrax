@@ -1,4 +1,4 @@
-// The browser client: the anon key, and no session of any kind.
+// The browser client: the publishable key, and no session of any kind.
 //
 // For the three public forms, which insert straight from the visitor's
 // browser. That is deliberate, not a shortcut: the rate limit on those forms
@@ -7,7 +7,7 @@
 // server's address and one limit; through the service role, nobody would be
 // limited at all.
 //
-// The anon key is public by design: RLS confines it to inserting the form
+// The publishable key is public by design: RLS confines it to inserting the form
 // fields of those three tables, and it can SELECT nothing
 // (supabase/README.md).
 //
@@ -22,8 +22,8 @@ import type { Database } from "../database.types";
 import { readSupabaseEnv } from "./env";
 
 export function createBrowserSupabaseClient(): SupabaseClient<Database> {
-  const { url, anonKey } = readSupabaseEnv();
-  return createClient<Database>(url, anonKey, {
+  const { url, publishableKey } = readSupabaseEnv();
+  return createClient<Database>(url, publishableKey, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
 }

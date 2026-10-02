@@ -30,17 +30,17 @@ const NOT_STAFF = "job.seeker@example.test";
 const UNKNOWN = `nobody-db-test@example.test`;
 
 async function clearSignInCount(request: APIRequestContext, email: string) {
-  const { url, serviceRoleKey } = stack();
+  const { url, secretKey } = stack();
   const cleared = await request.post(`${url}/rest/v1/rpc/reset_sign_in_attempts`, {
-    headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, "Content-Type": "application/json" },
+    headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}`, "Content-Type": "application/json" },
     data: { email },
   });
   expect(cleared.status()).toBe(200);
 }
 
 async function removeFactors(request: APIRequestContext, userId: string) {
-  const { url, serviceRoleKey } = stack();
-  const headers = { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` };
+  const { url, secretKey } = stack();
+  const headers = { apikey: secretKey, Authorization: `Bearer ${secretKey}` };
   const listed = await request.get(`${url}/auth/v1/admin/users/${userId}/factors`, { headers });
   expect(listed.status()).toBe(200);
   for (const factor of (await listed.json()) as { id: string }[]) {
@@ -105,6 +105,8 @@ test.describe("@db staff sign-in", () => {
     context,
     request,
   }) => {
+    // Up to 30 seconds of it is waiting for a fresh code window.
+    test.setTimeout(90_000);
     await removeFactors(request, ADMIN.id);
 
     await page.goto("/staff/sign-in");
@@ -154,20 +156,20 @@ test.describe("@db staff sign-in", () => {
   test("a staff password alone reads nothing from the database", async ({ request }) => {
     // Straight at the API, past the page: the token Auth issues for a
     // password is aal1, and a staff role does not count at aal1.
-    const { url, anonKey, serviceRoleKey } = stack();
+    const { url, publishableKey, secretKey } = stack();
     const signedIn = await request.post(`${url}/auth/v1/token?grant_type=password`, {
-      headers: { apikey: anonKey, "Content-Type": "application/json" },
+      headers: { apikey: publishableKey, "Content-Type": "application/json" },
       data: { email: ADMIN.email, password: PASSWORD },
     });
     expect(signedIn.status()).toBe(200);
     const { access_token } = (await signedIn.json()) as { access_token: string };
 
     const asStaff = await request.get(`${url}/rest/v1/contact_messages?select=id&limit=5`, {
-      headers: { apikey: anonKey, Authorization: `Bearer ${access_token}` },
+      headers: { apikey: publishableKey, Authorization: `Bearer ${access_token}` },
     });
     expect(await asStaff.json()).toEqual([]);
     const asService = await request.get(`${url}/rest/v1/contact_messages?select=id&limit=5`, {
-      headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+      headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` },
     });
     expect(((await asService.json()) as unknown[]).length).toBeGreaterThan(0);
   });
@@ -191,6 +193,8 @@ test.describe("@db staff sign-in", () => {
   });
 
   test("failures slow an address down, never lock it, and only one attempt runs at a time", async ({ page, context }) => {
+    // About 30 seconds of deliberate waiting: the delays are the subject.
+    test.setTimeout(90_000);
     // No delay and no attempt in progress to begin with: the last run's
     // teardown cleared this address.
     await page.goto("/staff/sign-in");

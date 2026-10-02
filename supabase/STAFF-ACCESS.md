@@ -192,7 +192,7 @@ and [its Auth hooks](https://supabase.com/docs/guides/auth/auth-hooks).
 | Path | What limits guessing |
 | --- | --- |
 | Our sign-in page (`/staff/sign-in`) | Migration 16, per address: the growing delay and one attempt at a time. Then Supabase Auth's per-IP limit, which sees **our server's** address for every attempt |
-| Supabase Auth's own API, called directly. The anon key is public by design, so anyone can call `/auth/v1/token` and the MFA verify endpoint from their own machine | **Only Supabase Auth's per-IP limits**, by the caller's real address. Migration 16 never sees these attempts |
+| Supabase Auth's own API, called directly. The publishable key is public by design, so anyone can call `/auth/v1/token` and the MFA verify endpoint from their own machine | **Only Supabase Auth's per-IP limits**, by the caller's real address. Migration 16 never sees these attempts |
 
 **What a guessed password opens: the person's own profile row, and
 nothing else.** A password that works, found by either route, gets an
@@ -225,24 +225,29 @@ sending about 30 sign-in attempts in five minutes through our page can make
 Auth refuse every staff sign-in until the window refills: up to five minutes
 after they stop. Staff see the usual "could not sign you in" message.
 
-**What would remove that cost.** Neither is in place, and either is a
-decision:
+**What removes that cost.**
 
-1. **Forward the visitor's address to Auth.** Hosted Auth accepts the real
-   client address in an `Sb-Forwarded-For` header, but only on requests made
-   with a **secret API key** (`sb_secret_...`), and only once forwarding is
-   enabled for the project. This project uses the legacy `anon` and
-   `service_role` keys, which do not qualify. The local stack offers no
-   setting for it, so it cannot be tested here. It needs the project moved
-   to the new API keys and the sign-in code changed to send the secret key
-   on Auth calls only. Then Auth's limit counts per visitor on both paths.
+1. **Forward the visitor's address to Auth: built, waiting on the hosted
+   project.** Hosted Auth accepts the real client address in an
+   `Sb-Forwarded-For` header, but only on requests made with a **secret API
+   key** (`sb_secret_...`), and only once forwarding is enabled for the
+   project. The code is ready: the project uses the new publishable and
+   secret keys, and `src/lib/supabase/auth-fetch.ts` sends the secret key
+   and the visitor's address (Netlify's `x-nf-client-connection-ip`) on the
+   four staff sign-in calls to Auth, and on nothing else. Until forwarding
+   is switched on for the project, Auth ignores the header and counts our
+   server's address, exactly as described above. Turning it on, and what to
+   check afterwards, is in `LOCAL.md`, "What a migration cannot configure".
+   The local stack has no setting for it, so only the key half was tested
+   here. Once it is on, Auth's limit counts per visitor on both paths and
+   the shared failure point is gone.
 2. **Move our per-address control inside Auth**, with the Password
    Verification Attempt and MFA Verification Attempt hooks. They see every
    attempt on both paths. They are on Supabase's Teams and Enterprise plans
    only.
 
-**The setting, until then:** Authentication > Rate Limits stays at the
-defaults for sign-ins and for verification. Do not raise either to "fix"
+**The setting, before and after forwarding:** Authentication > Rate
+Limits stays at the defaults for sign-ins and for verification. Do not raise either to "fix"
 staff sign-in failures without reading this section: raising them widens the
 direct path, which nothing else guards.
 

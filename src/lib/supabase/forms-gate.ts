@@ -44,7 +44,7 @@ export function publicFormsOpen(): boolean {
     appEnv: readAppEnv(),
     // By literal name: the same values the browser bundle has inlined.
     url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    publishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     productionReleased: Object.values(PRODUCTION_RELEASE).every(Boolean),
   });
 }

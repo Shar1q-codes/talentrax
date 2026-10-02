@@ -21,14 +21,18 @@ goes anywhere hosted. Nothing is created by clicking in a dashboard (see
 
   The values in the example are the local stack's **public demo keys**:
   identical on every machine, never valid against a hosted project.
+  **Except the secret key, which you fill in**: copy `SECRET_KEY` from
+  `npx supabase status -o env` into `SUPABASE_SECRET_KEY`. It is a demo
+  value too, but it looks exactly like a real Supabase secret, so GitHub's
+  push protection refuses any commit that carries it.
 
 ## The environment variables
 
 | Variable | Set where | If missing |
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | `.env.local`; the deploy environment | The Supabase client throws **when it is constructed**, naming the variable and where to set it |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same | same |
-| `SUPABASE_SERVICE_ROLE_KEY` | `.env.local`; the deploy **runtime** environment, as a secret | The service-role client throws when it is constructed, naming it. Only the resume-upload endpoints construct one |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | same | same |
+| `SUPABASE_SECRET_KEY` | `.env.local`; the deploy **runtime** environment, as a secret | The secret-key client throws when it is constructed, naming it; only the resume-upload endpoints construct one. Staff sign-in calls to Auth go out with the publishable key instead, and no visitor address is forwarded |
 | `APP_ENV` | **The deploy environment only.** Never `.env.local` | Treated as `local` |
 
 **Every client checks its variables when it is constructed**, never at
@@ -191,7 +195,7 @@ that user:
 
 ```bash
 curl -s "http://127.0.0.1:54321/auth/v1/token?grant_type=password" \
-  -H "apikey: $NEXT_PUBLIC_SUPABASE_ANON_KEY" \
+  -H "apikey: $NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"email":"recruiter@example.test","password":"local-password-only"}'
 ```
@@ -205,7 +209,7 @@ site, or use the pgTAP approach below with `'aal', 'aal2'` in the claims.
 
 ```bash
 curl -s "http://127.0.0.1:54321/rest/v1/candidates?select=full_name" \
-  -H "apikey: $NEXT_PUBLIC_SUPABASE_ANON_KEY" \
+  -H "apikey: $NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" \
   -H "Authorization: Bearer <access_token>"
 ```
 
@@ -282,15 +286,34 @@ writing down as they are set:
 - **Auth rate limits** (Authentication > Rate Limits): **leave the sign-in
   and verification limits at their defaults** (30 sign-ins per 5 minutes, 15
   MFA verifications per minute, per address). Read `STAFF-ACCESS.md`, "Two
-  paths to the password", before changing them. In short: the anon key is
+  paths to the password", before changing them. In short: the publishable key is
   public, so a password can be tried straight against Auth's API, past our
   sign-in page and its per-address delay (migration 16), and on that path
-  these limits are the only guard. The cost: Auth sees our server's address
-  for every attempt made through our page, so a flood there can block staff
-  sign-in for up to five minutes. Forwarding the visitor's address
-  (`Sb-Forwarded-For`) would remove that, but hosted Auth accepts it only
-  with the new secret API keys, which this project does not use yet, and
-  only once enabled for the project.
+  these limits are the only guard. The cost: until forwarding is on (next
+  item), Auth sees our server's address for every attempt made through our
+  page, so a flood there can block staff sign-in for up to five minutes.
+- **IP address forwarding for Auth: turn it on.** It is off for a new
+  project. Enable it in the dashboard or through the Management API, as
+  Supabase's rate-limit guide describes
+  (https://supabase.com/docs/guides/auth/rate-limits). The code already
+  sends `Sb-Forwarded-For` with the secret key on staff sign-in calls
+  (`src/lib/supabase/auth-fetch.ts`); nothing in the repo changes. Then
+  verify, on the deployed site:
+  1. Sign in as a staff member. In the project's Auth logs, the sign-in
+     shows the visitor's own address, not Netlify's.
+  2. From one network, make enough failed sign-ins to hit Auth's sign-in
+     limit (or lower it briefly in a staging project). From a second
+     network, a staff member still signs in. Before forwarding, the second
+     would have been refused too.
+  3. `SUPABASE_SECRET_KEY` is set in the runtime environment. Without it the
+     sign-in calls go out with the publishable key, Auth ignores the header,
+     and step 1 shows Netlify's address.
+- **Disable the legacy API keys** (Project Settings > API Keys) once the
+  deployed site runs on the publishable and secret keys. Nothing in the app
+  uses them. The storage-erasure Edge Function reads the
+  `SUPABASE_SERVICE_ROLE_KEY` the Edge runtime injects: check that it gets a
+  working key before disabling the legacy ones, or move it to the secret
+  key first.
 - **Storage limits**: bucket file-size limit and allowed MIME types, and the
   `storage.objects` policies the README lists as missing, before any upload
   is wired.
