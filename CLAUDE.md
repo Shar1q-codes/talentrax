@@ -150,7 +150,8 @@ src/
   app/
     (marketing)/      every public route; route groups are not URL segments
     (portal)/         candidate and employer areas - layout only, no pages yet
-    (internal)/       the ATS for staff roles: /staff and its sign-in steps
+    (internal)/       the ATS for staff roles: /staff, its sign-in steps,
+                      the inbox, and the resume form behind sign-in
     api/              route handlers - none yet
     layout.tsx, not-found.tsx, sitemap.ts, robots.ts, globals.css
   features/<name>/    one folder per domain concept
@@ -312,8 +313,9 @@ pinned by `npm test`:
 **`PRODUCTION_RELEASE` is a release gate, not dead code.** Its conditions:
 the privacy policy says where submissions are stored
 (`formStorage.location` in `content/legal.ts`, null until the hosted project
-exists), and `inboxStaffed`, set by hand once the staff inbox (build step 8)
-exists and a named staff account can sign in to it with a second factor.
+exists), and `inboxStaffed`, set by hand once a named staff account on the
+production project can sign in to the inbox (`/staff/inbox`, built) with a
+second factor.
 Each is flipped in the commit that makes it true, and not before.
 
 **What a visitor sees on a wired form**, every path:
@@ -348,7 +350,7 @@ that leaves every check passing.
 | 5 | Request Talent wired | Done |
 | 6 | Staff sign-in and sign-out, TOTP MFA required, the sign-in attempt limiter | Done |
 | 7 | Resume upload endpoints and form, behind staff sign-in in production | Done |
-| 8 | The staff inbox | |
+| 8 | The staff inbox | Done |
 
 Steps 6 and 7 were swapped from the first plan: the resume form's
 production guard is staff sign-in, so sign-in has to exist first.
@@ -1080,6 +1082,41 @@ screens above are untouched and still sign nobody in.
 - **No reset in the app**, for passwords or factors, for any role. A lost
   factor goes by `supabase/STAFF-ACCESS.md`.
 - **Nothing is logged**, as on the account screens.
+
+## The staff inbox
+
+`/staff/inbox` and `/staff/inbox/<kind>/<id>` (`contact`, `request`,
+`resume`). Build step 8. Feature `src/features/inbox`.
+
+- **RLS decides who sees what; the inbox adds nothing and widens nothing.**
+  Every query runs through the staff member's own session. An
+  administrator (super_admin, platform_admin) sees every submission of all
+  three forms. Otherwise: a research analyst sees every talent request; a
+  BDM or full-desk recruiter, the talent requests routed to them (owner);
+  CRM staff, the contact messages routed to them; a recruiter or full-desk
+  recruiter, the resumes routed to them. Content and marketing managers see
+  nothing. There is no routing UI yet, so on day one only administrators
+  (and research analysts, for requests) see anything. A row someone may not
+  see is a 404, the same as one that does not exist.
+- **The list shows each resume's file state before anyone opens it**:
+  received, refused, never arrived, not checked yet, or no file
+  (`features/inbox/file-state.ts`, unit tested). Held rows say "Held for
+  review", and why on the detail page (the spam trap, or the per-email
+  limit). Test rows are hidden unless `?tests=1`.
+- **Only a received file is ever offered for download**, as an attachment
+  through a one-minute signed URL made with the staff member's own session,
+  from `/staff/inbox/file/<id>`. A refused file is still in storage until the
+  worker runs, so the storage policy itself refuses every intake file whose
+  row is not received (migration 18): not offered, not linkable, not
+  readable by anyone through the API.
+- **Opening a resume whose file was never checked runs the check** (the
+  browser left before it ran). If nothing is there, the page says so.
+- **Staff may change two things**: the status (contact: new, in progress,
+  closed, spam; request: new, contacted; resume: new, triaged, rejected,
+  spam) and whether it is a test. Plain form posts; RLS and the audit log
+  apply. Not here, deliberately: routing, notes, replies, conversion into a
+  candidate or employer, search, bulk actions, editing what was sent,
+  deleting anything.
 
 ## Two pages that constrain what may be written on them
 

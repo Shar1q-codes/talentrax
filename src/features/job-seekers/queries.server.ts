@@ -39,6 +39,13 @@ async function claim(submissionKey: string): Promise<Claim | null> {
   return data[0] as Claim;
 }
 
+async function forCheck(submissionKey: string): Promise<Claim | null> {
+  const supabase = createAdminSupabaseClient();
+  const { data, error } = await supabase.rpc("resume_upload_for_check", { p_submission_key: submissionKey });
+  if (error || !Array.isArray(data) || data.length === 0) return null;
+  return data[0] as Claim;
+}
+
 export async function issueResumeUpload(submissionKey: string): Promise<UploadSlot> {
   const claimed = await claim(submissionKey);
   if (!claimed) return { state: "refused" };
@@ -58,9 +65,12 @@ export type CheckOutcome = "received" | "rejected" | "missing" | "refused";
  * Reads what arrived and records the verdict. "missing": no object at the
  * path yet (the upload did not finish); the row stays undecided, and the
  * hourly expiry marks it not_received once its URL has lapsed.
+ *
+ * Any age: the form calls it straight after the upload, and the inbox calls
+ * it when staff open a row whose check never ran (migration 18).
  */
 export async function checkResumeUpload(submissionKey: string): Promise<{ outcome: CheckOutcome; reason?: RejectedReason }> {
-  const claimed = await claim(submissionKey);
+  const claimed = await forCheck(submissionKey);
   if (!claimed) return { outcome: "refused" };
   if (claimed.state === "received" || claimed.state === "rejected") return { outcome: claimed.state };
   if (claimed.state !== "uploaded") return { outcome: "missing" };
@@ -81,7 +91,7 @@ export async function checkResumeUpload(submissionKey: string): Promise<{ outcom
   if (recorded === "received") return { outcome: "received" };
   if (recorded === "rejected") return { outcome: "rejected", reason: reason ?? undefined };
   // Decided by a concurrent try in the meantime: report what was decided.
-  const after = await claim(submissionKey);
+  const after = await forCheck(submissionKey);
   if (after?.state === "received" || after?.state === "rejected") return { outcome: after.state };
   return { outcome: "refused" };
 }

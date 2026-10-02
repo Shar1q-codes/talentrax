@@ -121,7 +121,7 @@ export const staffHome = {
   heading: "Signed in",
   signedInAs: (name: string) => `You are signed in as ${name}.`,
   /** Build step 8 is the inbox. Say so, rather than show an empty shell. */
-  nothingYet: "There is no inbox here yet: what arrives through the site's forms is visible only in the Supabase dashboard until it is built.",
+  inboxLabel: "Open the inbox",
   resumeFormLabel: "Try the resume form",
   signOut: "Sign out",
 };

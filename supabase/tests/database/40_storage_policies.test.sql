@@ -7,7 +7,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(48);
+select plan(51);
 
 -- -----------------------------------------------------------------------------
 -- Harness
@@ -103,7 +103,7 @@ select tests.act_as(null);
 insert into tests.ids (name, id)
 select n, gen_random_uuid() from unnest(array[
   'padmin', 'bdm', 'rec', 'rec2', 'emp', 'emp2', 'js', 'js2',
-  'e1', 'e2', 'r1', 'cA', 'cB', 'dO', 'dS', 'dNew', 'dSelf', 'dScrubNew', 'rs', 's1'
+  'e1', 'e2', 'r1', 'cA', 'cB', 'dO', 'dS', 'dNew', 'dSelf', 'dScrubNew', 'rs', 'rsR', 'rsU', 's1'
 ]) as n;
 
 insert into auth.users (id, email)
@@ -130,14 +130,26 @@ insert into public.candidate_documents (id, candidate_id, kind, storage_path, is
 insert into public.submissions (id, candidate_id, requisition_id, submitted_by, candidate_consent_obtained,
                                 bdm_decision, sent_to_employer_at, shared_document_id, status)
 values (tests.id('s1'), tests.id('cA'), tests.id('r1'), tests.id('rec'), true, 'approved', now(), tests.id('dS'), 'sent-to-employer');
-insert into public.resume_submissions (id, full_name, email, consent_store, resume_storage_path, owner_id)
-values (tests.id('rs'), 'Test Intake', 'intake@storage.example.test', true, tests.id('rs')::text || '/resume.pdf', tests.id('rec'));
+-- rs: checked and received. rsR: rejected, awaiting deletion. rsU: uploaded,
+-- not yet checked. Only rs is readable (migration 18).
+insert into public.resume_submissions
+  (id, full_name, email, consent_store, resume_storage_path, owner_id,
+   resume_upload_issued_at, resume_received_at, resume_rejected_at, resume_rejected_reason)
+values
+  (tests.id('rs'), 'Test Intake', 'intake@storage.example.test', true, tests.id('rs')::text || '/resume.pdf', tests.id('rec'),
+   now(), now(), null, null),
+  (tests.id('rsR'), 'Test Intake Rejected', 'intake-r@storage.example.test', true, tests.id('rsR')::text || '/resume.pdf', tests.id('rec'),
+   now(), null, now(), 'signature_mismatch'),
+  (tests.id('rsU'), 'Test Intake Unchecked', 'intake-u@storage.example.test', true, tests.id('rsU')::text || '/resume.pdf', tests.id('rec'),
+   now(), null, null, null);
 
 -- The objects, as the Storage API would have stored them.
 insert into storage.objects (bucket_id, name) values
   ('candidate-originals', 'cA/original.pdf'),
   ('candidate-scrubbed', 'cA/scrubbed-v1.pdf'),
-  ('resume-intake', tests.id('rs')::text || '/resume.pdf');
+  ('resume-intake', tests.id('rs')::text || '/resume.pdf'),
+  ('resume-intake', tests.id('rsR')::text || '/resume.pdf'),
+  ('resume-intake', tests.id('rsU')::text || '/resume.pdf');
 
 -- -----------------------------------------------------------------------------
 -- 1. The buckets.
@@ -193,6 +205,12 @@ select ok(tests.sees('rec', 'resume-intake', tests.id('rs')::text || '/resume.pd
 select ok(tests.sees('padmin', 'resume-intake', tests.id('rs')::text || '/resume.pdf'), 'an administrator reads it');
 select ok(not tests.sees('rec2', 'resume-intake', tests.id('rs')::text || '/resume.pdf'), 'another recruiter does not');
 select ok(not tests.sees('anon', 'resume-intake', tests.id('rs')::text || '/resume.pdf'), 'anon - who uploaded it - cannot read it back');
+select ok(not tests.sees('padmin', 'resume-intake', tests.id('rsR')::text || '/resume.pdf'),
+  'a file that failed the check is readable by nobody, an administrator included, while it waits to be deleted');
+select ok(not tests.sees('rec', 'resume-intake', tests.id('rsR')::text || '/resume.pdf'),
+  'nor by the recruiter its row is routed to');
+select ok(not tests.sees('padmin', 'resume-intake', tests.id('rsU')::text || '/resume.pdf'),
+  'nor is a file not yet checked: readable once it passes');
 select is(tests.sqlstate_as('anon', $$ insert into storage.objects (bucket_id, name) values ('resume-intake', 'x/resume.pdf') $$), '42501',
   'anon cannot upload directly: intake uploads go through a server-minted signed URL');
 select is(tests.sqlstate_as('anon', $$ insert into public.resume_submissions (full_name, email, consent_store, resume_storage_path) values ('A', 'a@storage.example.test', true, 'x/y.pdf') $$), '42501',

@@ -53,6 +53,18 @@ What a local run cannot show: production's 404 for the public route, which
 no local build can produce (a production build refuses a local stack).
 `decideResumeAccess()` is pinned by `npm test` instead.
 
+## The staff inbox (`inbox.db.spec.ts`)
+
+| Path | `@db` |
+| --- | --- |
+| An administrator sees all three forms, held and test flags, and every resume's file state in the list: received, refused, never arrived, not checked, no file | yes |
+| Test rows hidden unless asked for | yes |
+| Only a received file has a download link; it redirects to a signed link that downloads as an attachment, byte for byte | yes |
+| Refused, never-arrived and no-file resumes: no link, and the download route answers 404 | yes |
+| Opening an unchecked resume checks it, and says nothing has arrived | yes |
+| Status and test flag change, and the database agrees | yes |
+| A recruiter sees only the resume routed to them; everything else is absent from the list and a 404 | yes |
+
 ## Staff sign-in
 
 | Path | No database (`site.spec.ts`) | `@db` (`staff.db.spec.ts`) |

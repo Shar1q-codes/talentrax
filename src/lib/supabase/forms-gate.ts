@@ -32,10 +32,12 @@ export const PRODUCTION_RELEASE = {
   // The privacy policy says where submissions are stored. Set by filling in
   // formStorage.location in content/legal.ts once the hosted project exists.
   storageLocationPublished: formStorage.location !== null,
-  // Someone reads what arrives: the staff inbox (build step 8) exists, and a
-  // named staff account can sign in to it with a second factor
-  // (supabase/STAFF-ACCESS.md). Nothing in the build can observe either, so
-  // this is set by hand.
+  // Someone reads what arrives. The staff inbox exists (build step 8,
+  // /staff/inbox); what is still missing is a named staff account on the
+  // production project that can sign in to it with a second factor, made by
+  // supabase/snippets/promote_staff.sql (supabase/STAFF-ACCESS.md). Nothing in
+  // the build can observe that, so this is set by hand, in the commit that
+  // records who it is.
   inboxStaffed: false,
 } as const;
 

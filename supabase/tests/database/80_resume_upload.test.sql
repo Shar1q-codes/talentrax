@@ -6,7 +6,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(23);
+select plan(26);
 
 create schema tests;
 grant usage on schema tests to anon, authenticated, service_role;
@@ -122,6 +122,16 @@ select is((select count(*) from public.storage_erasures e
   1::bigint, 'and the file queued for deletion in the same transaction');
 select throws_ok($$ select public.record_resume_check('00000000-0000-4000-8000-0000000c0005', 'looks_odd') $$,
   '23514', null, 'only the three check results are accepted');
+
+-- Checking later (migration 18): any age, for a row with a path.
+select is((select state from public.resume_upload_for_check('00000000-0000-4000-8000-0000000c0005')), 'missing',
+  'a row with a slot and nothing uploaded reads as missing');
+select is((select state from public.resume_upload_for_check('00000000-0000-4000-8000-0000000c0002')), 'rejected',
+  'a decided row reads as decided');
+select tests.act_as(null);
+select tests.act_as('anon');
+select throws_ok($$ select * from public.resume_upload_for_check('00000000-0000-4000-8000-0000000c0005') $$,
+  '42501', null, 'and only the service role may ask');
 select tests.act_as(null);
 
 select * from finish();

@@ -22,10 +22,10 @@ versioned delete keeps the old bytes, which would make erasure incomplete.
 | | Original | Scrubbed copy | Intake resume |
 | --- | --- | --- | --- |
 | The candidate | read, upload | read | no |
-| Recruiter who manages them | read, upload | read, upload | read, if the row is routed to them |
+| Recruiter who manages them | read, upload | read, upload | read, if the row is routed to them and the file was received |
 | Another recruiter | no | no | no |
 | BDM deciding on a submission | **no** | read | no |
-| Administrator | read, upload | read, upload | read |
+| Administrator | read, upload | read, upload | read, if the file was received |
 | Employer user | **no** | read, only a copy sent to their employer | no |
 | Another employer | no | no | no |
 | anon | no | no | no, not even what they uploaded |
@@ -64,6 +64,12 @@ The row is written first and the upload goes to the path it names.
   never point at another's file.
 - The public form uploads through a signed upload URL, which a trusted
   server mints for one intake row. There is no intake upload policy at all.
+
+**An intake file is readable only once it passed the check** (migration
+18): its row records it received. A refused file awaiting deletion, a file
+not yet checked, and anything never uploaded are unreadable by everyone,
+administrators included. The staff inbox runs the check when such a row is
+opened.
 
 ## Whether a resume arrived
 

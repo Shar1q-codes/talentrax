@@ -29,6 +29,7 @@ No page, form or API route calls the client yet.
 | `migrations/20261001001500_reset_sign_in_attempts.sql` | Clearing an address's sign-in count on purpose: service role and the SQL editor only |
 | `migrations/20261001001600_sign_in_delay_not_lockout.sql` | Sign-in failures earn a growing delay (ceiling 10 s), one attempt per address at a time, and nothing is ever locked |
 | `migrations/20261001001700_resume_upload_endpoints.sql` | The resume upload's server steps: a slot for a fresh intake row, and the verdict on what arrived, with a rejected file queued for deletion |
+| `migrations/20261001001800_intake_read_only_received.sql` | An intake file is readable only once it passed the check; the inbox can check a file whatever its age |
 | `functions/storage-erasure-worker/` | The Edge Function that deletes queued objects through the Storage API |
 | `rollback/*.down.sql` | Reverse of each migration, for local development only |
 | `tests/database/*.test.sql` | pgTAP: catalog-wide structural checks, then behaviour per role |

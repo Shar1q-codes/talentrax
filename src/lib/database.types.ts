@@ -1577,6 +1577,11 @@ isOneToOne: false
 "reset_sign_in_attempts":
 { Args: { "email": string }; Returns: number
                            },
+"resume_upload_for_check":
+{ Args: { "p_submission_key": string }; Returns: {
+              "mime_type": string,"size_bytes": number,"state": string,"storage_path": string
+            }[]
+                           },
 "sign_in_begin":
 { Args: { "email": string }; Returns: Json
                            },

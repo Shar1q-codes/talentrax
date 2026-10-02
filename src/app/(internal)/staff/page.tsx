@@ -5,6 +5,7 @@ import { StaffSignOutButton } from "@/features/auth";
 import { getStaffAccess, staffPathFor } from "@/features/auth/server";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { STAFF_INBOX_PATH } from "@/content/inbox";
 import { STAFF_HOME_PATH, STAFF_RESUME_FORM_PATH, staffHome, staffMeta } from "@/content/staff";
 import { ButtonLink } from "@/components/ui/Button";
 import { buildMetadata } from "@/lib/metadata";
@@ -14,7 +15,6 @@ import { buildMetadata } from "@/lib/metadata";
  * here: anyone short of aal2 is sent to the step they are on. The database
  * holds the same line on its own (migration 14).
  *
- * The inbox (build step 8) will live here. Until then the page says so.
  */
 export const metadata: Metadata = buildMetadata({
   title: staffMeta.home.title,
@@ -36,9 +36,9 @@ export default async function Page() {
       />
       <Container>
         <div className="flex max-w-xl flex-col gap-8 py-14 sm:py-16 lg:py-20">
-          <p className="text-base text-ink-muted">{staffHome.nothingYet}</p>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <ButtonLink href={STAFF_RESUME_FORM_PATH}>{staffHome.resumeFormLabel}</ButtonLink>
+            <ButtonLink href={STAFF_INBOX_PATH}>{staffHome.inboxLabel}</ButtonLink>
+            <ButtonLink href={STAFF_RESUME_FORM_PATH} variant="secondary">{staffHome.resumeFormLabel}</ButtonLink>
             <StaffSignOutButton />
           </div>
         </div>
