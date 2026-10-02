@@ -1119,13 +1119,13 @@ isOneToOne: false
                   ]
                 },"retention_rules": {
                   Row: {
-                    "citation": string,"code": string,"created_at": string,"created_by": string | null,"id": string,"is_active": boolean,"retention_period": string,"scope_note": string,"state": string | null,"updated_at": string
+                    "citation": string,"code": string,"created_at": string,"created_by": string | null,"id": string,"is_active": boolean,"record_kinds": (string)[],"retention_period": string,"scope_note": string,"state": string | null,"updated_at": string
                   }
                   Insert: {
-                    "citation": string,"code": string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_active"?: boolean,"retention_period": string,"scope_note": string,"state"?: string | null,"updated_at"?: string
+                    "citation": string,"code": string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_active"?: boolean,"record_kinds": (string)[],"retention_period": string,"scope_note": string,"state"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "citation"?: string,"code"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_active"?: boolean,"retention_period"?: string,"scope_note"?: string,"state"?: string | null,"updated_at"?: string
+                    "citation"?: string,"code"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"is_active"?: boolean,"record_kinds"?: (string)[],"retention_period"?: string,"scope_note"?: string,"state"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {

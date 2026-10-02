@@ -21,6 +21,7 @@ No page, form or API route calls the client yet.
 | `migrations/20261001000700_storage_worker.sql` | The outbox's leases, outcomes and backoff, the worker's schedule, and its health check |
 | `migrations/20261001000800_storage_buckets.sql` | The three buckets, their policies, and the orphan sweep |
 | `migrations/20261001000900_intake_rate_limits.sql` | Rate limits on the three public forms |
+| `migrations/20261001001000_retention_floor_by_record.sql` | The retention floor per rule, from the kinds of record each covers |
 | `functions/storage-erasure-worker/` | The Edge Function that deletes queued objects through the Storage API |
 | `rollback/*.down.sql` | Reverse of each migration, for local development only |
 | `tests/database/*.test.sql` | pgTAP: catalog-wide structural checks, then behaviour per role |

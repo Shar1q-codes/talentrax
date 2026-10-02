@@ -6,7 +6,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(22);
+select plan(23);
 
 -- Every table in public has RLS enabled.
 select is_empty(
@@ -231,6 +231,21 @@ select is(
   || 'technology:software-engineering,technology:cybersecurity,technology:data,technology:cloud,'
   || 'technology:devops,technology:qa',
   'specialties match the site taxonomy'
+);
+
+-- The retention rules as seeded (migrations 6 and 10): period, whether
+-- active, and the kinds of record each covers. Copied from the citations in
+-- supabase/ERASURE.md; a change here is a change to what is kept, and how long.
+select is(
+  (select string_agg(code || ':' || coalesce(state, '*') || ':' || retention_period::text || ':'
+                     || case when is_active then 'on' else 'off' end || ':'
+                     || array_to_string(record_kinds, '+'), ',' order by code)
+   from public.retention_rules),
+  'adea-employment-agency:*:1 year:on:application+resume+referral+placement,'
+  || 'ca-feha:CA:4 years:on:application+resume+referral,'
+  || 'ofccp-federal-contractor:*:2 years:off:application+resume+referral+personnel_action+placement,'
+  || 'title-vii-ada-gina:*:1 year:on:application+resume+referral+personnel_action+placement',
+  'the retention rules: periods, scope and the records each covers'
 );
 
 select * from finish();

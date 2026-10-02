@@ -266,12 +266,22 @@ delete the matching `OMITTED` comment there, and strike the item here.
     engineering reading, not legal advice. Specifically:
     - Is a recruiter-sourced profile an agency record under
       [29 CFR 1627.4(a)](https://www.law.cornell.edu/cfr/text/29/1627.4)?
-      The schema assumes yes, which gives every candidate a floor of at
-      least one year.
+      Since migration 10 the schema assumes **no**: the candidate row dates
+      nothing, so a sourced profile with no resume, application material,
+      referral or placement on file is erased without a floor. One holding
+      a resume is floored by it. Migration 6 assumed yes, which gave every
+      candidate at least a year.
+    - Each rule now names the records it covers (`retention_rules
+      .record_kinds`; the table is in `supabase/ERASURE.md`). Are those the
+      right kinds for each rule, in particular California's four years
+      covering resumes as well as applications and referral records?
     - May submissions, offers and placements be kept, anonymised, after the
       floor, as the employer's transaction and the basis of a fee?
     - Should a suppression list survive erasure, so a person who opted out
-      is not contacted again if re-sourced? Today nothing survives.
+      is not contacted again if re-sourced? Today nothing survives. The
+      design, and the reasoning that it rests on 11 CCR §7022(e) rather
+      than a legal obligation, is in `supabase/ERASURE.md` ("Suppression,
+      undecided"). It is not built.
     - Which legal-hold triggers does the client recognise?
 
 24. **Which file types candidates may upload.** All three buckets accept

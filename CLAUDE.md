@@ -991,7 +991,11 @@ future migration:
   new table holding candidate data needs a line in `private.erase_candidate`
   and a row in `supabase/ERASURE.md` saying whether it is erased,
   anonymised or kept, and why. Retention periods live in `retention_rules`
-  with their citations, never in code.
+  with their citations, never in code, and so do the kinds of record each
+  rule covers. The floor is computed per rule from the candidate's live
+  records of those kinds; the candidate row is not one. A stored
+  `deferred_until` is what the candidate is shown, never the gate. A new
+  table holding a qualifying record needs a kind in `retention_floor()`.
 - **Every stored file is named by a row, and originals and scrubbed copies
   live in separate buckets.** No storage policy may admit a path that no
   row names, and none may allow UPDATE or DELETE on `storage.objects`.

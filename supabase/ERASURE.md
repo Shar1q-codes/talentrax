@@ -1,8 +1,10 @@
 # Candidate erasure
 
 What happens when a candidate asks to be deleted, and why. The mechanism
-is `migrations/20261001000600_candidate_erasure.sql`; the tests are
-`tests/database/20_erasure.test.sql`.
+is `migrations/20261001000600_candidate_erasure.sql`, with the floor as
+migration 10 (`20261001001000_retention_floor_by_record.sql`) computes it;
+the tests are `tests/database/20_erasure.test.sql` and
+`25_retention_floor.test.sql`.
 
 **This is an engineering reading of the rules, not legal advice.** Every
 period below is cited, every uncertainty is marked, and the open questions
@@ -49,18 +51,107 @@ Item 21.
 - **Whether a recruiter-sourced profile is an agency record.** 1627.4(a)
   covers "any other form of employment inquiry or record of any individual
   which identifies his qualifications for employment, whether for a known
-  job opening at the time of submission or for future referral". The schema
-  takes the conservative reading: every candidate row counts, so every
-  candidate has at least a one-year floor from the latest action on their
-  file. The narrower reading (only what the candidate submitted, and
-  referrals) would erase sourced profiles sooner. Item 23.
+  job opening at the time of submission or for future referral". **Since
+  migration 10 the schema takes the narrower reading**: the candidate row
+  is not a record, so a sourced profile with no resume, application
+  material, referral or placement on file has no floor and is erased on
+  schedule. A sourced profile holding a resume (a `candidate_documents`
+  row) is floored by it. The conservative reading, which migration 6
+  took, gave every candidate a year from their last edit. This is a
+  deliberate choice that counsel should confirm: item 23.
 - **Which state's law applies.** The schema applies FEHA when the candidate
   or a linked job or requisition is in California. Where the agency is, and
   where the candidate lives, may each matter. Item 20.
 - **Consent and opt-out records.** A record that someone opted out of texts
   is evidence against a TCPA claim. Keeping it is a choice about defending
   claims, not a legal obligation, so it is erased with everything else.
-  Whether to keep a suppression list instead is item 23.
+  A suppression list that survives erasure (a keyed hash of the contact
+  point and a date, nothing else) is designed but **not built**: it belongs
+  in its own migration, and needs decisions first. See "Suppression,
+  undecided" below, and item 23.
+
+## How the floor is computed
+
+Per rule, from the records that rule covers - never from the file as a
+whole. `private.retention_floor()`:
+
+1. Takes every **active** rule that applies: nationwide rules always, a
+   state rule when the candidate, their intake, a job they applied to or a
+   requisition they were submitted to is in that state.
+2. For each, finds the **latest record of the kinds it names**
+   (`retention_rules.record_kinds`) and adds the rule's period. A rule with
+   no record of its kinds contributes nothing.
+3. The floor is the latest of those. The **basis** shown to the candidate
+   is the rules whose own floor is still in the future.
+
+| Kind | Tables |
+| --- | --- |
+| `application` | `applications`; `candidate_documents` other than resumes (cover letters, certifications, other material) |
+| `resume` | `resume_submissions` (the resume form: the application as submitted); `candidate_documents` of kind `resume` |
+| `referral` | `submissions`, `submission_events` |
+| `personnel_action` | `interviews`, `offers` |
+| `placement` | `placements` |
+
+| Rule | Period | Kinds |
+| --- | --- | --- |
+| `adea-employment-agency` | 1 year | application, resume, referral, placement |
+| `title-vii-ada-gina` | 1 year | application, resume, referral, personnel_action, placement |
+| `ca-feha` (CA) | 4 years | application, resume, referral |
+| `ofccp-federal-contractor` (inactive) | 2 years | application, resume, referral, personnel_action, placement |
+
+Job orders (ADEA) are requisitions: the employer's record, which a
+candidate erasure never touches, so they do not hold a candidate.
+
+**Not records:** the candidate row, `message_log` and
+`candidate_engagement_types`. A recruiter's edit or a logged message does
+not move anyone's floor. A candidate with none of the five kinds is
+scheduled at once.
+
+**The periods and the kinds are data.** A super_admin edits them in
+`retention_rules`, no migration involved. Switching OFCCP on, or changing
+any rule, re-dates every open deferral in the same statement (a trigger on
+the table), except those under a legal hold. `00_schema.test.sql` pins the
+seeded values, so a change to them in a migration is deliberate.
+
+**The stored date is not the gate.** `deferred_until` is what the candidate
+sees. The worker recomputes the floor from live records whenever it
+considers a request, and also takes a deferred request whose live floor has
+passed although its stored date has not. A floor never outlives the
+records it came from.
+
+## Suppression, undecided
+
+Erasing `communication_consents` removes the proof that a number or address
+opted out, so nothing stops it being re-sourced and contacted. A
+suppression row that survives erasure would fix that. It is **not built**.
+The engineering reading:
+
+- **It is personal data.** A hash whose whole purpose is to match the same
+  number again is pseudonymised, not deidentified
+  ([Civ. Code §1798.140](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.140)).
+  An unkeyed hash of a ten-digit number is also reversible by enumeration,
+  so the hash has to be an HMAC under a key kept apart from the data.
+- **Its basis is 11 CCR §7022(e), not the legal-obligation exception.** That
+  subsection lets a business "retain a record of the request for the
+  purpose of ensuring that the consumer's personal information remains
+  deleted", which is exactly this, and it limits the row to that purpose.
+  The TCPA does not oblige keeping it for recruiting calls and texts: the
+  five-year do-not-call duty
+  ([47 CFR 64.1200(d)(6)](https://www.law.cornell.edu/cfr/text/47/64.1200))
+  binds telemarketing, which recruiting usually is not. The consent rule for
+  autodialed and prerecorded calls does reach recruiting calls, but it sets
+  no record-keeping duty. So keeping the row is prudent under the TCPA and
+  permitted by the CCPA, not required.
+- **A returning person is not blocked.** If they apply again and give the
+  number with fresh consent, that consent is theirs and supersedes the old
+  opt-out: the suppression row goes and the new consent row is the evidence.
+  What it blocks is a number re-entered without the person's own fresh
+  consent (sourced, imported, typed in by a recruiter).
+
+What has to be decided before it is built, in its own migration: where the
+HMAC key lives (it can never be rotated without the plaintext, which is
+gone); how to write the row without the audit log or a shared timestamp
+linking it back to the erased candidate; and counsel's view (item 23).
 
 ## Requested, deferred, executed
 
@@ -109,12 +200,12 @@ deferred. **Executed** is the final state.
 
 | Table | Floor? | While deferred | Executed | Why |
 | --- | --- | --- | --- | --- |
-| `candidates` | Yes: the record that makes the file attributable | Held intact, restricted | **Anonymised in place**: a tombstone with `erased_at`, no name, contact, location, desk, salary or account link. A CHECK makes that exhaustive | Submissions, offers and placements reference it with `ON DELETE RESTRICT`, and are the employer's transaction. A placement must still point at *a* candidate, just not a person. |
-| `resume_submissions` | Yes: the application as submitted (1627.4, FEHA) | Held intact | **Erased**. Rows matched by `candidate_id` or by the same mailbox; the resume object is queued for Storage | Nothing references it; once the floor passes nothing requires it. |
+| `candidates` | **No** since migration 10: its timestamps date nothing. Held while deferred, because every record references it | Held intact, restricted | **Anonymised in place**: a tombstone with `erased_at`, no name, contact, location, desk, salary or account link. A CHECK makes that exhaustive | Submissions, offers and placements reference it with `ON DELETE RESTRICT`, and are the employer's transaction. A placement must still point at *a* candidate, just not a person. |
+| `resume_submissions` | Yes, `resume`: the application as submitted (1627.4, FEHA) | Held intact | **Erased**. Rows matched by `candidate_id` or by the same mailbox; the resume object is queued for Storage | Nothing references it; once the floor passes nothing requires it. |
 | `candidate_documents`, originals | Yes: application materials | Held intact | **Erased**; objects queued | The resume is the core of the record while the floor runs, and has no other value afterwards. |
 | `candidate_documents`, scrubbed | Yes: the referral record, what the employer received | Held intact | **Erased**; objects queued; `submissions.shared_document_id` cleared first | The employer keeps its own copy. Talentrax's copy proves what was sent, which matters only while a claim could be brought. |
-| `candidate_embeddings` | **No**: derived from the documents, regenerable, not a record of any action | **Erased at once** | Erased | The one table §7022(f)(2) clearly reaches during deferral. Embeddings can also leak the text they encode. |
-| `candidate_engagement_types` | Yes, conservatively: part of the expression of interest | Held intact | **Erased** | A preference, not a transaction. |
+| `candidate_embeddings` | **No**: derived from the documents, regenerable, not a record of any action | **Erased at once** | Erased | §7022(f)(2) reaches it during deferral, as it now reaches `message_log` and `candidate_engagement_types`. Embeddings can also leak the text they encode. |
+| `candidate_engagement_types` | **No** since migration 10 | **Erased at once** | Erased | A preference, not a transaction, and no rule names it. |
 | `applications` | Yes | Held intact | **Erased**; `submissions.application_id` cleared first | The candidate's own act. Nothing about the employer depends on it. |
 | `submissions` | Yes: the referral (1627.4 names referrals) | Held intact | **Anonymised**: `bdm_notes`, `employer_response`, the document and application links cleared. Consent flags and dates, BDM decision, send date, rate and status kept | The employer's transaction, and the proof that the consent and approval gate held. Kept after the floor for the placement's fee and guarantee terms. |
 | `submission_events` | Yes | Held intact | **Anonymised**: `notes` cleared. Event types, statuses, actors and dates kept. The erasure adds no events of its own | Append-only for everyone. The one exception: an erasure may clear the notes of its own candidate's events. |
@@ -123,7 +214,7 @@ deferred. **Executed** is the final state.
 | `placements` | Yes, plus tax and contract records of the fee | Held intact | **Untouched** | No column identifies the person. It points at the tombstone. **This is pseudonymous, not anonymous**: the employer knows who started on that date. That is why it is kept under the legal-obligation exception, not as deidentified data. |
 | `activities` | Yes: records made or kept about the candidate | Held intact | **Erased**: every activity on the candidate or on their applications, submissions, interviews, offers and placements | Free-text notes about the person have no use once the floor has passed. Employer-relationship notes filed against the submission go too. That is a deliberate cost. |
 | `communication_consents` | No legal floor (see "unclear") | Held, with opt-outs recorded at acceptance as evidence the contact stopped | **Erased** | With the address gone there is nobody left to contact. |
-| `message_log` | Yes, conservatively: messages about an application | Held intact | **Erased** | Addresses and bodies are the candidate's. |
+| `message_log` | **No** since migration 10 | **Erased at once** | Erased | Addresses and bodies are the candidate's, and no rule names them. Keeping them as evidence would be a choice about defending claims, like consents. |
 | `profiles` + `auth.users` | Not a record | Kept working, so the candidate can sign in and see their request | **Anonymised and disabled**: name and email cleared, deactivated. Login address, phone, password, metadata, identities, sessions, MFA factors, one-time tokens and GoTrue's own `auth.audit_log_entries` cleared | `profiles` is referenced by `created_by` across the schema and cannot be deleted. Staff accounts are never touched by a candidate erasure. |
 | `private.intake_events` | n/a | Untouched | **Untouched**: HMACs of an address and an email, no plaintext, deleted after 48 hours by pg_cron | The rate-limit ledger (migration 9). It expires long before the 45 days a request may take to answer. |
 | `audit_log` | n/a | Untouched | **Untouched** | Append-only for every role, and now never holds personal data at all (below). |
