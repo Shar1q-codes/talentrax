@@ -1551,6 +1551,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "needs_attention": number,"oldest_attention_at": string,"oldest_pending_at": string,"pending": number
             }[]
+                           },
+"sweep_orphaned_storage_objects":
+{ Args: { "p_grace"?: string }; Returns: number
                            }
           }
           Enums: {

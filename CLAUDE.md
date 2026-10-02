@@ -884,6 +884,10 @@ future migration:
   and a row in `supabase/ERASURE.md` saying whether it is erased,
   anonymised or kept, and why. Retention periods live in `retention_rules`
   with their citations, never in code.
+- **Every stored file is named by a row, and originals and scrubbed copies
+  live in separate buckets.** No storage policy may admit a path that no
+  row names, and none may allow UPDATE or DELETE on `storage.objects`.
+  `supabase/STORAGE.md` is the access matrix.
 
 `supabase/tests/database/` asserts all of it with pgTAP, including catalog
 checks that fail when a new table forgets RLS, the standard columns, the

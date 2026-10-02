@@ -19,12 +19,14 @@ No page, form or API route calls the client yet.
 | `migrations/20261001000500_row_level_security.sql` | Visibility helpers, privileges, every policy, the job board and employer views |
 | `migrations/20261001000600_candidate_erasure.sql` | Deletion requests, retention rules, legal holds, the erasure worker, the storage outbox, and the PII-free audit log |
 | `migrations/20261001000700_storage_worker.sql` | The outbox's leases, outcomes and backoff, the worker's schedule, and its health check |
+| `migrations/20261001000800_storage_buckets.sql` | The three buckets, their policies, and the orphan sweep |
 | `functions/storage-erasure-worker/` | The Edge Function that deletes queued objects through the Storage API |
 | `rollback/*.down.sql` | Reverse of each migration, for local development only |
 | `tests/database/*.test.sql` | pgTAP: catalog-wide structural checks, then behaviour per role |
 | `seed.sql` | One user per role for local testing, all fake |
 | `LOCAL.md` | The local workflow, seeded logins, and the path to hosted |
 | `ERASURE.md` | What a deletion request does to each table, the retention law behind it, and why |
+| `STORAGE.md` | Who can read, upload, overwrite and delete in each bucket, and the orphan sweep |
 
 ## Running it
 
@@ -150,10 +152,6 @@ workflow owner, never a byline: the site names nobody.
 
 ## Not in this schema, and needed before real data
 
-- **Storage policies.** `candidate_documents` governs the metadata. The
-  files will live in Supabase Storage, whose `storage.objects` policies must
-  enforce the same rules (originals to staff only, scrubbed versions to the
-  employer they were sent to) before any upload is wired up.
 - **Email confirmation on the hosted project.** A job seeker can create
   their own candidate row only under their account's email. That is safe
   only if the email is verified. Hosted Supabase confirms emails by default;

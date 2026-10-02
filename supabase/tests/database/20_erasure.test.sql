@@ -96,7 +96,7 @@ insert into tests.ids (name, id)
 select n, gen_random_uuid() from unnest(array[
   'super', 'padmin', 'bdm', 'rec', 'js', 'js2',
   'e1', 'r1', 'j1', 'cFull', 'cNone', 'cCancel', 'cHold', 'cFail', 'cJ2', 'cOwned',
-  'rs', 'dO', 'dS', 'a1', 's1', 's2', 'i1', 'o1', 'o2', 'p1', 'req_full'
+  'rs', 'rsFail', 'dO', 'dS', 'a1', 's1', 's2', 'i1', 'o1', 'o2', 'p1', 'req_full'
 ]) as n;
 
 insert into auth.users (id, email, raw_user_meta_data)
@@ -151,7 +151,7 @@ insert into public.candidates (id, full_name, email, source, owner_id, created_a
 insert into public.resume_submissions (id, candidate_id, full_name, email, phone, state, message, consent_store,
                                        resume_storage_path, resume_filename, status)
 values (tests.id('rs'), tests.id('cFull'), 'Erasure Test Full', 'full@erasure.example.test', '555-0142', 'TX',
-        'resume message from Full', true, 'test/full-resume.pdf', 'Full_Name_Resume.pdf', 'converted');
+        'resume message from Full', true, tests.id('rs')::text || '/resume.pdf', 'Full_Name_Resume.pdf', 'converted');
 insert into public.candidate_engagement_types (candidate_id, engagement_type) values (tests.id('cFull'), 'contract');
 insert into public.candidate_documents (id, candidate_id, kind, storage_path, original_filename, is_original)
 values (tests.id('dO'), tests.id('cFull'), 'resume', 'test/full-original.pdf', 'Full_Name_Resume.pdf', true);
@@ -189,9 +189,9 @@ insert into public.message_log (channel, candidate_id, to_address, body) values
 insert into public.candidate_embeddings (candidate_id, embedding, model_name) values
   (tests.id('cCancel'), array_fill(0.2::real, array[1536])::extensions.vector, 'test-model'),
   (tests.id('cFail'), array_fill(0.3::real, array[1536])::extensions.vector, 'test-model');
-insert into public.resume_submissions (candidate_id, full_name, email, consent_store, resume_storage_path, status, created_at)
-values (tests.id('cFail'), 'Test Fail', 'fail@erasure.example.test', true, 'test/fail-resume.pdf', 'converted',
-        now() - interval '3 years');
+insert into public.resume_submissions (id, candidate_id, full_name, email, consent_store, resume_storage_path, status, created_at)
+values (tests.id('rsFail'), tests.id('cFail'), 'Test Fail', 'fail@erasure.example.test', true,
+        tests.id('rsFail')::text || '/resume.pdf', 'converted', now() - interval '3 years');
 
 -- =============================================================================
 -- 1. The audit log does not keep personal data, or a candidate's IP.
@@ -397,7 +397,7 @@ select is_empty(
        'Erasure Test Full', 'full@erasure.example.test', '555-0142', 'Full_Name_Resume.pdf',
        'resume message from Full', 'linkedin.com/in/erasure-full', 'cover note naming', 'bdm note on Full',
        'employer liked Full', 'feedback on Full', 'declined: family reasons', 'called Full', 'Hi Full',
-       'test/full-original.pdf', 'test/full-resume.pdf']) as s
+       'test/full-original.pdf']) as s
      where coalesce(a.old_values::text, '') || coalesce(a.new_values::text, '') like '%' || s || '%' $$,
   'audit_log contains no trace of the candidate''s personal data, before, during or after erasure');
 

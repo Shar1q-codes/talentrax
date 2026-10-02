@@ -271,3 +271,10 @@ delete the matching `OMITTED` comment there, and strike the item here.
     - Should a suppression list survive erasure, so a person who opted out
       is not contacted again if re-sourced? Today nothing survives.
     - Which legal-hold triggers does the client recognise?
+
+24. **Which file types candidates may upload.** All three buckets accept
+    PDF, DOC and DOCX up to 5 MB, the resume form's own limits. The schema
+    also allows certifications and other documents, which in practice are
+    often photos or scans. Should those buckets accept images, and up to
+    what size?
+    *Assumed: the resume form's limits everywhere.*
