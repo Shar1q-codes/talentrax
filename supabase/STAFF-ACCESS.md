@@ -4,7 +4,7 @@ The runbook for one situation: **a staff member cannot produce their
 second factor** - a lost or wiped phone, a deleted authenticator app - and
 asks for it to be reset.
 
-Written before staff MFA is built (build step 7), on purpose. The reset is
+Written before staff MFA is built (build step 6), on purpose. The reset is
 the weakest point of any second factor: an attacker who has someone's
 password and can talk their way through a reset has beaten MFA without
 touching it. So who may reset, what they run and what they accept as proof
@@ -132,7 +132,7 @@ commit;
 
 **3. The person signs in, on the call, and enrols a new factor.** Their
 password still works; with no factor, staff sign-in sends them straight to
-enrolment (to be built in step 7, and required of it).
+enrolment (to be built in step 6, and required of it).
 
 **4. Confirm only their factor exists.**
 
@@ -153,7 +153,7 @@ step 4 shows one factor that is theirs.
 
 ## Passwords
 
-There is no staff password reset in the app either (the plan for step 7).
+There is no staff password reset in the app either (the plan for step 6).
 An administrator sends a recovery email from the dashboard, Authentication
 > Users > that user > Send password recovery. It goes to the account's own
 address, so it is only safe when the mailbox is not in doubt.
@@ -198,7 +198,7 @@ On the local stack, 2026-10-02, with the seeded `recruiter@example.test`
 
 ---
 
-## What staff MFA (build step 7) must keep true
+## What staff MFA (build step 6) must keep true
 
 - A staff account with no verified factor reaches enrolment and nothing
   else.

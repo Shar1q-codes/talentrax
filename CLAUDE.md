@@ -305,6 +305,21 @@ retry, and dropped by any edit to the form: changed content is a new
 submission, and must not be swallowed as a retry of the old one. A wired
 seam logs nothing.
 
+**The build order** for the backend's first pieces. Each step is a commit
+that leaves every check passing.
+
+| Step | What | State |
+| --- | --- | --- |
+| 1-3 | The three Supabase clients; migration 11; the root layout split | Done |
+| 4 | Contact wired, with the forms gate and the storage disclosure | Done |
+| 5 | Request Talent wired | Done |
+| 6 | Staff sign-in and sign-out, TOTP MFA required, the sign-in attempt limiter | |
+| 7 | Resume upload endpoints and form, behind staff sign-in in production | |
+| 8 | The staff inbox | |
+
+Steps 6 and 7 were swapped from the first plan: the resume form's
+production guard is staff sign-in, so sign-in has to exist first.
+
 **Shared data.** `src/content/taxonomy.ts` holds the engagement models and
 the three desks. Both sections render them and both forms build their
 option lists from them, so Employers and Job Seekers cannot advertise
@@ -1117,7 +1132,7 @@ reaches a hosted project.
 `supabase/STAFF-ACCESS.md`, and only by it**: a person with project access
 runs the SQL, a `super_admin` approves, neither is the person asking, and
 identity is proven by a call back to a number on file plus a live video or
-in-person check. Staff MFA (build step 7) implements that path. It must not
+in-person check. Staff MFA (build step 6) implements that path. It must not
 add a factor reset to the app, for any role.
 
 The taxonomy tables are seeded from `src/content/taxonomy.ts`. Changing a
