@@ -97,11 +97,6 @@ export const aboutCta: CtaBandContent = {
       href: "/employers/request-talent",
       variant: "inverse",
     },
-    {
-      label: "Upload your resume",
-      href: "/job-seekers/upload-resume",
-      variant: "outline-inverse",
-    },
   ],
   footnote:
     "Not sure which? Either one reaches a person, and we will point you the right way.",

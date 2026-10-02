@@ -21,7 +21,6 @@ const BUILT_ROUTES: { path: string; priority: number }[] = [
   { path: "/employers/services", priority: 0.8 },
   { path: "/employers/request-talent", priority: 0.8 },
   { path: "/job-seekers", priority: 0.9 },
-  { path: "/job-seekers/upload-resume", priority: 0.8 },
   { path: "/jobs", priority: 0.9 },
   { path: "/about", priority: 0.7 },
   { path: "/contact", priority: 0.7 },

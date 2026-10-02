@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { ContactForm } from "@/features/contact";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { NotOpenNotice } from "@/components/ui/NotOpenNotice";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Section, SectionHeader } from "@/components/ui/Section";
 import { contactForm, contactHero, contactMeta, intents } from "@/content/contact";
@@ -67,6 +68,8 @@ export default function Page() {
           intro={contactForm.intro}
         />
         <div className="max-w-3xl">
+          {/* Removed when the form is wired. See content/contact.ts. */}
+          <NotOpenNotice className="mb-10">{contactForm.notOpen.notice}</NotOpenNotice>
           <ContactForm />
         </div>
       </Section>

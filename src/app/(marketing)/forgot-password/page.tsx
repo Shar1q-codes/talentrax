@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { ForgotPasswordForm } from "@/features/auth";
 import { Container } from "@/components/ui/Container";
+import { NotOpenNotice } from "@/components/ui/NotOpenNotice";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
   forgotPassword,
@@ -33,9 +34,7 @@ export default function Page() {
         intro={forgotPassword.intro}
       >
         {/* Removed when auth is wired. See content/auth.ts. */}
-        <p className="mt-6 max-w-3xl border-l-4 border-accent py-2 pl-4 text-base text-ink-muted">
-          {notOpenYet.forgotPassword}
-        </p>
+        <NotOpenNotice>{notOpenYet.forgotPassword}</NotOpenNotice>
       </PageHeader>
 
       <Container>

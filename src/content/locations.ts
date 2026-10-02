@@ -127,11 +127,6 @@ export const locationsCta: CtaBandContent = {
     "Send us your resume and tell us where you can work, or send us a role and tell us where it sits. Both reach the desk that recruits the discipline.",
   ctas: [
     {
-      label: "Upload your resume",
-      href: "/job-seekers/upload-resume",
-      variant: "inverse",
-    },
-    {
       label: "Request talent",
       href: "/employers/request-talent",
       variant: "outline-inverse",

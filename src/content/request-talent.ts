@@ -266,6 +266,15 @@ export const usStates: SelectOption[] = [
 /* ------------------------------------------------------------ Page & form */
 
 export const requestTalent = {
+  /**
+   * Shown above the form, and after a submit, while the form is not
+   * connected to anything - the pattern the account screens use
+   * (content/auth.ts, notOpenYet). Both go in the commit that wires it.
+   */
+  notOpen: {
+    notice: "This form is not open yet, so a brief sent here does not reach us.",
+    afterSubmit: "This form is not open yet. Nothing was sent.",
+  },
   eyebrow: "Employers",
   heading: "Request talent",
   intro:

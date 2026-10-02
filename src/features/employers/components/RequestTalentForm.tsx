@@ -239,7 +239,7 @@ function toPayload(values: Values): RequisitionPayload {
 export function RequestTalentForm() {
   const [values, setValues] = useState<Values>(initialValues);
   const [errors, setErrors] = useState<FieldError[]>([]);
-  const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "unavailable">("idle");
   const [honeypot, setHoneypot] = useState("");
 
   /**
@@ -250,6 +250,7 @@ export function RequestTalentForm() {
 
   const summaryRef = useRef<HTMLDivElement>(null);
   const successRef = useRef<HTMLDivElement>(null);
+  const outcomeRef = useRef<HTMLParagraphElement>(null);
   const openedAt = useRef<number | null>(null);
 
   /**
@@ -273,6 +274,7 @@ export function RequestTalentForm() {
 
   useEffect(() => {
     if (status === "sent") successRef.current?.focus();
+    if (status === "unavailable") outcomeRef.current?.focus();
   }, [status]);
 
   const setValue = (key: FieldKey) => (value: string) =>
@@ -293,7 +295,7 @@ export function RequestTalentForm() {
     setErrors([]);
 
     // Spam checks run only on an otherwise valid submission, and both fail
-    // closed into the success state: a bot gets no signal that it was caught.
+    // closed into the outcome a person gets: a bot gets no signal that it was caught.
     const secondsOnPage = openedAt.current
       ? (Date.now() - openedAt.current) / 1000
       : 0;
@@ -302,15 +304,15 @@ export function RequestTalentForm() {
       secondsOnPage < requestTalent.spam.minSubmitSeconds;
 
     if (looksAutomated) {
-      setStatus("sent");
+      setStatus("unavailable");
       return;
     }
 
     setStatus("sending");
     const result = await submitRequisition(toPayload(values));
-    // There is no failure path until the API exists; when it does, `result.ok`
-    // false surfaces here rather than in a new branch of this component.
-    setStatus(result.ok ? "sent" : "idle");
+    // Until the API exists the seam answers `unavailable`, and the form says
+    // so. A real failure, when there is one, arrives on the same path.
+    setStatus(result.ok ? "sent" : "unavailable");
   }
 
   function handleReset() {
@@ -353,6 +355,17 @@ export function RequestTalentForm() {
 
   return (
     <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-10">
+      {/* Not connected yet: say so, and keep what they typed. */}
+      {status === "unavailable" ? (
+        <p
+          ref={outcomeRef}
+          tabIndex={-1}
+          role="status"
+          className="rounded-lg border border-brand bg-brand-soft p-5 text-base text-ink"
+        >
+          {requestTalent.notOpen.afterSubmit}
+        </p>
+      ) : null}
       {errors.length > 0 ? (
         <div
           ref={summaryRef}

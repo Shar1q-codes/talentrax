@@ -56,14 +56,6 @@ export const intents = {
       linkLabel: "Request talent",
       href: "/employers/request-talent",
     },
-    {
-      id: "candidate",
-      title: "You are looking for work",
-      description:
-        "Send your resume once. A recruiter who works your discipline reads it, and every submission is made with your agreement.",
-      linkLabel: "Upload your resume",
-      href: "/job-seekers/upload-resume",
-    },
   ] satisfies IntentCard[],
 };
 
@@ -137,6 +129,15 @@ export const enquiryTypeOptions: {
 /* --------------------------------------------------------------- The form */
 
 export const contactForm = {
+  /**
+   * Shown above the form, and after a submit, while the form is not
+   * connected to anything - the pattern the account screens use
+   * (content/auth.ts, notOpenYet). Both go in the commit that wires it.
+   */
+  notOpen: {
+    notice: "This form is not open yet, so a message sent here does not reach us.",
+    afterSubmit: "This form is not open yet. Nothing was sent.",
+  },
   heading: "Send us a message",
   intro:
     "For everything else: a question, a complaint, a data request, or something we have not thought of.",

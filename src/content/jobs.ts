@@ -52,14 +52,6 @@ export const emptyBoard = {
   ],
   routes: [
     {
-      id: "candidate",
-      title: "Send us your resume",
-      description:
-        "A recruiter who works your discipline reads it, and contacts you when something matches what you told us you want. Every submission is made with your agreement.",
-      linkLabel: "Upload your resume",
-      href: "/job-seekers/upload-resume",
-    },
-    {
       id: "employer",
       title: "You are hiring",
       description:
@@ -137,11 +129,6 @@ export const jobsCta: CtaBandContent = {
   description:
     "Most roles are filled from candidates a recruiter already knows. One upload puts you in front of the desk that recruits your discipline.",
   ctas: [
-    {
-      label: "Upload your resume",
-      href: "/job-seekers/upload-resume",
-      variant: "inverse",
-    },
     {
       label: "How applying works",
       href: "/job-seekers",

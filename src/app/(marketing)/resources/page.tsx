@@ -120,10 +120,12 @@ export default function Page() {
           intro={resumeGuidance.intro}
         />
         <Blocks blocks={resumeGuidance.blocks} />
-        <SectionLink
-          label={resumeGuidance.link.label}
-          href={resumeGuidance.link.href}
-        />
+        {resumeGuidance.link ? (
+          <SectionLink
+            label={resumeGuidance.link.label}
+            href={resumeGuidance.link.href}
+          />
+        ) : null}
       </Section>
 
       <Section id="by-desk" labelledBy="by-desk-heading">

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { RequestTalentForm } from "@/features/employers";
 import { Container } from "@/components/ui/Container";
 import { Icon } from "@/components/ui/Icon";
+import { NotOpenNotice } from "@/components/ui/NotOpenNotice";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { employersMeta } from "@/content/employers";
 import { requestTalent } from "@/content/request-talent";
@@ -27,6 +28,8 @@ export default function Page() {
         heading={requestTalent.heading}
         intro={requestTalent.intro}
       >
+        {/* Removed when the form is wired. See content/request-talent.ts. */}
+        <NotOpenNotice>{requestTalent.notOpen.notice}</NotOpenNotice>
         <ul className="mt-8 flex flex-col gap-2">
           {requestTalent.beforeYouStart.map((item) => (
             <li

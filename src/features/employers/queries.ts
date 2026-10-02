@@ -2,8 +2,9 @@
  * The submit seam for the Request Talent form.
  *
  * There is no backend on this site yet, so nothing is transmitted: the
- * validated payload is written to the browser console and the form shows its
- * success state.
+ * validated payload is written to the browser console and the seam answers
+ * `unavailable`. The form says the form is not open yet and nothing was sent;
+ * it never claims the brief was received.
  *
  * TODO(api): when the requisition endpoint exists, this is the ONLY file that
  * changes. Replace the console.log with the fetch below, keep the
@@ -15,7 +16,7 @@
  *     headers: { "Content-Type": "application/json" },
  *     body: JSON.stringify(payload),
  *   });
- *   if (!response.ok) return { ok: false, message: "..." };
+ *   if (!response.ok) return { ok: false, reason: "failed" };
  *   return { ok: true };
  *
  * Note that an /api route would be the first backend code in this repo. See
@@ -55,12 +56,17 @@ export type RequisitionPayload = {
   };
 };
 
-export type SubmitResult = { ok: true } | { ok: false; message: string };
+/**
+ * `unavailable`: the form is not connected to anything, so nothing was sent.
+ * The form says exactly that. When the endpoint exists, a failed request
+ * returns `{ ok: false, reason: "failed" }` with copy of its own.
+ */
+export type SubmitResult = { ok: true } | { ok: false; reason: "unavailable" };
 
 export async function submitRequisition(
   payload: RequisitionPayload,
 ): Promise<SubmitResult> {
   // Stands in for the API call sketched above.
   console.log("[request-talent] requisition payload", payload);
-  return { ok: true };
+  return { ok: false, reason: "unavailable" };
 }

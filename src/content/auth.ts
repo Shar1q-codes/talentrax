@@ -55,9 +55,9 @@ export const MIN_PASSWORD_LENGTH = 12;
  */
 export const notOpenYet = {
   login:
-    "Accounts are not open yet, so this form cannot sign anyone in. You do not need one to send us your resume.",
+    "Accounts are not open yet, so this form cannot sign anyone in.",
   register:
-    "Accounts are not open yet, so this form cannot create one. The resume form works today and needs no account.",
+    "Accounts are not open yet, so this form cannot create one.",
   forgotPassword:
     "Accounts are not open yet, so there is nothing to reset and no email will be sent.",
 };
@@ -115,10 +115,6 @@ export const login = {
   registerIntro: "No account?",
   registerLabel: "Create one",
   registerHref: REGISTER_PATH,
-  /** No account needed for the thing most people came to do. */
-  uploadIntro: "You can send us your resume without an account at all.",
-  uploadLabel: "Upload your resume",
-  uploadHref: "/job-seekers/upload-resume",
 };
 
 /* ------------------------------------------------------------ Register */

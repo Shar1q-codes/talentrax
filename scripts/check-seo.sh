@@ -52,7 +52,6 @@ BUILT_ROUTES=(
   /employers/services
   /employers/request-talent
   /job-seekers
-  /job-seekers/upload-resume
   /jobs
   /about
   /contact
@@ -70,6 +69,9 @@ UNLISTED_ROUTES=(
   /login
   /register
   /forgot-password
+  # The resume form: the release gate in CLIENT-CONFIRM.md. Real, reachable
+  # by URL, unlinked from every page, noindex, and not in the sitemap.
+  /job-seekers/upload-resume
 )
 
 # Empty: there are no unbuilt routes left.

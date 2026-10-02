@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { UploadResumeForm } from "@/features/job-seekers";
 import { Container } from "@/components/ui/Container";
 import { Icon } from "@/components/ui/Icon";
+import { NotOpenNotice } from "@/components/ui/NotOpenNotice";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { jobSeekersMeta } from "@/content/job-seekers";
 import { uploadResume } from "@/content/upload-resume";
@@ -12,6 +13,10 @@ export const metadata: Metadata = buildMetadata({
   title: jobSeekersMeta.uploadResume.title,
   description: jobSeekersMeta.uploadResume.description,
   path: "/job-seekers/upload-resume",
+  // The release gate in CLIENT-CONFIRM.md: not publicly reachable until the
+  // privacy items are answered. The route stays, unlinked from every page,
+  // out of the sitemap, and noindex - the account screens' treatment.
+  noIndex: true,
 });
 
 /**
@@ -27,6 +32,8 @@ export default function Page() {
         heading={uploadResume.heading}
         intro={uploadResume.intro}
       >
+        {/* Removed when the form is wired. See content/upload-resume.ts. */}
+        <NotOpenNotice>{uploadResume.notOpen.notice}</NotOpenNotice>
         <ul className="mt-8 flex flex-col gap-2">
           {uploadResume.beforeYouStart.map((item) => (
             <li

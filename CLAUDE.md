@@ -198,8 +198,13 @@ early.
 
 The three forms - `/employers/request-talent`, `/job-seekers/upload-resume`
 and `/contact` - are the only client components on the site.
-Neither has a backend. Each submits through one swappable function that logs
-its payload and returns success:
+None has a backend, and none claims otherwise. Each submits through one
+swappable function that logs its payload and returns `unavailable`. The page
+says the form is not open yet, above the form, and the form says nothing
+was sent after a submit: the account screens' pattern, with the same
+`NotOpenNotice` component and copy in each form's content file (`notOpen`).
+**The notice and the `unavailable` answer go in the commit that wires that
+form, and not a commit earlier.**
 
 | Form | Seam |
 | --- | --- |
@@ -207,7 +212,8 @@ its payload and returns success:
 | Upload Resume | `submitApplication()` in `src/features/job-seekers/queries.ts` |
 | Contact | `submitContact()` in `src/features/contact/queries.ts` |
 
-Wiring a real endpoint is a change to that one file. The resume upload is
+Wiring a real endpoint is a change to that one file, plus removing the
+notice. The resume upload is
 stubbed on purpose: the `File` rides in the payload, and the TODO spells out
 the presigned-URL upload it needs instead of a multipart POST.
 
@@ -730,6 +736,11 @@ apart. `check-seo.sh` has a third route
 list, `UNLISTED_ROUTES`, that asserts both halves: each returns 200 **and**
 carries noindex **and** is not in the sitemap. A future edit that makes one
 indexable fails there.
+
+**`/job-seekers/upload-resume` is in that list too**, for a different reason:
+the release gate in CLIENT-CONFIRM.md. It is reachable by URL and linked
+from no page - not the navigation, the footer, a CTA, an intent card or the
+sitemap. Relinking it is the decision the gate guards.
 
 **Candidate accounts only.** Employer accounts are created by the Talentrax
 team. There is deliberately no account-type selector on `/register` - a

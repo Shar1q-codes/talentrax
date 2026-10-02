@@ -105,11 +105,6 @@ export const primaryNav: NavItem[] = [
         href: "/resources",
         description: "Interview preparation and resume guidance",
       },
-      {
-        label: "Upload Resume",
-        href: "/job-seekers/upload-resume",
-        description: "One upload, read by a specialist recruiter",
-      },
     ],
   },
   {
@@ -192,7 +187,6 @@ export const footerColumns: FooterColumn[] = [
       { label: "Browse Jobs", href: "/jobs" },
       { label: "Locations", href: "/locations" },
       { label: "Resources", href: "/resources" },
-      { label: "Upload Resume", href: "/job-seekers/upload-resume" },
     ],
   },
   {

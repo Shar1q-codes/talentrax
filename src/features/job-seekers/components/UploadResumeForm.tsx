@@ -189,12 +189,13 @@ export function UploadResumeForm() {
   });
 
   const [errors, setErrors] = useState<FieldError[]>([]);
-  const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "unavailable">("idle");
   const [honeypot, setHoneypot] = useState("");
   const [failedAttempts, setFailedAttempts] = useState(0);
 
   const summaryRef = useRef<HTMLDivElement>(null);
   const successRef = useRef<HTMLDivElement>(null);
+  const outcomeRef = useRef<HTMLParagraphElement>(null);
   const resumeInputRef = useRef<HTMLInputElement>(null);
   const openedAt = useRef<number | null>(null);
 
@@ -208,6 +209,7 @@ export function UploadResumeForm() {
 
   useEffect(() => {
     if (status === "sent") successRef.current?.focus();
+    if (status === "unavailable") outcomeRef.current?.focus();
   }, [status]);
 
   const setValue = (key: TextKey) => (value: string) =>
@@ -240,7 +242,7 @@ export function UploadResumeForm() {
     if (!resume) return;
 
     // Both checks run only on an otherwise valid submission, and both fail
-    // closed into the success state: a bot gets no signal it was caught.
+    // closed into the outcome a person gets: a bot gets no signal it was caught.
     const secondsOnPage = openedAt.current
       ? (Date.now() - openedAt.current) / 1000
       : 0;
@@ -249,7 +251,7 @@ export function UploadResumeForm() {
       secondsOnPage < uploadResume.spam.minSubmitSeconds;
 
     if (looksAutomated) {
-      setStatus("sent");
+      setStatus("unavailable");
       return;
     }
 
@@ -274,7 +276,7 @@ export function UploadResumeForm() {
 
     setStatus("sending");
     const result = await submitApplication(payload);
-    setStatus(result.ok ? "sent" : "idle");
+    setStatus(result.ok ? "sent" : "unavailable");
   }
 
   function handleReset() {
@@ -322,6 +324,17 @@ export function UploadResumeForm() {
 
   return (
     <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-10">
+      {/* Not connected yet: say so, and keep what they typed. */}
+      {status === "unavailable" ? (
+        <p
+          ref={outcomeRef}
+          tabIndex={-1}
+          role="status"
+          className="rounded-lg border border-brand bg-brand-soft p-5 text-base text-ink"
+        >
+          {uploadResume.notOpen.afterSubmit}
+        </p>
+      ) : null}
       {errors.length > 0 ? (
         <div
           ref={summaryRef}

@@ -204,17 +204,6 @@ export function SignInForm() {
           </Link>
           .
         </p>
-
-        <p className="mt-2 text-base text-ink-muted">
-          {login.uploadIntro}{" "}
-          <Link
-            href={login.uploadHref}
-            className="link-inline"
-          >
-            {login.uploadLabel}
-          </Link>
-          .
-        </p>
       </div>
     </form>
   );

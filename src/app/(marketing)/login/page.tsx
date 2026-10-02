@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { SignInForm } from "@/features/auth";
 import { Container } from "@/components/ui/Container";
+import { NotOpenNotice } from "@/components/ui/NotOpenNotice";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { login, loginMeta, notOpenYet } from "@/content/auth";
 import { buildMetadata } from "@/lib/metadata";
@@ -35,9 +36,7 @@ export default function Page() {
           built, so the page says plainly what this form can and cannot do
           before anyone types a password into it. Removed when auth is wired.
         */}
-        <p className="mt-6 max-w-3xl border-l-4 border-accent py-2 pl-4 text-base text-ink-muted">
-          {notOpenYet.login}
-        </p>
+        <NotOpenNotice>{notOpenYet.login}</NotOpenNotice>
       </PageHeader>
 
       <Container>

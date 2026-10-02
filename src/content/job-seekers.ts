@@ -55,7 +55,6 @@ export const jobSeekersHero: SectionIntro & { ctas: Cta[] } = {
   intro:
     "Send us one resume and it goes straight to the recruiter who works your discipline. Every submission is made with your agreement, and you hear back from us either way.",
   ctas: [
-    { label: "Upload your resume", href: UPLOAD_RESUME_PATH, variant: "primary" },
     // /jobs is still a coming-soon route. It is linked like any other route
     // on this site: the page itself explains and offers a way onward, which
     // is the treatment every unbuilt route gets.
@@ -172,7 +171,6 @@ export const jobSeekersCta: CtaBandContent = {
   description:
     "One upload, read by a recruiter who works your discipline. You decide where it goes after that.",
   ctas: [
-    { label: "Upload your resume", href: UPLOAD_RESUME_PATH, variant: "inverse" },
     { label: "Browse open roles", href: JOBS_PATH, variant: "outline-inverse" },
   ],
   footnote:

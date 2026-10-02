@@ -61,14 +61,6 @@ export const emptyIndex = {
       linkLabel: "Request talent",
       href: "/employers/request-talent",
     },
-    {
-      id: "candidate",
-      title: "You are looking for work",
-      description:
-        "Send your resume once. A recruiter who works your discipline reads it, and every submission is made with your agreement.",
-      linkLabel: "Upload your resume",
-      href: "/job-seekers/upload-resume",
-    },
   ],
   guidanceLinkIntro: "Practical guidance for candidates:",
   guidanceLinkLabel: "Interview preparation and resume guidance",
@@ -109,11 +101,6 @@ export const insightsCta: CtaBandContent = {
       label: "Request talent",
       href: "/employers/request-talent",
       variant: "inverse",
-    },
-    {
-      label: "Upload your resume",
-      href: "/job-seekers/upload-resume",
-      variant: "outline-inverse",
     },
   ],
   footnote: "Both reach a person on the desk that recruits your discipline.",

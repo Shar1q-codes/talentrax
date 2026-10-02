@@ -154,10 +154,6 @@ export const faqGroups: FaqGroup[] = [
           "Upload your resume once. The form asks for your name, contact details, where you are based, the specialty you want, whether you need sponsorship to work in the US, and which engagement types you would consider.",
           "Resumes are accepted as PDF, DOC or DOCX, up to 5 MB.",
         ],
-        link: {
-          label: "Upload your resume",
-          href: "/job-seekers/upload-resume",
-        },
       },
       {
         id: "do-i-need-an-account",
@@ -255,11 +251,6 @@ export const faqCta: CtaBandContent = {
     "Ask. A question costs nothing and reaches a person.",
   ctas: [
     { label: "Contact us", href: "/contact", variant: "inverse" },
-    {
-      label: "Upload your resume",
-      href: "/job-seekers/upload-resume",
-      variant: "outline-inverse",
-    },
   ],
   footnote:
     "Employers with a role to fill and candidates with a resume both have a form that reaches the right desk directly.",

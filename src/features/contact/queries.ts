@@ -2,8 +2,9 @@
  * The submit seam for the general contact form.
  *
  * There is no backend on this site yet, so nothing is transmitted: the
- * validated payload is written to the browser console and the form shows its
- * success state.
+ * validated payload is written to the browser console and the seam answers
+ * `unavailable`. The form says the form is not open yet and nothing was sent;
+ * it never claims the message was received.
  *
  * TODO(api): when the endpoint exists, this is the ONLY file that changes.
  * Keep the `SubmitResult` shape and the form picks up success and failure
@@ -14,7 +15,7 @@
  *     headers: { "Content-Type": "application/json" },
  *     body: JSON.stringify(payload),
  *   });
- *   if (!response.ok) return { ok: false, message: "..." };
+ *   if (!response.ok) return { ok: false, reason: "failed" };
  *   return { ok: true };
  *
  * Whoever wires this up needs a destination inbox, which does not exist yet -
@@ -39,12 +40,17 @@ export type ContactPayload = {
   message: string;
 };
 
-export type SubmitResult = { ok: true } | { ok: false; message: string };
+/**
+ * `unavailable`: the form is not connected to anything, so nothing was sent.
+ * The form says exactly that. When the endpoint exists, a failed request
+ * returns `{ ok: false, reason: "failed" }` with copy of its own.
+ */
+export type SubmitResult = { ok: true } | { ok: false; reason: "unavailable" };
 
 export async function submitContact(
   payload: ContactPayload,
 ): Promise<SubmitResult> {
   // Stands in for the API call sketched above.
   console.log("[contact] message payload", payload);
-  return { ok: true };
+  return { ok: false, reason: "unavailable" };
 }

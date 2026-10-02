@@ -116,7 +116,8 @@ export const interviewPrep: SectionIntro & {
 
 export const resumeGuidance: SectionIntro & {
   blocks: GuidanceBlock[];
-  link: { label: string; href: string };
+  /** None while the resume form is unlinked (CLIENT-CONFIRM.md release gate). */
+  link: { label: string; href: string } | null;
 } = {
   eyebrow: "Resume guidance",
   heading: "Writing a resume that can be read quickly",
@@ -157,10 +158,7 @@ export const resumeGuidance: SectionIntro & {
       ],
     },
   ],
-  link: {
-    label: "Send us your resume",
-    href: "/job-seekers/upload-resume",
-  },
+  link: null,
 };
 
 /* --------------------------------------------- 3. Desk-specific guidance */
@@ -232,11 +230,6 @@ export const resourcesCta: CtaBandContent = {
   description:
     "Send us your resume and a recruiter who works your discipline reads it, and every submission is made with your agreement.",
   ctas: [
-    {
-      label: "Upload your resume",
-      href: "/job-seekers/upload-resume",
-      variant: "inverse",
-    },
     {
       label: "How applying works",
       href: "/job-seekers",
