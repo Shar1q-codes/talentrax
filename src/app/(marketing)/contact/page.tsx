@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Section, SectionHeader } from "@/components/ui/Section";
 import { contactForm, contactHero, contactMeta, intents } from "@/content/contact";
 import { buildMetadata } from "@/lib/metadata";
+import { publicFormsOpen } from "@/lib/supabase/forms-gate";
 
 export const metadata: Metadata = buildMetadata({
   title: contactMeta.title,
@@ -31,8 +32,13 @@ export const metadata: Metadata = buildMetadata({
  *
  * No map, no office photography, no business-hours block: none are confirmed
  * and the site loads no external assets anyway.
+ *
+ * Whether the form is open is decided once, at build time, by the forms gate
+ * (src/lib/supabase/forms-gate.ts). The notice and the form's own behaviour
+ * both follow that one answer.
  */
 export default function Page() {
+  const open = publicFormsOpen();
   return (
     <>
       <PageHeader
@@ -68,9 +74,10 @@ export default function Page() {
           intro={contactForm.intro}
         />
         <div className="max-w-3xl">
-          {/* Removed when the form is wired. See content/contact.ts. */}
-          <NotOpenNotice className="mb-10">{contactForm.notOpen.notice}</NotOpenNotice>
-          <ContactForm />
+          {open ? null : (
+            <NotOpenNotice className="mb-10">{contactForm.notOpen.notice}</NotOpenNotice>
+          )}
+          <ContactForm open={open} />
         </div>
       </Section>
     </>

@@ -27,8 +27,10 @@ const deepFeatureImportExceptFixtures = {
   regex: "^@/features/[^/]+/(?!server$)(?!.*\\.fixture(\\.ts)?$).+",
   message: deepFeatureImport.message,
 };
+// One exception: the forms gate, which reads the environment and touches no
+// database. Pages ask it whether the public forms are open.
 const databaseAccess = {
-  group: ["@supabase/*", "@/lib/supabase/*"],
+  group: ["@supabase/*", "@/lib/supabase/*", "!@/lib/supabase/forms-gate"],
   message:
     "Database access lives in a feature's queries.ts or queries.server.ts, never in a component, page, layout or route handler.",
 };

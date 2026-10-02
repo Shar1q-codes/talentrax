@@ -18,6 +18,7 @@
  * there first and keeps the general form for everything else.
  */
 
+import { retryIn } from "./form-outcomes";
 import type { FieldConfig } from "./request-talent";
 
 export const CONTACT_PATH = "/contact";
@@ -130,13 +131,25 @@ export const enquiryTypeOptions: {
 
 export const contactForm = {
   /**
-   * Shown above the form, and after a submit, while the form is not
-   * connected to anything - the pattern the account screens use
-   * (content/auth.ts, notOpenYet). Both go in the commit that wires it.
+   * Shown above the form, and after a submit, whenever the forms gate says
+   * the form is closed (src/lib/supabase/forms-gate.ts): a build with no
+   * database, or production before its release conditions hold. The
+   * pattern the account screens use (content/auth.ts, notOpenYet).
    */
   notOpen: {
     notice: "This form is not open yet, so a message sent here does not reach us.",
     afterSubmit: "This form is not open yet. Nothing was sent.",
+  },
+  /**
+   * What a submit that did not get through says. Neither names a cause it
+   * cannot know, and neither says which limit refused it.
+   */
+  outcome: {
+    rateLimited: (retryAfterSeconds: number | null) =>
+      "Too many messages have been sent through this form recently, so yours was not sent. What you typed is still here. " +
+      retryIn(retryAfterSeconds),
+    failed:
+      "Your message could not be sent, so it has not reached us. What you typed is still here. Check your connection and send it again.",
   },
   heading: "Send us a message",
   intro:
@@ -161,7 +174,6 @@ export const contactForm = {
   success: {
     title: "Message received",
     body: "Thanks - your message is with us and a person will come back to you at the email address you gave.",
-    note: "This site has no backend yet, so nothing was transmitted. The payload was written to the browser console instead.",
     resetLabel: "Send another message",
     backLabel: "Back to home",
   },

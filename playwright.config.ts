@@ -20,6 +20,10 @@ import { defineConfig, devices } from "@playwright/test";
  *             take none, so the case cannot happen there. Under CI=1 they
  *             are skipped - visibly, in the report - not dropped.
  *
+ * Tests tagged @db never run here. They need the local Supabase stack and
+ * a build pointed at it: playwright.db.config.ts, `npm run test:browser:db`.
+ * This suite's build has no database at all (scripts/build-without-database.mjs).
+ *
  * See tests/browser/README.md for what each spec covers.
  */
 const PORT = 3210;
@@ -38,7 +42,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [
-    { name: "headless", grepInvert: /@headed/, use: { headless: true } },
+    { name: "headless", grepInvert: /@headed|@db/, use: { headless: true } },
     { name: "headed", grep: /@headed/, use: { headless: false } },
   ],
   webServer: {

@@ -27,10 +27,15 @@ import { submitContact, type ContactPayload } from "../queries";
  *
  * Spam handling is a honeypot plus a minimum time on page, and both run only
  * AFTER validation passes, so a fast human filling the form correctly is
- * never silently dropped.
+ * never silently dropped. A submit they catch is told it was not sent and
+ * may be sent again - true for a person, and no signal to a script.
  *
- * submitContact() in features/contact/queries.ts is the single seam where the API gets
- * wired in later.
+ * `open` comes from the page, which asks the forms gate at build time
+ * (src/lib/supabase/forms-gate.ts). Closed, a valid submit says the form is
+ * not open and sends nothing. Open, it goes to submitContact() in
+ * ../queries.ts, the one place this form touches the database.
+ *
+ * Every outcome other than success keeps what was typed and takes focus.
  */
 
 type FieldKey = keyof typeof contactFields;
@@ -43,6 +48,12 @@ type FieldError = {
 };
 
 type Values = Record<FieldKey, string>;
+
+/** Why a submit did not get through, when it did not. */
+type Outcome =
+  | { kind: "unavailable" }
+  | { kind: "failed" }
+  | { kind: "rate_limited"; retryAfterSeconds: number | null };
 
 const initialValues: Values = {
   fullName: "",
@@ -104,17 +115,38 @@ function validate(values: Values): FieldError[] {
   return errors;
 }
 
-export function ContactForm() {
+function outcomeText(outcome: Outcome): string {
+  switch (outcome.kind) {
+    case "unavailable":
+      return contactForm.notOpen.afterSubmit;
+    case "rate_limited":
+      return contactForm.outcome.rateLimited(outcome.retryAfterSeconds);
+    case "failed":
+      return contactForm.outcome.failed;
+  }
+}
+
+export function ContactForm({ open }: { open: boolean }) {
   const [values, setValues] = useState<Values>(initialValues);
   const [errors, setErrors] = useState<FieldError[]>([]);
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "unavailable">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [honeypot, setHoneypot] = useState("");
   const [failedAttempts, setFailedAttempts] = useState(0);
+  /** Bumped on every outcome, so focus moves even when it repeats. */
+  const [outcomeCount, setOutcomeCount] = useState(0);
 
   const summaryRef = useRef<HTMLDivElement>(null);
   const successRef = useRef<HTMLDivElement>(null);
   const outcomeRef = useRef<HTMLParagraphElement>(null);
   const openedAt = useRef<number | null>(null);
+  /**
+   * One per submission, resent on every retry of it, so the database stores
+   * a retried message once (migration 9). Cleared by any edit: changed
+   * content is a new submission, and must not be dropped as a retry of the
+   * old one.
+   */
+  const submissionKey = useRef<string | null>(null);
 
   useEffect(() => {
     openedAt.current = Date.now();
@@ -126,11 +158,21 @@ export function ContactForm() {
 
   useEffect(() => {
     if (status === "sent") successRef.current?.focus();
-    if (status === "unavailable") outcomeRef.current?.focus();
   }, [status]);
 
-  const setValue = (key: FieldKey) => (value: string) =>
+  useEffect(() => {
+    if (outcomeCount > 0) outcomeRef.current?.focus();
+  }, [outcomeCount]);
+
+  const setValue = (key: FieldKey) => (value: string) => {
+    submissionKey.current = null;
     setValues((current) => ({ ...current, [key]: value }));
+  };
+
+  function showOutcome(next: Outcome) {
+    setOutcome(next);
+    setOutcomeCount((count) => count + 1);
+  }
 
   const errorFor = (key: FieldKey) =>
     errors.find((error) => error.key === key)?.message;
@@ -140,14 +182,21 @@ export function ContactForm() {
 
     const found = validate(values);
     if (found.length > 0) {
+      setOutcome(null);
       setErrors(found);
       setFailedAttempts((count) => count + 1);
       return;
     }
     setErrors([]);
 
-    // Both checks run only on an otherwise valid submission, and both fail
-    // closed into the outcome a person gets: a bot gets no signal it was caught.
+    if (!open) {
+      showOutcome({ kind: "unavailable" });
+      return;
+    }
+
+    // Both checks run only on an otherwise valid submission. A catch is
+    // answered as a failed send: true for a person, who can send it again,
+    // and no signal to a script that it was caught.
     const secondsOnPage = openedAt.current
       ? (Date.now() - openedAt.current) / 1000
       : 0;
@@ -155,12 +204,13 @@ export function ContactForm() {
       honeypot.trim() !== "" || secondsOnPage < contactForm.spam.minSubmitSeconds;
 
     if (looksAutomated) {
-      setStatus("unavailable");
+      showOutcome({ kind: "failed" });
       return;
     }
 
+    submissionKey.current ??= crypto.randomUUID();
     const payload: ContactPayload = {
-      submittedAt: new Date().toISOString(),
+      submissionKey: submissionKey.current,
       fullName: values.fullName.trim(),
       email: values.email.trim(),
       phone: values.phone.trim(),
@@ -170,8 +220,19 @@ export function ContactForm() {
     };
 
     setStatus("sending");
+    setOutcome(null);
     const result = await submitContact(payload);
-    setStatus(result.ok ? "sent" : "unavailable");
+    if (result.ok) {
+      submissionKey.current = null;
+      setStatus("sent");
+      return;
+    }
+    setStatus("idle");
+    showOutcome(
+      result.reason === "rate_limited"
+        ? { kind: "rate_limited", retryAfterSeconds: result.retryAfterSeconds }
+        : { kind: "failed" },
+    );
   }
 
   function handleReset() {
@@ -180,6 +241,8 @@ export function ContactForm() {
     setHoneypot("");
     setFailedAttempts(0);
     setStatus("idle");
+    setOutcome(null);
+    submissionKey.current = null;
     openedAt.current = Date.now();
     // Ids are owned by the content layer, so this cannot drift out of step.
     document.getElementById(contactFields.fullName.id)?.focus();
@@ -199,7 +262,6 @@ export function ContactForm() {
         <p className="mt-4 text-base text-ink-muted">
           {contactForm.success.body}
         </p>
-        <p className="mt-4 text-sm text-ink-muted">{contactForm.success.note}</p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Button onClick={handleReset}>{contactForm.success.resetLabel}</Button>
           <ButtonLink href="/" variant="secondary">
@@ -212,15 +274,15 @@ export function ContactForm() {
 
   return (
     <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-8">
-      {/* Not connected yet: say so, and keep what they typed. */}
-      {status === "unavailable" ? (
+      {/* Not sent, for whichever reason: say so, and keep what they typed. */}
+      {outcome ? (
         <p
           ref={outcomeRef}
           tabIndex={-1}
           role="status"
           className="rounded-lg border border-brand bg-brand-soft p-5 text-base text-ink"
         >
-          {contactForm.notOpen.afterSubmit}
+          {outcomeText(outcome)}
         </p>
       ) : null}
       {errors.length > 0 ? (

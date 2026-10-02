@@ -6,7 +6,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(30);
+select plan(31);
 
 -- -----------------------------------------------------------------------------
 -- Harness: submit a form as anon (or a signed-in user) from an address.
@@ -82,6 +82,8 @@ select is((select detail::json -> 'headers' ->> 'Retry-After' from tests.last_er
   'and a Retry-After of when the oldest counted submission leaves the window');
 select is((select message::json ->> 'message' from tests.last_error), 'Too many submissions. Please wait and try again.',
   'the message says nothing about which limit, or why');
+select is((select message::json ->> 'details' from tests.last_error), '3600',
+  'and the body repeats the wait in details, which a cross-origin page can read when it cannot read the header');
 select is((select count(*) from public.contact_messages where email like 'person%@limits.example.test'), 20::bigint,
   'the refused message was not stored');
 select is(tests.submit_as('anon', '198.51.100.2', tests.contact(22)), 'ok', 'another address is unaffected');

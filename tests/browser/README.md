@@ -1,14 +1,21 @@
 # Browser regression suite
 
 ```bash
-npm run test:browser          # build, then run everything
+npm run test:browser          # build with no database, then run everything not @db
 CI=1 npm run test:browser     # headless only; @headed tests are reported as skipped
+npm run test:browser:db       # the @db suite: needs `npm run db:start` first
 ```
 
-`test:browser` runs `next build` and then Playwright, which serves that
-build with `next start` on port 3210. It never runs against `next dev`.
-Chromium only. The first run on a machine needs the browser itself:
+`test:browser` builds and then runs Playwright, which serves that build
+with `next start` on port 3210. It never runs against `next dev`. Chromium
+only. The first run on a machine needs the browser itself:
 `npx playwright install chromium`.
+
+**Two builds, two suites.** `test:browser` builds with the Supabase
+connection blanked (`scripts/build-without-database.mjs`), whatever
+`.env.local` says, so it needs no stack and sees every wired form closed.
+`test:browser:db` builds with `.env.local`'s values, so the forms gate opens
+the wired forms against the local stack (`playwright.db.config.ts`).
 
 ## What runs where
 
@@ -17,6 +24,25 @@ Chromium only. The first run on a machine needs the browser itself:
 | (none) | yes | |
 | `@cdp` | yes, Chromium only | zoom and touch are driven through the Chrome DevTools Protocol |
 | `@headed` | **no**, skipped under `CI=1` | needs classic scrollbars that take layout width; the headless shell's are overlays that take none |
+| `@db` | **no**: only under `test:browser:db` | submits the wired forms to the local Supabase stack and reads back, as the service role, what was stored |
+
+## The wired forms
+
+| Path | No database (`site.spec.ts`) | `@db` (`forms.db.spec.ts`) |
+| --- | --- | --- |
+| Closed: notice, "nothing was sent", no request off the site, no storage named in the privacy policy | yes | |
+| Stored: confirmation focused; one row, `is_test`, with a submission key | | yes |
+| Validation error: summary focused, nothing sent | empty submit only | yes, and no request to the stack |
+| 429: the wait in minutes, focused, what was typed kept, nothing stored | | yes, against the real limiter |
+| A retry after a lost response: stored once | | yes |
+| The privacy policy names the storage | | yes |
+
+The 429 test fills one client address's hourly allowance and then submits
+from the same address. Locally nothing sets `cf-connecting-ip` (on hosted
+Supabase the edge does), so the test adds it to each request, from a fresh
+documentation-range IPv6 /64 per run. Every run also counts toward each
+form's global ceiling of 300 an hour; `npm run db:reset` clears the ledger
+if repeated runs ever reach it.
 
 The zoom test emulates zoom's effect on layout: a 1200px window at 150% is
 800 CSS px at a device scale factor of 1.5. Playwright cannot drive the

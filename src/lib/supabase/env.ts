@@ -46,6 +46,33 @@ export function readAppEnv(): AppEnv {
   );
 }
 
+// Whether the public forms are open, from what the build knows. The rule
+// itself; forms-gate.ts is the server-only caller that reads the inputs.
+// Kept here, alias-free and pure, so `npm test` can pin every branch.
+//
+//   not configured  closed, everywhere (no URL, or no anon key)
+//   local           open only against the local stack: a hosted URL with
+//                   APP_ENV unset is a deploy that forgot to say which one
+//                   it is, and it must not take real submissions on a guess
+//   staging         open
+//   production      open only once every release condition holds
+export function decideFormsOpen(input: {
+  appEnv: AppEnv;
+  url: string | undefined;
+  anonKey: string | undefined;
+  productionReleased: boolean;
+}): boolean {
+  if (!input.url || !input.anonKey) return false;
+  switch (input.appEnv) {
+    case "local":
+      return isLocalUrl(input.url);
+    case "staging":
+      return true;
+    case "production":
+      return input.productionReleased;
+  }
+}
+
 function isLocalUrl(url: string): boolean {
   return url.includes("localhost") || url.includes("127.0.0.1");
 }

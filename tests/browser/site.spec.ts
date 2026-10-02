@@ -1,4 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+import { contactFields, contactForm } from "@/content/contact";
 
 /**
  * Site-wide checks from the first browser pass that held, kept so they
@@ -70,3 +72,40 @@ for (const route of ["/contact", "/employers/request-talent", "/job-seekers/uplo
     expect(await page.locator('[aria-invalid="true"]').count()).toBeGreaterThan(0);
   });
 }
+
+// This suite's build has no database (scripts/build-without-database.mjs), so
+// the forms gate closes every wired form. What the @db suite proves open must
+// stay honestly closed here: the notice above the form, "nothing was sent"
+// after a valid submit, no request to anywhere but this site, and a privacy
+// policy that names no storage.
+function requestsOffSite(page: Page, baseURL: string): string[] {
+  const seen: string[] = [];
+  page.on("request", (req) => {
+    if (!req.url().startsWith(baseURL)) seen.push(req.url());
+  });
+  return seen;
+}
+
+test("/contact with no database: says it is not open, and a valid submit sends nothing", async ({ page, baseURL }) => {
+  const offSite = requestsOffSite(page, baseURL!);
+  await page.goto("/contact", { waitUntil: "networkidle" });
+  await expect(page.getByText(contactForm.notOpen.notice)).toBeVisible();
+
+  await page.locator(`#${contactFields.fullName.id}`).fill("Closed Form Person");
+  await page.locator(`#${contactFields.email.id}`).fill("closed-form@example.com");
+  await page.locator(`#${contactFields.enquiryType.id}-employer`).check();
+  await page.locator(`#${contactFields.subject.id}`).fill("Closed");
+  await page.locator(`#${contactFields.message.id}`).fill("Nothing should send this.");
+  await page.getByRole("button", { name: contactForm.submit.label }).click();
+
+  const outcome = page.getByRole("status");
+  await expect(outcome).toHaveText(contactForm.notOpen.afterSubmit);
+  await expect(outcome).toBeFocused();
+  await expect(page.locator(`#${contactFields.message.id}`)).toHaveValue("Nothing should send this.");
+  expect(offSite).toEqual([]);
+});
+
+test("/privacy-policy with no database: names no storage for the forms", async ({ page }) => {
+  await page.goto("/privacy-policy", { waitUntil: "networkidle" });
+  await expect(page.locator("main")).not.toContainText("Supabase");
+});

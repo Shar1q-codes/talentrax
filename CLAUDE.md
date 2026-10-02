@@ -250,24 +250,60 @@ early.
 
 The three forms - `/employers/request-talent`, `/job-seekers/upload-resume`
 and `/contact` - are the only client components on the site.
-None has a backend, and none claims otherwise. Each submits through one
-swappable function that logs its payload and returns `unavailable`. The page
-says the form is not open yet, above the form, and the form says nothing
-was sent after a submit: the account screens' pattern, with the same
-`NotOpenNotice` component and copy in each form's content file (`notOpen`).
-**The notice and the `unavailable` answer go in the commit that wires that
-form, and not a commit earlier.**
 
-| Form | Seam |
+| Form | Seam | State |
+| --- | --- | --- |
+| Contact | `submitContact()` in `src/features/contact/queries.ts` | **Wired**: inserts into `contact_messages` |
+| Request Talent | `submitRequisition()` in `src/features/employers/queries.ts` | Not wired: logs and returns `unavailable` |
+| Upload Resume | `submitApplication()` in `src/features/job-seekers/queries.ts` | Not wired: logs and returns `unavailable` |
+
+**An unwired form** submits through its seam, which logs the payload and
+returns `unavailable`. The page says the form is not open yet, above the
+form, and the form says nothing was sent after a submit: the account
+screens' pattern, with the same `NotOpenNotice` component and copy in each
+form's content file (`notOpen`). The resume upload is stubbed on purpose:
+the `File` rides in the payload, and the TODO spells out the presigned-URL
+upload it needs instead of a multipart POST.
+
+**A wired form follows the forms gate**, `publicFormsOpen()` in
+`src/lib/supabase/forms-gate.ts`, asked once at build time by the page.
+One answer drives three things, so they cannot disagree: the
+`NotOpenNotice` (shown when closed), whether a valid submit reaches the
+database (closed: "not open yet, nothing was sent", and no request leaves
+the browser), and the storage disclosure on `/privacy-policy` (shown when
+open). The rule is `decideFormsOpen()` in `src/lib/supabase/env.ts`,
+pinned by `npm test`:
+
+| Build | Wired forms |
 | --- | --- |
-| Request Talent | `submitRequisition()` in `src/features/employers/queries.ts` |
-| Upload Resume | `submitApplication()` in `src/features/job-seekers/queries.ts` |
-| Contact | `submitContact()` in `src/features/contact/queries.ts` |
+| no Supabase URL or anon key | closed |
+| `APP_ENV` unset, pointing at the local stack | open |
+| `APP_ENV` unset, pointing at a hosted project | **closed**: a deploy that forgot to say which one it is |
+| `APP_ENV=staging` | open |
+| `APP_ENV=production` | closed until every `PRODUCTION_RELEASE` condition holds |
 
-Wiring a real endpoint is a change to that one file, plus removing the
-notice. The resume upload is
-stubbed on purpose: the `File` rides in the payload, and the TODO spells out
-the presigned-URL upload it needs instead of a multipart POST.
+**`PRODUCTION_RELEASE` is a release gate, not dead code.** Its conditions:
+the privacy policy says where submissions are stored
+(`formStorage.location` in `content/legal.ts`, null until the hosted project
+exists), and `inboxStaffed`, set by hand once the staff inbox (build step 8)
+exists and a named staff account can sign in to it with a second factor.
+Each is flipped in the commit that makes it true, and not before.
+
+**What a visitor sees on a wired form**, every path:
+
+| Path | What happens |
+| --- | --- |
+| Stored | The confirmation panel, focused. Also what a retry of a stored submission and a submission held by the per-email limit get: the database stores nothing twice and never refuses on email |
+| Validation error | The error summary (`role="alert"`), focused, every problem linked to its control. Nothing is sent |
+| 429 | "Too many ... recently, so yours was not sent", with the wait in minutes from the 429's body (migration 12; a browser cannot read `Retry-After` cross-origin), focused. What was typed stays. Never says which limit |
+| Network failure, refused insert, outage | "Could not be sent, so it has not reached us", focused. What was typed stays. Sending again reuses the submission key, so a send that did land is not stored twice |
+| Caught by the honeypot or the minimum time | The same as a failure: true for a person, who can send it again, and no signal to a script |
+| Gate closed | The notice above the form, and "This form is not open yet. Nothing was sent." |
+
+**The submission key** is a UUID made on the first send, resent on every
+retry, and dropped by any edit to the form: changed content is a new
+submission, and must not be swallowed as a retry of the old one. A wired
+seam logs nothing.
 
 **Shared data.** `src/content/taxonomy.ts` holds the engagement models and
 the three desks. Both sections render them and both forms build their
@@ -1061,8 +1097,8 @@ future migration:
 - **The public forms are rate limited in the database, and a retry is never
   counted.** When a form is wired to the database, it sends a
   `submission_key`: generated once per submission, resent on every retry.
-  The three seams do not yet. A per-email limit holds, it never refuses: a refusal would
-  disclose that someone used the form. Thresholds live in `intake_limits`,
+  Contact does; the two unwired seams do not yet. A per-email limit holds,
+  it never refuses: a refusal would disclose that someone used the form. Thresholds live in `intake_limits`,
   never in code.
 
 `supabase/tests/database/` asserts all of it with pgTAP, including catalog
@@ -1183,6 +1219,16 @@ skips and reports; `tests/browser/README.md` says which is which. Run it
 before committing a change to the modal, the rail, the proxy or the
 header and drawer. `@playwright/test` is pinned exactly, because the
 browser binary it drives is versioned with it.
+
+**That suite builds with no database** (`scripts/build-without-database.mjs`
+blanks the two public Supabase values, which `.env.local` cannot then
+override), so it runs on a machine with no stack, and it is where each wired
+form's closed state is tested. **`npm run test:browser:db` is the `@db`
+suite** (`playwright.db.config.ts`): it builds with `.env.local`, needs
+`npm run db:start` first, submits the wired forms for real and reads back
+what the database stored. Neither suite runs the other's tests. Run the
+`@db` suite before committing a change to a wired form, its seam, the forms
+gate or the intake migrations.
 
 The `db:*` scripts wrap the Supabase CLI (a devDependency, so its version is
 pinned); `supabase/LOCAL.md` documents them. There is **no CI** in this

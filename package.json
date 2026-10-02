@@ -16,8 +16,9 @@
     "db:test": "supabase test db",
     "db:types": "supabase gen types typescript --local --schema public > src/lib/database.types.ts",
     "import:articles": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/import-articles.ts",
-    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/alias-hooks.mjs --test src/features/jobs/queries.test.ts src/features/jobs/job-posting-schema.test.ts src/features/articles/queries.test.ts src/features/articles/article-schema.test.ts src/lib/faq-schema.test.ts src/content/taxonomy.test.ts supabase/functions/storage-erasure-worker/drain.test.ts",
-    "test:browser": "npm run build && playwright test"
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/alias-hooks.mjs --test src/features/jobs/queries.test.ts src/features/jobs/job-posting-schema.test.ts src/features/articles/queries.test.ts src/features/articles/article-schema.test.ts src/lib/faq-schema.test.ts src/lib/supabase/env.test.ts src/lib/supabase/intake-result.test.ts src/content/taxonomy.test.ts supabase/functions/storage-erasure-worker/drain.test.ts",
+    "test:browser": "node scripts/build-without-database.mjs && playwright test",
+    "test:browser:db": "npm run build && playwright test --config playwright.db.config.ts"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",

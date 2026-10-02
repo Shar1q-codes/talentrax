@@ -23,6 +23,7 @@ No page, form or API route calls the client yet.
 | `migrations/20261001000900_intake_rate_limits.sql` | Rate limits on the three public forms |
 | `migrations/20261001001000_retention_floor_by_record.sql` | The retention floor per rule, from the kinds of record each covers |
 | `migrations/20261001001100_intake_review.sql` | Test versus real on the three intake tables, and whether a resume actually arrived |
+| `migrations/20261001001200_intake_retry_after_in_body.sql` | A refused form submission repeats its Retry-After in the body, where a cross-origin page can read it |
 | `functions/storage-erasure-worker/` | The Edge Function that deletes queued objects through the Storage API |
 | `rollback/*.down.sql` | Reverse of each migration, for local development only |
 | `tests/database/*.test.sql` | pgTAP: catalog-wide structural checks, then behaviour per role |

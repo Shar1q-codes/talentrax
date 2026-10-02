@@ -23,6 +23,7 @@
  * publicly reachable until it has been.
  */
 
+import { contactFields as contactFormFields } from "./contact";
 import {
   contactFields,
   roleFields,
@@ -77,6 +78,49 @@ const requisitionFormFields = [
   ...dataLabels(roleFields),
 ];
 
+const contactMessageFields = dataLabels(contactFormFields);
+
+/* ---------------------------------------------- Where submissions are kept */
+
+/**
+ * Where what the wired forms send is stored. The disclosure built from this
+ * appears on /privacy-policy exactly when the forms gate says the forms are
+ * open (src/lib/supabase/forms-gate.ts): the page says data goes to Supabase
+ * when, and only when, it does.
+ *
+ * Deliberately not called a "service provider" or "processor": that depends
+ * on the client signing Supabase's data processing agreement
+ * (CLIENT-CONFIRM.md item 2).
+ */
+export const formStorage = {
+  processor: "Supabase, Inc.",
+  /**
+   * Where the production project keeps its data, in plain words ("the
+   * United States, in Virginia"). Unknown until the hosted project is
+   * created and its region chosen. While null, the sentence that would
+   * carry it is absent (rule 6), and production keeps the forms closed:
+   * this is one of PRODUCTION_RELEASE's conditions.
+   */
+  location: null as string | null,
+  /** The wired forms, as the disclosure names them. Grows as each is wired. */
+  forms: ["the contact form"],
+};
+
+function formStorageDisclosure(): LegalBlock[] {
+  const forms = formStorage.forms.join(" or ");
+  const where =
+    formStorage.location === null
+      ? ""
+      : ` It is kept on Supabase's servers in ${formStorage.location}.`;
+  return [
+    {
+      kind: "paragraph",
+      id: "share-storage",
+      text: `What you send through ${forms} is stored by ${formStorage.processor}, the company that runs our database.${where}`,
+    },
+  ];
+}
+
 /** Accessible name and visible heading for the in-page contents nav. */
 export const legalContentsLabel = "On this page";
 
@@ -95,165 +139,184 @@ export const legalMeta = {
 
 /* ------------------------------------------------------- Privacy policy */
 
-export const privacyPolicy: LegalDocumentContent = {
-  eyebrow: "Legal",
-  heading: "Privacy policy",
-  intro: `This explains what ${site.name} collects through this website, why, who else sees it, and what you can tell us to do about it.`,
-  scopeNote:
-    "It covers this website and the two forms on it. It does not cover what an employer does with your information once a submission you agreed to has reached them - that is their policy, not ours.",
-  sections: [
-    {
-      id: "what-we-collect",
-      heading: "What we collect",
-      blocks: [
-        {
-          kind: "paragraph",
-          id: "collect-intro",
-          text: "Split by how it reached us. We collect nothing else through this site.",
-        },
-        {
-          kind: "list",
-          id: "collect-upload",
-          intro:
-            "When you upload a resume, the form asks you for the following. Everything except your LinkedIn profile and your message is required to submit it:",
-          items: uploadFormFields,
-        },
-        {
-          kind: "paragraph",
-          id: "collect-resume-file",
-          text: `We also receive the resume file itself, its filename and its size. Accepted formats are the ones the form states: ${resumeFile.constraintText}`,
-        },
-        {
-          kind: "paragraph",
-          id: "collect-no-eeo",
-          text: "The form does not ask for your race, gender, age, veteran status, disability or date of birth, and it does not ask which visa you hold. The work authorization question is a yes or no about sponsorship and nothing more. Do not send that information in the message box either - we do not want it attached to an application.",
-        },
-        {
-          kind: "list",
-          id: "collect-requisition",
-          intro:
-            "When you send us a requisition as an employer, the form asks for:",
-          items: requisitionFormFields,
-        },
-        {
-          kind: "paragraph",
-          id: "collect-visit",
-          text: "When you simply visit the site, this site collects nothing. It sets no cookies, stores nothing in your browser, runs no analytics, no advertising tags, no session recording and no chat widget, and loads no scripts, fonts or images from anyone else's servers. There is nothing to opt out of because there is nothing running.",
-        },
-        // OMITTED: what the hosting provider's server logs retain, and for how
-        // long. CLIENT-CONFIRM.md question 5.
-      ],
-    },
+/**
+ * The privacy policy, as this build stores data. `formsStored` is the forms
+ * gate's answer, passed in by the page: with it, the policy says where form
+ * submissions go; without it, nothing is sent anywhere and it says nothing.
+ */
+export function buildPrivacyPolicy({ formsStored }: { formsStored: boolean }): LegalDocumentContent {
+  return {
+    eyebrow: "Legal",
+    heading: "Privacy policy",
+    intro: `This explains what ${site.name} collects through this website, why, who else sees it, and what you can tell us to do about it.`,
+    scopeNote:
+      "It covers this website and the forms on it. It does not cover what an employer does with your information once a submission you agreed to has reached them - that is their policy, not ours.",
+    sections: [
+      {
+        id: "what-we-collect",
+        heading: "What we collect",
+        blocks: [
+          {
+            kind: "paragraph",
+            id: "collect-intro",
+            text: "Split by how it reached us. We collect nothing else through this site.",
+          },
+          {
+            kind: "list",
+            id: "collect-upload",
+            intro:
+              "When you upload a resume, the form asks you for the following. Everything except your LinkedIn profile and your message is required to submit it:",
+            items: uploadFormFields,
+          },
+          {
+            kind: "paragraph",
+            id: "collect-resume-file",
+            text: `We also receive the resume file itself, its filename and its size. Accepted formats are the ones the form states: ${resumeFile.constraintText}`,
+          },
+          {
+            kind: "paragraph",
+            id: "collect-no-eeo",
+            text: "The form does not ask for your race, gender, age, veteran status, disability or date of birth, and it does not ask which visa you hold. The work authorization question is a yes or no about sponsorship and nothing more. Do not send that information in the message box either - we do not want it attached to an application.",
+          },
+          {
+            kind: "list",
+            id: "collect-requisition",
+            intro:
+              "When you send us a requisition as an employer, the form asks for:",
+            items: requisitionFormFields,
+          },
+          {
+            kind: "list",
+            id: "collect-contact",
+            intro:
+              "When you send us a message through the contact form, it asks for:",
+            items: contactMessageFields,
+          },
+          {
+            kind: "paragraph",
+            id: "collect-visit",
+            text: "When you simply visit the site, this site collects nothing. It sets no cookies, stores nothing in your browser, runs no analytics, no advertising tags, no session recording and no chat widget, and loads no scripts, fonts or images from anyone else's servers. There is nothing to opt out of because there is nothing running.",
+          },
+          // OMITTED: what the hosting provider's server logs retain, and for how
+          // long. CLIENT-CONFIRM.md question 5.
+        ],
+      },
 
-    {
-      id: "why-we-collect-it",
-      heading: "Why we collect it and what we do with it",
-      blocks: [
-        {
-          kind: "paragraph",
-          id: "why-upload",
-          text: "A resume goes to the recruiter who works your discipline. They use it to judge whether the roles on that desk fit you, to contact you about them, and - once you have agreed to a submission - to represent you for that role.",
-        },
-        {
-          kind: "paragraph",
-          id: "why-requisition",
-          text: "A requisition goes to the desk that recruits the specialty you picked. We use it to reply to you, to scope the role, and to run the search.",
-        },
-        {
-          kind: "paragraph",
-          id: "why-not",
-          text: "We do not use any of it for advertising, and we run no advertising or analytics technology on this site to use it with.",
-        },
-        // OMITTED: whether the business sells or shares personal information
-        // for cross-context behavioural advertising. CLIENT-CONFIRM.md
-        // question 6. This is a mandatory disclosure under some US state
-        // laws; it is the lawyer's sentence to write, not ours to guess.
-      ],
-    },
+      {
+        id: "why-we-collect-it",
+        heading: "Why we collect it and what we do with it",
+        blocks: [
+          {
+            kind: "paragraph",
+            id: "why-upload",
+            text: "A resume goes to the recruiter who works your discipline. They use it to judge whether the roles on that desk fit you, to contact you about them, and - once you have agreed to a submission - to represent you for that role.",
+          },
+          {
+            kind: "paragraph",
+            id: "why-requisition",
+            text: "A requisition goes to the desk that recruits the specialty you picked. We use it to reply to you, to scope the role, and to run the search.",
+          },
+          {
+            kind: "paragraph",
+            id: "why-contact",
+            text: "A message through the contact form is read by a person, who uses it to reply to you.",
+          },
+          {
+            kind: "paragraph",
+            id: "why-not",
+            text: "We do not use any of it for advertising, and we run no advertising or analytics technology on this site to use it with.",
+          },
+          // OMITTED: whether the business sells or shares personal information
+          // for cross-context behavioural advertising. CLIENT-CONFIRM.md
+          // question 6. This is a mandatory disclosure under some US state
+          // laws; it is the lawyer's sentence to write, not ours to guess.
+        ],
+      },
 
-    {
-      id: "consent-and-choices",
-      heading: "Consent and your choices",
-      blocks: [
-        {
-          kind: "paragraph",
-          id: "consent-intro",
-          text: "The upload form has two consent boxes. They are separate on purpose, both start unchecked, and only the first one is required.",
-        },
-        {
-          kind: "paragraph",
-          id: "consent-required",
-          text: `Required: "${consentFields.storeAndContact.label}" Without it we cannot accept your resume, because storing it and contacting you is the whole of what we would be doing with it.`,
-        },
-        {
-          kind: "paragraph",
-          id: "consent-optional",
-          text: `Optional: "${consentFields.futureRoles.label}" Leave it unchecked and we will only contact you about the specialty and engagement types you selected on the form. Nothing about your application changes either way.`,
-        },
-        {
-          kind: "paragraph",
-          id: "consent-per-submission",
-          text: "Neither consent lets us send your resume to an employer. That is a separate decision each time: we describe the role, and your resume is sent only after you have agreed to that submission.",
-        },
-        {
-          kind: "paragraph",
-          id: "consent-withdraw",
-          text: "You can withdraw either consent at any time, and withdrawing the required one means we delete what we hold. You do not have to give a reason.",
-        },
-        // OMITTED: the address to send a withdrawal or deletion request to.
-        // CLIENT-CONFIRM.md question 3. Every contact detail in
-        // content/site.ts is still isPlaceholder: true.
-      ],
-    },
+      {
+        id: "consent-and-choices",
+        heading: "Consent and your choices",
+        blocks: [
+          {
+            kind: "paragraph",
+            id: "consent-intro",
+            text: "The upload form has two consent boxes. They are separate on purpose, both start unchecked, and only the first one is required.",
+          },
+          {
+            kind: "paragraph",
+            id: "consent-required",
+            text: `Required: "${consentFields.storeAndContact.label}" Without it we cannot accept your resume, because storing it and contacting you is the whole of what we would be doing with it.`,
+          },
+          {
+            kind: "paragraph",
+            id: "consent-optional",
+            text: `Optional: "${consentFields.futureRoles.label}" Leave it unchecked and we will only contact you about the specialty and engagement types you selected on the form. Nothing about your application changes either way.`,
+          },
+          {
+            kind: "paragraph",
+            id: "consent-per-submission",
+            text: "Neither consent lets us send your resume to an employer. That is a separate decision each time: we describe the role, and your resume is sent only after you have agreed to that submission.",
+          },
+          {
+            kind: "paragraph",
+            id: "consent-withdraw",
+            text: "You can withdraw either consent at any time, and withdrawing the required one means we delete what we hold. You do not have to give a reason.",
+          },
+          // OMITTED: the address to send a withdrawal or deletion request to.
+          // CLIENT-CONFIRM.md question 3. Every contact detail in
+          // content/site.ts is still isPlaceholder: true.
+        ],
+      },
 
-    {
-      id: "who-we-share-it-with",
-      heading: "Who we share it with",
-      blocks: [
-        {
-          kind: "paragraph",
-          id: "share-employers",
-          text: "Employers, one submission at a time, and only after you have agreed to that submission. We do not circulate resumes to a list of clients, and we do not submit the same person to the same employer through two routes.",
-        },
-        // OMITTED: the named service providers that process this data - the
-        // applicant tracking system, email provider, file storage and
-        // hosting. CLIENT-CONFIRM.md question 2. Naming them is required;
-        // guessing at them is worse than saying nothing.
-      ],
-    },
+      {
+        id: "who-we-share-it-with",
+        heading: "Who we share it with",
+        blocks: [
+          {
+            kind: "paragraph",
+            id: "share-employers",
+            text: "Employers, one submission at a time, and only after you have agreed to that submission. We do not circulate resumes to a list of clients, and we do not submit the same person to the same employer through two routes.",
+          },
+          ...(formsStored ? formStorageDisclosure() : []),
+          // OMITTED: the other named service providers that process this data
+          // - email provider and hosting. CLIENT-CONFIRM.md question 2. Naming
+          // them is required; guessing at them is worse than saying nothing.
+        ],
+      },
 
-    // OMITTED ENTIRELY: "How long we keep it". Retention periods are a client
-    // decision and nothing in this repo implies one. CLIENT-CONFIRM.md
-    // question 1. Rule 5: an empty section is not a section.
+      // OMITTED ENTIRELY: "How long we keep it". Retention periods are a client
+      // decision and nothing in this repo implies one. CLIENT-CONFIRM.md
+      // question 1. Rule 5: an empty section is not a section.
 
-    {
-      id: "your-rights",
-      heading: "Your rights",
-      blocks: [
-        {
-          kind: "list",
-          id: "rights-list",
-          intro: "Whatever else applies to you by law, these hold here:",
-          items: [
-            "You can ask what we hold about you, and we will tell you.",
-            "You can ask for a copy of it.",
-            "You can ask us to correct anything that is wrong.",
-            "You can ask us to delete it, and we will, without asking you to justify it.",
-            "You can ask which employers have received your resume and when we sent it.",
-            "You will not be treated any differently for asking for any of the above. Exercising these does not affect how we represent you.",
-          ],
-        },
-        // OMITTED: how to exercise them - the address, the inbox, who owns it,
-        // and how long a response takes. CLIENT-CONFIRM.md question 3.
-      ],
-    },
+      {
+        id: "your-rights",
+        heading: "Your rights",
+        blocks: [
+          {
+            kind: "list",
+            id: "rights-list",
+            intro: "Whatever else applies to you by law, these hold here:",
+            items: [
+              "You can ask what we hold about you, and we will tell you.",
+              "You can ask for a copy of it.",
+              "You can ask us to correct anything that is wrong.",
+              "You can ask us to delete it, and we will, without asking you to justify it.",
+              "You can ask which employers have received your resume and when we sent it.",
+              "You will not be treated any differently for asking for any of the above. Exercising these does not affect how we represent you.",
+            ],
+          },
+          // OMITTED: how to exercise them - the address, the inbox, who owns it,
+          // and how long a response takes. CLIENT-CONFIRM.md question 3.
+        ],
+      },
 
-    // OMITTED ENTIRELY: "How to contact us about your data". There is no
-    // confirmed address to publish, so the section has no content, so it is
-    // not here. CLIENT-CONFIRM.md question 3 - this is the most urgent one:
-    // rights nobody can exercise are not rights.
-  ],
-};
+      // OMITTED ENTIRELY: "How to contact us about your data". There is no
+      // confirmed address to publish, so the section has no content, so it is
+      // not here. CLIENT-CONFIRM.md question 3 - this is the most urgent one:
+      // rights nobody can exercise are not rights.
+    ],
+  };
+}
 
 /* ---------------------------------------------------------- Terms of use */
 
